@@ -29,6 +29,12 @@ class MainTest extends \PHPUnit_Framework_TestCase
 
         foreach ($collection as $collectionResult) {
             $this->assertInstanceOf(Result::class, $collectionResult, '$collectionResult should be an instance of '.Result::class);
+            $this->assertInternalType('string', $collectionResult->get('Name'), '$collectionResult->get() should return a string');
         }
+
+        $singleResult = $collection->findOneBy('Name', 'Kabul');
+
+        $this->assertInstanceOf(Result::class, $singleResult, 'Collection::findOneBy should return an instance of '.Result::class);
+        $this->assertEquals('Kabul', $singleResult->get('Name'), '$singleResult::get(Name) should return Kabul');
     }
 }
