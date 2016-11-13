@@ -8,6 +8,10 @@ use BlueDot\Exception\ConfigurationException;
 class Statement implements ConfigurationInterface
 {
     /**
+     * @var string $type
+     */
+    private $type;
+    /**
      * @var string $name
      */
     private $name;
@@ -23,13 +27,14 @@ class Statement implements ConfigurationInterface
      * @param string $name
      * @param string $statement
      * @param array $parameters
+     * @param string $type
      */
-    public function __construct(string $name, string $statement, array $parameters = array())
+    public function __construct(string $type, string $name, string $statement, array $parameters = array())
     {
+        $this->type = $type;
         $this->name = $name;
         $this->statement = $statement;
         $this->parameters = $parameters;
-
     }
     /**
      * @return string
@@ -51,5 +56,12 @@ class Statement implements ConfigurationInterface
     public function getParameters() : array
     {
         return $this->parameters;
+    }
+    /**
+     * @return string
+     */
+    public function getType() : string
+    {
+        return $this->type;
     }
 }

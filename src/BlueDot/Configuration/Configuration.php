@@ -44,8 +44,6 @@ class Configuration
         }
 
         if (array_key_exists('simple', $configuration)) {
-            $simples = $configuration['simple'];
-
             $this->simples = StatementFactory::createSimpleStatements($configuration['simple']);
         }
     }
@@ -61,7 +59,7 @@ class Configuration
             }
         }
 
-        return null;
+        throw new ConfigurationException('Query with name '.$name.' has not been found in the configuration. This could be an internal error so please contact the creator of this tool at whitepostmail@gmail.com');
     }
     /**
      * @return string

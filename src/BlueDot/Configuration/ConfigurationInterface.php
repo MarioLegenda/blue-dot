@@ -16,4 +16,8 @@ interface ConfigurationInterface
      * @return string
      */
     public function getParameters() : array;
+    /**
+     * @return string
+     */
+    public function getType() : string;
 }

@@ -5,6 +5,7 @@ namespace BlueDot\Database;
 use BlueDot\Configuration\ConfigurationInterface;
 use BlueDot\Exception\QueryException;
 use BlueDot\Result\Result;
+use BlueDot\Result\ResultCollection;
 
 class SimpleStatementExecution
 {
@@ -49,10 +50,20 @@ class SimpleStatementExecution
 
         $stmt->execute();
 
-        $result = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        if ($this->configuration->getType() === 'select') {
+            $result = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
-        if (count($result) === 1) {
-            return new Result($result[0]);
+            if (count($result) === 1) {
+                return new Result($result[0]);
+            }
+
+            $resultCollection = new ResultCollection();
+
+            foreach ($result as $res) {
+                $resultCollection->add(new Result($res));
+            }
+
+            return $resultCollection;
         }
     }
 }

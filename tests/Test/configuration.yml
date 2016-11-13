@@ -12,3 +12,5 @@ configuration:
             single_city:
                 sql: "SELECT * FROM city WHERE Name = :name AND CountryCode = :country_code"
                 parameters: [name, country_code]
+            entire_world:
+                sql: "SELECT * FROM city"

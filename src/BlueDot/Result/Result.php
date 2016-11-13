@@ -2,7 +2,7 @@
 
 namespace BlueDot\Result;
 
-class Result
+class Result implements ResultInterface
 {
     /**
      * @var array $values

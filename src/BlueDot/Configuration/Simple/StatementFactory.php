@@ -10,34 +10,33 @@ class StatementFactory
     {
         $createdSimples = array();
 
-        foreach ($simples as $simpleType => $statement) {
-            $keys = array_keys($statement);
+        $validTypes = array('select', 'insert', 'update', 'delete');
+        $statementTypes = array_keys($simples);
 
-            if (empty($keys)) {
-                throw new ConfigurationException('If provided, \'select\' should have the name as the first entry and optional \'parameters\' as the last entry in the configuration');
+        foreach ($statementTypes as $statementType) {
+            if (in_array($statementType, $validTypes) === false) {
+                throw new ConfigurationException('Invalid query type. Valid types are '.implode(', ', $validTypes));
             }
+        }
 
-            if (!isset($keys[0])) {
-                throw new ConfigurationException('If provided, \'select\' should have the name as the first entry and optional \'parameters\' as the last entry in the configuration');
-            }
+        foreach ($simples as $simpleType => $statements) {
+            foreach ($statements as $statementName => $statement) {
+                $parameters = array();
 
-            $name = $keys[0];
-            $values = $statement[$name];
-            $parameters = array();
-
-            if (!array_key_exists('sql', $values)) {
-                throw new ConfigurationException('No SQL statement found in configuration under \'sql\'');
-            }
-
-            if (array_key_exists('parameters', $values)) {
-                if (!is_array($values['parameters'])) {
-                    throw new ConfigurationException('Invalid configuration. If provided, \'parameters\' should be an array');
+                if (!array_key_exists('sql', $statement)) {
+                    throw new ConfigurationException('No SQL statement found in configuration under \'sql\'');
                 }
 
-                $parameters = $values['parameters'];
-            }
+                if (array_key_exists('parameters', $statement)) {
+                    if (!is_array($statement['parameters'])) {
+                        throw new ConfigurationException('Invalid configuration. If provided, \'parameters\' should be an array');
+                    }
 
-            $createdSimples[] = new Statement($name, $values['sql'], $parameters);
+                    $parameters = $statement['parameters'];
+                }
+
+                $createdSimples[] = new Statement($simpleType, $statementName, $statement['sql'], $parameters);
+            }
         }
 
         return $createdSimples;
