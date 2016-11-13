@@ -53,6 +53,22 @@ class Configuration
      */
     public function findSimpleByName(string $name)
     {
+        $exploded = explode('.', $name);
+
+        if (count($exploded) === 2) {
+            $statementType = $exploded[0];
+            $name = $exploded[1];
+            foreach ($this->simples as $simple) {
+                if ($simple->getType() === $statementType) {
+                    if ($simple->getName() === $name) {
+                        return $simple;
+                    }
+                }
+            }
+
+            throw new ConfigurationException('Query with name '.$name.' has not been found in the configuration under '.$statementType.' statement type. This could be an internal error so please contact the creator of this tool at whitepostmail@gmail.com');
+        }
+
         foreach ($this->simples as $simple) {
             if ($simple->getName() === $name) {
                 return $simple;

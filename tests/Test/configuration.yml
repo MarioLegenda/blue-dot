@@ -14,3 +14,8 @@ configuration:
                 parameters: [name, country_code]
             entire_world:
                 sql: "SELECT * FROM city"
+
+        insert:
+            single_city:
+                sql: "INSERT INTO village (name) VALUES (:name)"
+                parameters: [name]

@@ -88,8 +88,7 @@ final class BlueDot implements BlueDotInterface
         $this->connection = new \PDO('mysql:host='.$host.';dbname='.$dbName, $user, $password, array(
             \PDO::ATTR_PERSISTENT => true,
             \PDO::ERRMODE_EXCEPTION => true,
+            \PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8',
         ));
-
-        $this->connection->exec("set names utf8");
     }
 }

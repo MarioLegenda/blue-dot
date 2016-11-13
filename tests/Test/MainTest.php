@@ -36,5 +36,9 @@ class MainTest extends \PHPUnit_Framework_TestCase
 
         $this->assertInstanceOf(Result::class, $singleResult, 'Collection::findOneBy should return an instance of '.Result::class);
         $this->assertEquals('Kabul', $singleResult->get('Name'), '$singleResult::get(Name) should return Kabul');
+
+        $blueDot->executeSimple('insert.single_city', array(
+            'name' => 'Bišoljevo',
+        ));
     }
 }
