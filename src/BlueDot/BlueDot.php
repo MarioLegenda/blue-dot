@@ -3,6 +3,7 @@
 namespace BlueDot;
 
 use BlueDot\Configuration\Configuration;
+use BlueDot\Database\SimpleStatementExecution;
 use Symfony\Component\Yaml\Yaml;
 use BlueDot\Exception\ConfigurationException;
 
@@ -49,7 +50,13 @@ final class BlueDot implements BlueDotInterface
     {
         $this->establishConnection($this->configuration);
 
+        $execution = new SimpleStatementExecution(
+            $this->connection,
+            $this->configuration->findSimpleByName($name),
+            $parameters
+        );
 
+        return $execution->execute();
     }
     /**
      * @param \PDO $connection

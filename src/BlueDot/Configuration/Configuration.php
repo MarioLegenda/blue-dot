@@ -3,6 +3,7 @@
 namespace BlueDot\Configuration;
 
 use BlueDot\Configuration\Simple\SimpleSelect;
+use BlueDot\Configuration\Simple\StatementFactory;
 use BlueDot\Exception\ConfigurationException;
 
 class Configuration
@@ -43,10 +44,24 @@ class Configuration
         }
 
         if (array_key_exists('simple', $configuration)) {
-            if (array_key_exists('select', $configuration['simple'])) {
-                $this->simples[] = new SimpleSelect($configuration['simple']['select']);
+            $simples = $configuration['simple'];
+
+            $this->simples = StatementFactory::createSimpleStatements($configuration['simple']);
+        }
+    }
+    /**
+     * @param string $name
+     * @return mixed
+     */
+    public function findSimpleByName(string $name)
+    {
+        foreach ($this->simples as $simple) {
+            if ($simple->getName() === $name) {
+                return $simple;
             }
         }
+
+        return null;
     }
     /**
      * @return string

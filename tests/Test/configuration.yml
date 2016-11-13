@@ -9,5 +9,6 @@ configuration:
         # if simple is provided, optional
         select:
             # if select if provided, mandatory
-            entire_world: "SELECT * FROM city WHERE Name = :name AND CountryCode = :country_code"
-            parameters: [name, country_code]
+            single_city:
+                sql: "SELECT * FROM city WHERE Name = :name AND CountryCode = :country_code"
+                parameters: [name, country_code]
