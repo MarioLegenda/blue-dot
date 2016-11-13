@@ -39,8 +39,6 @@ final class BlueDot implements BlueDotInterface
         }
 
         $this->configuration = new Configuration($parsedConfiguration);
-
-        //$dbh = new \PDO('mysql:host=localhost;dbname=world', 'mario', $pass);
     }
     /**
      * @param string $name
@@ -80,6 +78,11 @@ final class BlueDot implements BlueDotInterface
         $user = $dsn['user'];
         $password = $dsn['password'];
 
-        $this->connection = new \PDO('mysql:host='.$host.';dbname='.$dbName, $user, $password);
+        $this->connection = new \PDO('mysql:host='.$host.';dbname='.$dbName, $user, $password, array(
+            \PDO::ATTR_PERSISTENT => true,
+            \PDO::ERRMODE_EXCEPTION => true,
+        ));
+
+        $this->connection->exec("set names utf8");
     }
 }
