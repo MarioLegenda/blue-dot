@@ -1,0 +1,13 @@
+configuration:
+    connection:
+        host: localhost
+        database_name: world
+        user: 'root'
+        password: ''
+    # optional
+    simple:
+        # if simple is provided, optional
+        select:
+            # if select if provided, mandatory
+            entire_world: "SELECT * FROM city WHERE Name = :name AND CountryCode = :country_code"
+            parameters: [name, country_code]
