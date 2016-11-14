@@ -47,7 +47,7 @@ class MainTest extends \PHPUnit_Framework_TestCase
             ->add('name', 'Mirkovci')
             ->add('name', 'Èokadinci')
             ->add('name', 'Harkanovci');
-        
+
         $blueDot->executeSimple('insert.single_village', $parametersCollection);
 
         $blueDot->executeSimple('update.single_city', array(
