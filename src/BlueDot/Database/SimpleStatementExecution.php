@@ -26,29 +26,36 @@ class SimpleStatementExecution
      * @param ConfigurationInterface $configuration
      * @param array $parameters
      */
-    public function __construct(\PDO $connection, ConfigurationInterface $configuration, array $parameters = null)
+    public function __construct(\PDO $connection, ConfigurationInterface $configuration, $parameters = null)
     {
         $this->connection = $connection;
         $this->configuration = $configuration;
-        $this->parameters = $parameters;
+
+        if ($parameters !== null) {
+            $configParamters = $this->configuration->getParameters();
+
+            $givenParameters = ($parameters instanceof ParameterCollectionInterface) ? $parameters->getBindingKeys() : array_keys($parameters);
+
+            if (!empty(array_diff($configParamters, $givenParameters))) {
+                throw new QueryException('Given parameters and parameters in configuration are not equal for '.$this->configuration->getType().'.'.$this->configuration->getName());
+            }
+
+            if ($parameters instanceof ParameterCollectionInterface) {
+                $this->parameters = $parameters->toArray();
+            } else {
+                $this->parameters = array($parameters);
+            }
+        }
     }
 
     public function execute()
     {
         $stmt = $this->connection->prepare($this->configuration->getStatement());
 
-        $configParamters = $this->configuration->getParameters();
-        $givenParameters = array_keys($this->parameters);
 
-        if (!empty(array_diff($configParamters, $givenParameters))) {
-            throw new QueryException('Given parameters and parameters in configuration are not equal');
+        foreach ($this->parameters as $parameter) {
+            $stmt->execute($parameter);
         }
-
-        foreach ($this->parameters as $key => $parameter) {
-            $stmt->bindValue(':'.$key, $parameter);
-        }
-
-        $stmt->execute();
 
         if ($this->configuration->getType() === 'select') {
             $result = $stmt->fetchAll(\PDO::FETCH_ASSOC);

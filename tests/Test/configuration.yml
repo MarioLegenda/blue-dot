@@ -16,7 +16,7 @@ configuration:
                 sql: "SELECT * FROM city"
 
         insert:
-            single_city:
+            single_village:
                 sql: "INSERT INTO village (name) VALUES (:name)"
                 parameters: [name]
 
@@ -29,3 +29,14 @@ configuration:
             single_city:
                 sql: "DELETE FROM village WHERE id = :id"
                 parameters: [id]
+#
+#    compound:
+#        insert_user:
+#            atomic: true
+#            insert_user:
+#                sql: "INSERT INTO user (name, lastname) VALUES (:name, :lastname)
+#            insert_address:
+#                sql: "INSERT INTO address (user_id, city, address) VALUES (:user_id, :city, :address)
+#                foreign_key:
+#                    statement_name: insert_user
+#                    bind_to: [user_id]

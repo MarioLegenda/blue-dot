@@ -11,7 +11,7 @@ class Result implements ResultInterface
     /**
      * @param array $values
      */
-    public function __construct(array $values)
+    public function __construct(array $values = array())
     {
         $this->values = $values;
     }
@@ -26,5 +26,23 @@ class Result implements ResultInterface
         }
 
         return null;
+    }
+    /**
+     * @param string $columnName
+     * @param $columnValue
+     * @return $this
+     */
+    public function set(string $columnName, $columnValue) : ResultInterface
+    {
+        $this->values[$columnName] = $columnValue;
+
+        return $this;
+    }
+    /**
+     * @return array
+     */
+    public function toArray() : array
+    {
+        return $this->values;
     }
 }

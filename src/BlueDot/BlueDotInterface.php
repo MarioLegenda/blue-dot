@@ -8,5 +8,5 @@ interface BlueDotInterface
      * @param string $name
      * @param array $parameters
      */
-    public function executeSimple(string $name, array $parameters = array());
+    public function executeSimple(string $name, $parameters = null);
 }

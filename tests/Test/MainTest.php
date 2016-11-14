@@ -5,6 +5,7 @@ namespace Test;
 require __DIR__.'/../../vendor/autoload.php';
 
 use BlueDot\BlueDot;
+use BlueDot\Database\ParameterCollection;
 use BlueDot\Result\Result;
 use BlueDot\Result\ResultCollection;
 
@@ -37,12 +38,18 @@ class MainTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf(Result::class, $singleResult, 'Collection::findOneBy should return an instance of '.Result::class);
         $this->assertEquals('Kabul', $singleResult->get('Name'), '$singleResult::get(Name) should return Kabul');
 
-        $blueDot->executeSimple('insert.single_city', array(
+        $blueDot->executeSimple('insert.single_village', array(
             'name' => 'Jarmina',
         ));
 
+        $parametersCollection = new ParameterCollection();
+        $parametersCollection->add(array('name' => 'Mirkovci'));
+        $parametersCollection->add(array('name' => 'Cokadinci'));
+        $parametersCollection->add(array('name' => 'Harkanovci'));
+        $blueDot->executeSimple('insert.single_village', $parametersCollection);
+
         $blueDot->executeSimple('update.single_city', array(
-            'id' => 6,
+            'id' => 1,
             'update_name' => 'Mislovarovci',
         ));
 

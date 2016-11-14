@@ -3,7 +3,10 @@
 namespace BlueDot;
 
 use BlueDot\Configuration\Configuration;
+use BlueDot\Database\ParameterCollectionInterface;
 use BlueDot\Database\SimpleStatementExecution;
+use BlueDot\Exception\QueryException;
+use BlueDot\Result\ResultInterface;
 use Symfony\Component\Yaml\Yaml;
 use BlueDot\Exception\ConfigurationException;
 
@@ -46,14 +49,18 @@ final class BlueDot implements BlueDotInterface
      * @param array $parameters
      * @return BlueDotInterface
      */
-    public function executeSimple(string $name, array $parameters = array())
+    public function executeSimple(string $name, $parameters = array())
     {
         $this->establishConnection($this->configuration);
+
+        if (!$parameters instanceof ResultInterface and !is_array($parameters) and !$parameters instanceof ParameterCollectionInterface) {
+            throw new QueryException('Invalid argument. If provided, parameters can be an instance of '.ResultInterface::class.', an instance of '.ParameterCollectionInterface::class.' or an array');
+        }
 
         $execution = new SimpleStatementExecution(
             $this->connection,
             $this->configuration->findSimpleByName($name),
-            $parameters
+            ($parameters instanceof ResultInterface) ? $parameters->toArray() : $parameters
         );
 
         return $execution->execute();
