@@ -17,6 +17,10 @@ class Configuration
      */
     private $simples = array();
     /**
+     * @var array $compounds
+     */
+    private $compounds = array();
+    /**
      * @constructor
      * @param array $configuration
      * @throws ConfigurationException
@@ -45,6 +49,10 @@ class Configuration
 
         if (array_key_exists('simple', $configuration)) {
             $this->simples = StatementFactory::createSimpleStatements($configuration['simple']);
+        }
+
+        if (array_key_exists('compound', $configuration)) {
+            $this->compounds = StatementFactory::createCompoundStatements($configuration['compound']);
         }
     }
     /**

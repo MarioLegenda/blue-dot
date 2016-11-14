@@ -29,14 +29,24 @@ configuration:
             single_city:
                 sql: "DELETE FROM village WHERE id = :id"
                 parameters: [id]
-#
-#    compound:
-#        insert_user:
-#            atomic: true
-#            insert_user:
-#                sql: "INSERT INTO user (name, lastname) VALUES (:name, :lastname)
-#            insert_address:
-#                sql: "INSERT INTO address (user_id, city, address) VALUES (:user_id, :city, :address)
-#                foreign_key:
-#                    statement_name: insert_user
-#                    bind_to: [user_id]
+
+    compound:
+        insert_user:
+            atomic: true
+            # a statement can have a use clause where can be specified what values should be user from
+            # other already executed statements. Statements under use have to be executed before
+            # the statement that uses the use clause.
+            select_user:
+                sql: "SELECT * FROM user WHERE id = :id"
+                parameters: [id]
+            insert_user:
+                sql: "INSERT INTO user (name, lastname) VALUES (:name, :lastname)"
+                use:
+                    name: select_user
+                    values: [name, lastname]
+            insert_address:
+                sql: "INSERT INTO address (user_id, city, address) VALUES (:user_id, :city, :address)"
+                foreign_key:
+                    statement_name: insert_user
+                    bind_to: {user_id: "user_id"}
+            #order: [select_user, insert_user, insert_address]
