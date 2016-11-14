@@ -12,9 +12,9 @@ class ParameterCollection implements ParameterCollectionInterface, \IteratorAggr
      * @param array $parameter
      * @return $this
      */
-    public function add(array $parameter) : ParameterCollectionInterface
+    public function add(string $name, $value) : ParameterCollectionInterface
     {
-        $this->parameters[] = new Parameters($parameter);
+        $this->parameters[] = new Parameters(array($name => $value));
 
         return $this;
     }
