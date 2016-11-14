@@ -19,3 +19,13 @@ configuration:
             single_city:
                 sql: "INSERT INTO village (name) VALUES (:name)"
                 parameters: [name]
+
+        update:
+            single_city:
+                sql: "UPDATE village SET name = :update_name WHERE id = :id"
+                parameters: [update_name, id]
+
+        delete:
+            single_city:
+                sql: "DELETE FROM village WHERE id = :id"
+                parameters: [id]

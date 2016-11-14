@@ -38,7 +38,16 @@ class MainTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('Kabul', $singleResult->get('Name'), '$singleResult::get(Name) should return Kabul');
 
         $blueDot->executeSimple('insert.single_city', array(
-            'name' => 'Bišoljevo',
+            'name' => 'Jarmina',
+        ));
+
+        $blueDot->executeSimple('update.single_city', array(
+            'id' => 6,
+            'update_name' => 'Mislovarovci',
+        ));
+
+        $blueDot->executeSimple('delete.single_city', array(
+            'id' => 6,
         ));
     }
 }
