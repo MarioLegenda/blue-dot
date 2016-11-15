@@ -3,9 +3,8 @@
 namespace BlueDot\Configuration\Simple;
 
 use BlueDot\Configuration\ConfigurationInterface;
-use BlueDot\Exception\ConfigurationException;
 
-class Statement implements ConfigurationInterface
+class SimpleStatement implements ConfigurationInterface
 {
     /**
      * @var string $type

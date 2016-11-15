@@ -1,6 +1,6 @@
 <?php
 
-namespace BlueDot\Configuration\Simple;
+namespace BlueDot;
 
 use BlueDot\Configuration\Compound\ForeginKey;
 use BlueDot\Exception\ConfigurationException;
@@ -8,6 +8,7 @@ use BlueDot\Exception\ConfigurationException;
 use BlueDot\Configuration\Compound\CompoundStatement;
 use BlueDot\Configuration\Compound\CompoundStatementCollection;
 use BlueDot\Configuration\Compound\UseOption;
+use BlueDot\Configuration\Simple\SimpleStatement;
 
 class StatementFactory
 {
@@ -40,7 +41,7 @@ class StatementFactory
                     $parameters = $statement['parameters'];
                 }
 
-                $createdSimples[] = new Statement($simpleType, $statementName, $statement['sql'], $parameters);
+                $createdSimples[] = new SimpleStatement($simpleType, $statementName, $statement['sql'], $parameters);
             }
         }
 
