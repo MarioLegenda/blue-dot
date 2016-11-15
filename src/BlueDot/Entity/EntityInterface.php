@@ -1,8 +1,8 @@
 <?php
 
-namespace BlueDot\Result;
+namespace BlueDot\Entity;
 
-interface ResultInterface
+interface EntityInterface
 {
     /**
      * @param string $name
@@ -14,7 +14,7 @@ interface ResultInterface
      * @param $columnValue
      * @return mixed
      */
-    public function set(string $columnName, $columnValue) : ResultInterface;
+    public function set(string $columnName, $columnValue) : EntityInterface;
     /**
      * @return array
      */

@@ -1,4 +1,5 @@
 configuration:
+    tables: [city, village, user, address]
     connection:
         host: localhost
         database_name: world

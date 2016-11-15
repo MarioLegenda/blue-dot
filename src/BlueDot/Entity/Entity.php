@@ -1,8 +1,8 @@
 <?php
 
-namespace BlueDot\Result;
+namespace BlueDot\Entity;
 
-class Result implements ResultInterface
+class Entity implements EntityInterface
 {
     /**
      * @var array $values
@@ -29,10 +29,10 @@ class Result implements ResultInterface
     }
     /**
      * @param string $columnName
-     * @param $columnValue
+     * @param mixed $columnValue
      * @return $this
      */
-    public function set(string $columnName, $columnValue) : ResultInterface
+    public function set(string $columnName, $columnValue) : EntityInterface
     {
         $this->values[$columnName] = $columnValue;
 

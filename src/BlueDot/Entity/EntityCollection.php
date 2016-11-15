@@ -1,20 +1,20 @@
 <?php
 
-namespace BlueDot\Result;
+namespace BlueDot\Entity;
 
 use BlueDot\Exception\QueryException;
 
-class ResultCollection implements \IteratorAggregate
+class EntityCollection implements \IteratorAggregate
 {
     /**
      * @var array $collection
      */
     private $collection = array();
     /**
-     * @param ResultInterface $result
+     * @param EntityInterface $result
      * @return $this
      */
-    public function add(ResultInterface $result) : ResultCollection
+    public function add(EntityInterface $result) : EntityCollection
     {
         $this->collection[] = $result;
 

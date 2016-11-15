@@ -6,8 +6,8 @@ require __DIR__.'/../../vendor/autoload.php';
 
 use BlueDot\BlueDot;
 use BlueDot\Database\ParameterCollection;
-use BlueDot\Result\Result;
-use BlueDot\Result\ResultCollection;
+use BlueDot\Entity\Entity;
+use BlueDot\Entity\EntityCollection;
 
 class MainTest extends \PHPUnit_Framework_TestCase
 {
@@ -20,22 +20,22 @@ class MainTest extends \PHPUnit_Framework_TestCase
             'country_code' => 'AFG',
         ));
 
-        $this->assertInstanceOf(Result::class, $result, '$result should be an instance of '.Result::class);
+        $this->assertInstanceOf(Entity::class, $result, '$result should be an instance of '.Entity::class);
 
         $this->assertEquals('Kabul', $result->get('Name'), 'Expected Kabul as result');
 
         $collection = $blueDot->executeSimple('entire_world');
 
-        $this->assertInstanceOf(ResultCollection::class, $collection, '$collection should be an instance of '.ResultCollection::class);
+        $this->assertInstanceOf(EntityCollection::class, $collection, '$collection should be an instance of '.EntityCollection::class);
 
         foreach ($collection as $collectionResult) {
-            $this->assertInstanceOf(Result::class, $collectionResult, '$collectionResult should be an instance of '.Result::class);
+            $this->assertInstanceOf(Entity::class, $collectionResult, '$collectionResult should be an instance of '.Entity::class);
             $this->assertInternalType('string', $collectionResult->get('Name'), '$collectionResult->get() should return a string');
         }
 
         $singleResult = $collection->findOneBy('Name', 'Kabul');
 
-        $this->assertInstanceOf(Result::class, $singleResult, 'Collection::findOneBy should return an instance of '.Result::class);
+        $this->assertInstanceOf(Entity::class, $singleResult, 'Collection::findOneBy should return an instance of '.Entity::class);
         $this->assertEquals('Kabul', $singleResult->get('Name'), '$singleResult::get(Name) should return Kabul');
 
         $blueDot->executeSimple('insert.single_village', array(

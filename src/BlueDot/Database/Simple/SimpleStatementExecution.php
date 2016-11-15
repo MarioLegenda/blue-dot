@@ -5,8 +5,8 @@ namespace BlueDot\Database\Simple;
 use BlueDot\Cache\Report;
 use BlueDot\Configuration\ConfigurationInterface;
 use BlueDot\Configuration\MainConfiguration;
-use BlueDot\Result\Result;
-use BlueDot\Result\ResultCollection;
+use BlueDot\Entity\EntityCollection;
+use BlueDot\Entity\Entity;
 
 class SimpleStatementExecution
 {
@@ -27,6 +27,10 @@ class SimpleStatementExecution
      */
     private $parameters;
     /**
+     * @var Report $report
+     */
+    private $report;
+    /**
      * @param string $name
      * @param \PDO $connection
      * @param MainConfiguration $configuration
@@ -39,9 +43,10 @@ class SimpleStatementExecution
         $this->mainConfiguration = $configuration;
         $this->specificConfiguration = $this->mainConfiguration->findSimpleByName($name);
         $this->parameters = $parameters;
+        $this->report = $report;
     }
     /**
-     * @return Result|ResultCollection
+     * @return Entity|EntityCollection
      */
     public function execute()
     {
@@ -64,13 +69,13 @@ class SimpleStatementExecution
             $result = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
             if (count($result) === 1) {
-                return new Result($result[0]);
+                return new Entity($result[0]);
             }
 
-            $resultCollection = new ResultCollection();
+            $resultCollection = new EntityCollection();
 
             foreach ($result as $res) {
-                $resultCollection->add(new Result($res));
+                $resultCollection->add(new Entity($res));
             }
 
             return $resultCollection;
