@@ -6,7 +6,7 @@ use BlueDot\Configuration\MainConfiguration;
 use BlueDot\Database\ParameterCollectionInterface;
 use BlueDot\Database\Simple\SimpleStatementExecution;
 use BlueDot\Exception\QueryException;
-use BlueDot\Result\ResultInterface;
+use BlueDot\Entity\EntityInterface;
 use Symfony\Component\Yaml\Yaml;
 use BlueDot\Exception\ConfigurationException;
 use BlueDot\Cache\Report;
@@ -60,8 +60,8 @@ final class BlueDot implements BlueDotInterface
     {
         $this->establishConnection($this->configuration);
 
-        if (!$parameters instanceof ResultInterface and !is_array($parameters) and !$parameters instanceof ParameterCollectionInterface) {
-            throw new QueryException('Invalid argument. If provided, parameters can be an instance of '.ResultInterface::class.', an instance of '.ParameterCollectionInterface::class.' or an array');
+        if (!$parameters instanceof EntityInterface and !is_array($parameters) and !$parameters instanceof ParameterCollectionInterface) {
+            throw new QueryException('Invalid argument. If provided, parameters can be an instance of '.EntityInterface::class.', an instance of '.ParameterCollectionInterface::class.' or an array');
         }
 
         if ($parameters !== null) {
@@ -85,7 +85,7 @@ final class BlueDot implements BlueDotInterface
             $name,
             $this->connection,
             $this->configuration,
-            ($parameters instanceof ResultInterface) ? $parameters->toArray() : $parameters,
+            ($parameters instanceof EntityInterface) ? $parameters->toArray() : $parameters,
             $this->report
         );
 
