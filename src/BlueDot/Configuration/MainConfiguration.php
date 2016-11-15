@@ -6,7 +6,7 @@ use BlueDot\Configuration\Simple\SimpleSelect;
 use BlueDot\Configuration\Simple\StatementFactory;
 use BlueDot\Exception\ConfigurationException;
 
-class Configuration
+class MainConfiguration
 {
     /**
      * @var array $connectionType
@@ -20,6 +20,10 @@ class Configuration
      * @var array $compounds
      */
     private $compounds = array();
+    /**
+     * @var array $foundStatements
+     */
+    private $foundStatements = array();
     /**
      * @constructor
      * @param array $configuration
@@ -61,14 +65,19 @@ class Configuration
      */
     public function findSimpleByName(string $name)
     {
+        if (array_key_exists($name, $this->foundStatements)) {
+            return $this->foundStatements[$name];
+        }
+
         $exploded = explode('.', $name);
 
         if (count($exploded) === 2) {
             $statementType = $exploded[0];
-            $name = $exploded[1];
+            $statementName = $exploded[1];
             foreach ($this->simples as $simple) {
                 if ($simple->getType() === $statementType) {
-                    if ($simple->getName() === $name) {
+                    if ($simple->getName() === $statementName) {
+                        $this->foundStatements[$name] = $simple;
                         return $simple;
                     }
                 }
@@ -79,6 +88,7 @@ class Configuration
 
         foreach ($this->simples as $simple) {
             if ($simple->getName() === $name) {
+                $this->foundStatements[$name] = $simple;
                 return $simple;
             }
         }

@@ -1,9 +1,10 @@
 <?php
 
-namespace BlueDot\Database;
+namespace BlueDot\Database\Simple;
 
+use BlueDot\Cache\Report;
 use BlueDot\Configuration\ConfigurationInterface;
-use BlueDot\Exception\QueryException;
+use BlueDot\Configuration\MainConfiguration;
 use BlueDot\Result\Result;
 use BlueDot\Result\ResultCollection;
 
@@ -14,43 +15,37 @@ class SimpleStatementExecution
      */
     private $connection;
     /**
-     * @var ConfigurationInterface $configuration
+     * @var ConfigurationInterface $mainConfiguration
      */
-    private $configuration;
+    private $mainConfiguration;
+    /**
+     * @var ConfigurationInterface $specificConfiguration
+     */
+    private $specificConfiguration;
     /**
      * @var array $parameters
      */
     private $parameters;
     /**
+     * @param string $name
      * @param \PDO $connection
-     * @param ConfigurationInterface $configuration
-     * @param array $parameters
+     * @param MainConfiguration $configuration
+     * @param mixed $parameters
+     * @param Report $report
      */
-    public function __construct(\PDO $connection, ConfigurationInterface $configuration, $parameters = null)
+    public function __construct(string $name, \PDO $connection, MainConfiguration $configuration, $parameters = null, Report $report)
     {
         $this->connection = $connection;
-        $this->configuration = $configuration;
-
-        if ($parameters !== null) {
-            $configParamters = $this->configuration->getParameters();
-
-            $givenParameters = ($parameters instanceof ParameterCollectionInterface) ? $parameters->getBindingKeys() : array_keys($parameters);
-
-            if (!empty(array_diff($configParamters, $givenParameters))) {
-                throw new QueryException('Given parameters and parameters in configuration are not equal for '.$this->configuration->getType().'.'.$this->configuration->getName());
-            }
-
-            if ($parameters instanceof ParameterCollectionInterface) {
-                $this->parameters = $parameters->toArray();
-            } else {
-                $this->parameters = array($parameters);
-            }
-        }
+        $this->mainConfiguration = $configuration;
+        $this->specificConfiguration = $this->mainConfiguration->findSimpleByName($name);
+        $this->parameters = $parameters;
     }
-
+    /**
+     * @return Result|ResultCollection
+     */
     public function execute()
     {
-        $stmt = $this->connection->prepare($this->configuration->getStatement());
+        $stmt = $this->connection->prepare($this->specificConfiguration->getStatement());
 
         foreach ($this->parameters as $parameter) {
             foreach ($parameter as $key => $value) {
@@ -61,13 +56,11 @@ class SimpleStatementExecution
             }
         }
 
-        $stmt->execute();
-
         foreach ($this->parameters as $parameter) {
             $stmt->execute($parameter);
         }
 
-        if ($this->configuration->getType() === 'select') {
+        if ($this->specificConfiguration->getType() === 'select') {
             $result = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
             if (count($result) === 1) {

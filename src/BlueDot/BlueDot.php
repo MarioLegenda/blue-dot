@@ -2,22 +2,27 @@
 
 namespace BlueDot;
 
-use BlueDot\Configuration\Configuration;
+use BlueDot\Configuration\MainConfiguration;
 use BlueDot\Database\ParameterCollectionInterface;
-use BlueDot\Database\SimpleStatementExecution;
+use BlueDot\Database\Simple\SimpleStatementExecution;
 use BlueDot\Exception\QueryException;
 use BlueDot\Result\ResultInterface;
 use Symfony\Component\Yaml\Yaml;
 use BlueDot\Exception\ConfigurationException;
+use BlueDot\Cache\Report;
 
 final class BlueDot implements BlueDotInterface
 {
+    /**
+     * @var Report $report
+     */
+    private $report;
     /**
      * @var object $connection
      */
     private $connection;
     /**
-     * @var Configuration $configuration
+     * @var MainConfiguration $configuration
      */
     private $configuration;
     /**
@@ -27,6 +32,8 @@ final class BlueDot implements BlueDotInterface
      */
     public function __construct($configSource, $connection = null)
     {
+        $this->report = new Report();
+
         if ($connection !== null) {
             $this->connection = $connection;
         }
@@ -42,7 +49,7 @@ final class BlueDot implements BlueDotInterface
             $parsedConfiguration = Yaml::parse(file_get_contents($configSource));
         }
 
-        $this->configuration = new Configuration($parsedConfiguration);
+        $this->configuration = new MainConfiguration($parsedConfiguration);
     }
     /**
      * @param string $name
@@ -57,10 +64,29 @@ final class BlueDot implements BlueDotInterface
             throw new QueryException('Invalid argument. If provided, parameters can be an instance of '.ResultInterface::class.', an instance of '.ParameterCollectionInterface::class.' or an array');
         }
 
+        if ($parameters !== null) {
+            $speicificConfiguration = $this->configuration->findSimpleByName($name);
+            $configParamters = $speicificConfiguration->getParameters();
+
+            $givenParameters = ($parameters instanceof ParameterCollectionInterface) ? $parameters->getBindingKeys() : array_keys($parameters);
+
+            if (!empty(array_diff($configParamters, $givenParameters))) {
+                throw new QueryException('Given parameters and parameters in configuration are not equal for '.$speicificConfiguration->getType().'.'.$speicificConfiguration->getName());
+            }
+
+            if ($parameters instanceof ParameterCollectionInterface) {
+                $parameters = $parameters->toArray();
+            } else {
+                $parameters = array($parameters);
+            }
+        }
+
         $execution = new SimpleStatementExecution(
+            $name,
             $this->connection,
-            $this->configuration->findSimpleByName($name),
-            ($parameters instanceof ResultInterface) ? $parameters->toArray() : $parameters
+            $this->configuration,
+            ($parameters instanceof ResultInterface) ? $parameters->toArray() : $parameters,
+            $this->report
         );
 
         return $execution->execute();
@@ -76,10 +102,10 @@ final class BlueDot implements BlueDotInterface
         return $this;
     }
     /**
-     * @param Configuration $configuration
+     * @param MainConfiguration $configuration
      * @return null
      */
-    private function establishConnection(Configuration $configuration)
+    private function establishConnection(MainConfiguration $configuration)
     {
         if ($this->connection instanceof \PDO) {
             return null;
