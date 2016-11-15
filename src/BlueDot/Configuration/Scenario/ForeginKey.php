@@ -1,6 +1,6 @@
 <?php
 
-namespace BlueDot\Configuration\Compound;
+namespace BlueDot\Configuration\Scenario;
 
 class ForeginKey
 {

@@ -30,8 +30,8 @@ configuration:
                 sql: "DELETE FROM village WHERE id = :id"
                 parameters: [id]
 
-    compound:
-        insert _user:
+    scenario:
+        insert_user:
             atomic: true
             # a statement can have a use clause where can be specified what values should be user from
             # other already executed statements. Statements under use have to be executed before
@@ -60,10 +60,10 @@ configuration:
                     bind_to: {user_id: "user_id"}
             get_address_by_id:
                 sql: "SELECT * FROM address WHERE id = :id"
-                use:
-                    name: insert_address
-                    values: last_inserted_id
-            return: [select_user.name, select_user.lastname, get_address_by_id]
+#                use:
+#                    name: insert_address
+#                    values: insert_address.last_inserted_id
+            #return: [select_user.name, select_user.lastname, get_address_by_id]
             #order: [select_user, insert_user, insert_address]
     callable:
         custom_callable_name:

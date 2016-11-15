@@ -59,6 +59,6 @@ class MainTest extends \PHPUnit_Framework_TestCase
             'id' => 6,
         ));
 
-        $blueDot->executeCompound('insert_user');
+        $blueDot->executeScenario('insert_user');
     }
 }

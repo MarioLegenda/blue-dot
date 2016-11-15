@@ -44,7 +44,7 @@ abstract class AbstractStatementExecution
     {
         $this->connection = $connection;
         $this->mainConfiguration = $configuration;
-        $this->specificConfiguration = ($type === 'simple') ? $configuration->findSimpleByName($name) : $configuration->findCompoundByName($name);
+        $this->specificConfiguration = ($type === 'simple') ? $configuration->findSimpleByName($name) : $configuration->findScenarioByName($name);
         $this->parameters = $parameters;
         $this->report = $report;
     }

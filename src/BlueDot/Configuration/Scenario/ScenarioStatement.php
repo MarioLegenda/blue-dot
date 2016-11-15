@@ -1,10 +1,10 @@
 <?php
 
-namespace BlueDot\Configuration\Compound;
+namespace BlueDot\Configuration\Scenario;
 
 use BlueDot\Configuration\ConfigurationInterface;
 
-class CompoundStatement implements ConfigurationInterface
+class ScenarioStatement implements ConfigurationInterface
 {
     /**
      * @var ForeginKey $foreignKey
@@ -77,9 +77,9 @@ class CompoundStatement implements ConfigurationInterface
     }
     /**
      * @param bool $atomic
-     * @return CompoundStatement
+     * @return ScenarioStatement
      */
-    public function setAtomic(bool $atomic) : CompoundStatement
+    public function setAtomic(bool $atomic) : ScenarioStatement
     {
         $this->atomic = $atomic;
 
@@ -96,7 +96,7 @@ class CompoundStatement implements ConfigurationInterface
      * @param UseOption $useOption
      * @return $this
      */
-    public function setUseOption(UseOption $useOption) : CompoundStatement
+    public function setUseOption(UseOption $useOption) : ScenarioStatement
     {
         $this->useOption = $useOption;
 
@@ -120,7 +120,7 @@ class CompoundStatement implements ConfigurationInterface
      * @param ForeginKey $foreginKey
      * @return $this
      */
-    public function setForeignKey(ForeginKey $foreginKey) : CompoundStatement
+    public function setForeignKey(ForeginKey $foreginKey) : ScenarioStatement
     {
         $this->foreignKey = $foreginKey;
 

@@ -16,9 +16,9 @@ class MainConfiguration
      */
     private $simples = array();
     /**
-     * @var array $compounds
+     * @var array $scenarios
      */
-    private $compounds = array();
+    private $scenarios = array();
     /**
      * @var array $foundStatements
      */
@@ -54,8 +54,8 @@ class MainConfiguration
             $this->simples = StatementFactory::createSimpleStatements($configuration['simple']);
         }
 
-        if (array_key_exists('compound', $configuration)) {
-            $this->compounds = StatementFactory::createCompoundStatements($configuration['compound']);
+        if (array_key_exists('scenario', $configuration)) {
+            $this->scenarios = StatementFactory::createScenarioStatements($configuration['scenario']);
         }
     }
     /**
@@ -101,19 +101,19 @@ class MainConfiguration
      * @return mixed
      * @throws ConfigurationException
      */
-    public function findCompoundByName(string $name) : array
+    public function findScenarioByName(string $name) : array
     {
         if (array_key_exists($name, $this->foundStatements)) {
             return $this->foundStatements[$name];
         }
 
-        foreach ($this->compounds as $key => $compound) {
+        foreach ($this->scenarios as $key => $scenario) {
             if ($key === $name) {
-                return $compound;
+                return $scenario;
             }
         }
 
-        throw new ConfigurationException('Compound query '.$name.' has not been found under \'compounds\' configuration entry');
+        throw new ConfigurationException('Scenario '.$name.' has not been found under \'scenario\' configuration entry');
     }
     /**
      * @return string
