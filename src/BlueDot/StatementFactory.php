@@ -48,7 +48,7 @@ class StatementFactory
         return $createdSimples;
     }
 
-    public static function createCompoundStatements(array $compounds)
+    public static function createCompoundStatements(array $compounds) : CompoundStatementCollection
     {
         $createdCompounds = new CompoundStatementCollection();
 
@@ -129,5 +129,7 @@ class StatementFactory
                 $createdCompounds->add($compoundName, $compoundEntry);
             }
         }
+
+        return $createdCompounds;
     }
 }

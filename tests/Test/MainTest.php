@@ -58,5 +58,7 @@ class MainTest extends \PHPUnit_Framework_TestCase
         $blueDot->executeSimple('delete.single_city', array(
             'id' => 6,
         ));
+
+        $blueDot->executeCompound('insert_user');
     }
 }

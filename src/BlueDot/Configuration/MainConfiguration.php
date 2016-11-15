@@ -73,6 +73,7 @@ class MainConfiguration
         if (count($exploded) === 2) {
             $statementType = $exploded[0];
             $statementName = $exploded[1];
+
             foreach ($this->simples as $simple) {
                 if ($simple->getType() === $statementType) {
                     if ($simple->getName() === $statementName) {
@@ -93,6 +94,26 @@ class MainConfiguration
         }
 
         throw new ConfigurationException('Query with name '.$name.' has not been found in the configuration. This could be an internal error so please contact the creator of this tool at whitepostmail@gmail.com');
+    }
+
+    /**
+     * @param string $name
+     * @return mixed
+     * @throws ConfigurationException
+     */
+    public function findCompoundByName(string $name) : array
+    {
+        if (array_key_exists($name, $this->foundStatements)) {
+            return $this->foundStatements[$name];
+        }
+
+        foreach ($this->compounds as $key => $compound) {
+            if ($key === $name) {
+                return $compound;
+            }
+        }
+
+        throw new ConfigurationException('Compound query '.$name.' has not been found under \'compounds\' configuration entry');
     }
     /**
      * @return string

@@ -3,6 +3,7 @@
 namespace BlueDot;
 
 use BlueDot\Configuration\MainConfiguration;
+use BlueDot\Database\Compound\CompoundStatementExecution;
 use BlueDot\Database\ParameterCollectionInterface;
 use BlueDot\Database\Simple\SimpleStatementExecution;
 use BlueDot\Exception\QueryException;
@@ -82,10 +83,31 @@ final class BlueDot implements BlueDotInterface
         }
 
         $execution = new SimpleStatementExecution(
+            'simple',
             $name,
             $this->connection,
             $this->configuration,
             ($parameters instanceof EntityInterface) ? $parameters->toArray() : $parameters,
+            $this->report
+        );
+
+        return $execution->execute();
+    }
+
+    public function executeCompound($name, $parameters = array())
+    {
+        $this->establishConnection($this->configuration);
+
+        if (!$parameters instanceof EntityInterface and !is_array($parameters) and !$parameters instanceof ParameterCollectionInterface) {
+            throw new QueryException('Invalid argument. If provided, parameters can be an instance of '.EntityInterface::class.', an instance of '.ParameterCollectionInterface::class.' or an array');
+        }
+
+        $execution = new CompoundStatementExecution(
+            'compound',
+            $name,
+            $this->connection,
+            $this->configuration,
+            $parameters,
             $this->report
         );
 

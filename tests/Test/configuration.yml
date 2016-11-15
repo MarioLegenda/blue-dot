@@ -31,11 +31,20 @@ configuration:
                 parameters: [id]
 
     compound:
-        insert_user:
+        insert _user:
             atomic: true
             # a statement can have a use clause where can be specified what values should be user from
             # other already executed statements. Statements under use have to be executed before
             # the statement that uses the use clause.
+
+            # basic:
+            # 1. start executing sql in the order of appearance
+            # 2. if there is a 'use' clause, check if there is that statement in the statement collection
+            # 3. get data from that statement and execute the current statement
+            # 4. check if there is a foreign key clause
+            # 5. check if the statement under foreign clause exists
+            # 6. get the last inserted id from the foreign key statement
+            # 7. bind the foreign key, check if exeuction has to be atomic and execute it
             select_user:
                 sql: "SELECT * FROM user WHERE id = :id"
                 parameters: [id]
@@ -49,4 +58,14 @@ configuration:
                 foreign_key:
                     statement_name: insert_user
                     bind_to: {user_id: "user_id"}
+            get_address_by_id:
+                sql: "SELECT * FROM address WHERE id = :id"
+                use:
+                    name: insert_address
+                    values: last_inserted_id
+            return: [select_user.name, select_user.lastname, get_address_by_id]
             #order: [select_user, insert_user, insert_address]
+    callable:
+        custom_callable_name:
+            type: object # or symfony service
+            name: object_namespace_or_service

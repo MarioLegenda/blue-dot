@@ -2,49 +2,12 @@
 
 namespace BlueDot\Database\Simple;
 
-use BlueDot\Cache\Report;
-use BlueDot\Configuration\ConfigurationInterface;
-use BlueDot\Configuration\MainConfiguration;
+use BlueDot\Database\AbstractStatementExecution;
 use BlueDot\Entity\EntityCollection;
 use BlueDot\Entity\Entity;
 
-class SimpleStatementExecution
+class SimpleStatementExecution extends AbstractStatementExecution
 {
-    /**
-     * @var \PDO $connection
-     */
-    private $connection;
-    /**
-     * @var ConfigurationInterface $mainConfiguration
-     */
-    private $mainConfiguration;
-    /**
-     * @var ConfigurationInterface $specificConfiguration
-     */
-    private $specificConfiguration;
-    /**
-     * @var array $parameters
-     */
-    private $parameters;
-    /**
-     * @var Report $report
-     */
-    private $report;
-    /**
-     * @param string $name
-     * @param \PDO $connection
-     * @param MainConfiguration $configuration
-     * @param mixed $parameters
-     * @param Report $report
-     */
-    public function __construct(string $name, \PDO $connection, MainConfiguration $configuration, $parameters = null, Report $report)
-    {
-        $this->connection = $connection;
-        $this->mainConfiguration = $configuration;
-        $this->specificConfiguration = $this->mainConfiguration->findSimpleByName($name);
-        $this->parameters = $parameters;
-        $this->report = $report;
-    }
     /**
      * @return Entity|EntityCollection
      */

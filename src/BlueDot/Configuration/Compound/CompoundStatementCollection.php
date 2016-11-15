@@ -2,12 +2,28 @@
 
 namespace BlueDot\Configuration\Compound;
 
-class CompoundStatementCollection
+use BlueDot\Configuration\ConfigurationInterface;
+use BlueDot\Exception\ConfigurationException;
+
+class CompoundStatementCollection implements \IteratorAggregate
 {
     /**
      * @var array $compoundStatements
      */
     private $compoundStatements = array();
+
+    public function __construct(array $compoundStatements = array())
+    {
+        if (!empty($compoundStatements)) {
+            foreach ($compoundStatements as $compound) {
+                if (!$compound instanceof ConfigurationInterface) {
+                    throw new ConfigurationException('Invalid argument in '.CompoundStatementCollection::class.'. Expected an array of '.CompoundStatement::class);
+                }
+            }
+
+            $this->compoundStatements = $compoundStatements;
+        }
+    }
     /**
      * @param CompoundStatement $compoundStatement
      * @return CompoundStatementCollection
@@ -36,5 +52,12 @@ class CompoundStatementCollection
         }
 
         return false;
+    }
+    /**
+     * @return \ArrayIterator
+     */
+    public function getIterator()
+    {
+        return new \ArrayIterator($this->compoundStatements);
     }
 }
