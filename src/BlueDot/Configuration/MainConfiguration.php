@@ -2,8 +2,7 @@
 
 namespace BlueDot\Configuration;
 
-use BlueDot\Configuration\Simple\SimpleSelect;
-use BlueDot\Configuration\Simple\StatementFactory;
+use BlueDot\StatementFactory;
 use BlueDot\Exception\ConfigurationException;
 
 class MainConfiguration

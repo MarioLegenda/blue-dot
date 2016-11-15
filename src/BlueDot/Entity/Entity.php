@@ -39,6 +39,13 @@ class Entity implements EntityInterface
         return $this;
     }
     /**
+     * @return bool
+     */
+    public function isEmpty() : bool
+    {
+        return empty($this->values);
+    }
+    /**
      * @return array
      */
     public function toArray() : array
