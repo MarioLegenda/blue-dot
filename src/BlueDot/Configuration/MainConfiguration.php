@@ -59,18 +59,18 @@ class MainConfiguration
         }
     }
 
-    public function findByType(string $type)
+    public function findByType(string $type, string $name)
     {
         if ($type !== 'simple' and $type !== 'scenario' and $type !== 'custom') {
             throw new ConfigurationException('Invalid configuration. Unknown option of name '.$type);
         }
 
         if ($type === 'simple') {
-            return $this->findSimpleByName($type);
+            return $this->findSimpleByName($name);
         }
 
         if ($type === 'scenario') {
-            return $this->findScenarioByName($type);
+            return $this->findScenarioByName($name);
         }
     }
     /**
