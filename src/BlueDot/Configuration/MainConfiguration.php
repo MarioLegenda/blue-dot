@@ -58,6 +58,21 @@ class MainConfiguration
             $this->scenarios = StatementFactory::createScenarioStatements($configuration['scenario']);
         }
     }
+
+    public function findByType(string $type)
+    {
+        if ($type !== 'simple' and $type !== 'scenario' and $type !== 'custom') {
+            throw new ConfigurationException('Invalid configuration. Unknown option of name '.$type);
+        }
+
+        if ($type === 'simple') {
+            return $this->findSimpleByName($type);
+        }
+
+        if ($type === 'scenario') {
+            return $this->findScenarioByName($type);
+        }
+    }
     /**
      * @param string $name
      * @return mixed
