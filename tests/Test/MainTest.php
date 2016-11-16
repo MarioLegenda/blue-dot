@@ -5,7 +5,6 @@ namespace Test;
 require __DIR__.'/../../vendor/autoload.php';
 
 use BlueDot\BlueDot;
-use BlueDot\Database\ParameterCollection;
 use BlueDot\Entity\Entity;
 use BlueDot\Entity\EntityCollection;
 
@@ -15,7 +14,7 @@ class MainTest extends \PHPUnit_Framework_TestCase
     {
         $blueDot = new BlueDot(__DIR__.'/configuration.yml');
 
-        $result = $blueDot->executeSimple('single_city', array(
+        $result = $blueDot->executeSimple('select.single_city', array(
             'name' => 'Kabul',
             'country_code' => 'AFG',
         ));
@@ -24,7 +23,7 @@ class MainTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals('Kabul', $result->get('Name'), 'Expected Kabul as result');
 
-        $collection = $blueDot->executeSimple('entire_world');
+        $collection = $blueDot->executeSimple('select.entire_world');
 
         $this->assertInstanceOf(EntityCollection::class, $collection, '$collection should be an instance of '.EntityCollection::class);
 
@@ -42,13 +41,13 @@ class MainTest extends \PHPUnit_Framework_TestCase
             'name' => 'Jarmina',
         ));
 
-        $parametersCollection = new ParameterCollection();
-        $parametersCollection
-            ->add('name', 'Mirkovci')
-            ->add('name', 'Èokadinci')
-            ->add('name', 'Harkanovci');
-
-        $blueDot->executeSimple('insert.single_village', $parametersCollection);
+        $blueDot->executeSimple('insert.single_village', array(
+            'name' => array(
+                'Mirkovci',
+                'Èokadinci',
+                'Harkanovci'
+            )
+        ));
 
         $blueDot->executeSimple('update.single_city', array(
             'id' => 1,
@@ -58,10 +57,6 @@ class MainTest extends \PHPUnit_Framework_TestCase
         $blueDot->executeSimple('delete.single_city', array(
             'id' => 6,
         ));
-
-        $parameters = array(
-            'select_user' => (new ParameterCollection())->add('id', 5)
-        );
-        $blueDot->executeScenario('insert_user', $parameters);
+        //$blueDot->executeScenario('insert_user', $parameters);
     }
 }

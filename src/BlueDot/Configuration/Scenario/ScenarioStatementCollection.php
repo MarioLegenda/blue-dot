@@ -81,6 +81,14 @@ class ScenarioStatementCollection implements \IteratorAggregate
         return null;
     }
     /**
+     * @param string $scenarioName
+     * @return array
+     */
+    public function getScenarioStatementNames(string $scenarioName) : array
+    {
+        return array_keys($this->getScenario($scenarioName));
+    }
+    /**
      * @return \ArrayIterator
      */
     public function getIterator()

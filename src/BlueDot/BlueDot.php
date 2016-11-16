@@ -2,10 +2,13 @@
 
 namespace BlueDot;
 
+use BlueDot\Common\ArgumentBag;
 use BlueDot\Configuration\MainConfiguration;
+use BlueDot\Database\Scenario\ScenarioBuilder;
 use BlueDot\Database\Scenario\ScenarioStatementExecution;
 use BlueDot\Database\ParameterCollectionInterface;
 use BlueDot\Database\Simple\SimpleStatementExecution;
+use BlueDot\Database\StatementExecution;
 use BlueDot\Exception\QueryException;
 use BlueDot\Entity\EntityInterface;
 use Symfony\Component\Yaml\Yaml;
@@ -61,37 +64,25 @@ final class BlueDot implements BlueDotInterface
     {
         $this->establishConnection($this->configuration);
 
-        if (!$parameters instanceof EntityInterface and !is_array($parameters) and !$parameters instanceof ParameterCollectionInterface) {
-            throw new QueryException('Invalid argument. If provided, parameters can be an instance of '.EntityInterface::class.', an instance of '.ParameterCollectionInterface::class.' or an array');
-        }
-
-        if ($parameters !== null) {
-            $speicificConfiguration = $this->configuration->findSimpleByName($name);
-            $configParamters = $speicificConfiguration->getParameters();
-
-            $givenParameters = ($parameters instanceof ParameterCollectionInterface) ? $parameters->getBindingKeys() : array_keys($parameters);
-
-            if (!empty(array_diff($configParamters, $givenParameters))) {
-                throw new QueryException('Given parameters and parameters in configuration are not equal for '.$speicificConfiguration->getType().'.'.$speicificConfiguration->getName());
-            }
-
-            if ($parameters instanceof ParameterCollectionInterface) {
-                $parameters = $parameters->toArray();
-            } else {
-                $parameters = array($parameters);
-            }
-        }
-
-        $execution = new SimpleStatementExecution(
-            'simple',
-            $name,
-            $this->connection,
-            $this->configuration,
-            ($parameters instanceof EntityInterface) ? $parameters->toArray() : $parameters,
-            $this->report
+        $scenarioBuilder = new ScenarioBuilder((new ArgumentBag())
+            ->add('type', 'simple')
+            ->add('parameters', $parameters)
+            ->add('connection', $this->connection)
+            ->add('specific_configuration', $this->configuration->findByType('simple', $name))
         );
 
-        return $execution->execute();
+        $scenario = $scenarioBuilder->buildScenario();
+
+        $statementExecution = new StatementExecution($scenario);
+
+        return $statementExecution->execute()->getResult();
+/*
+        $argumentsBag = (new ArgumentBag())
+            ->add('connection', $this->connection)
+            ->add('specific_configuration', $this->configuration->findByType('simple', $name))
+            ->add('parameters', $parameters);
+
+        $execution = new SimpleStatementExecution($argumentsBag);*/
     }
 
     public function executeScenario($name, $parameters = array())
@@ -102,16 +93,12 @@ final class BlueDot implements BlueDotInterface
             throw new QueryException('Parameters argument has to be an array with key names as scenario statements and array entries as instances of '.ParameterCollectionInterface::class);
         }
 
-        $scenarioStatement = $this->configuration->findScenarioByName($name);
+        $argumentsBag = (new ArgumentBag())
+            ->add('connection', $this->connection)
+            ->add('specific_configuration', $this->configuration->findByType('scenario', $name))
+            ->add('parameters', $parameters);
 
-        $execution = new ScenarioStatementExecution(
-            'scenario',
-            $name,
-            $this->connection,
-            $this->configuration,
-            $parameters,
-            $this->report
-        );
+        $execution = new ScenarioStatementExecution($argumentsBag);
 
         return $execution->execute();
     }

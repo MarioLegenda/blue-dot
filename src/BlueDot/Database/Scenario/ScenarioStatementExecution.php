@@ -9,7 +9,9 @@ class ScenarioStatementExecution extends AbstractStatementExecution
 {
     public function execute()
     {
-        $scenarioCollection = new ScenarioStatementCollection($this->specificConfiguration);
+        $specificConfiguration = $this->argumentsBag->get('specific_configuration');
+
+        $scenarioCollection = new ScenarioStatementCollection($specificConfiguration);
 
         foreach ($scenarioCollection as $scenario) {
             if ($scenario->hasUseOption()) {

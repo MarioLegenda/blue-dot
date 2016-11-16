@@ -13,9 +13,13 @@ class SimpleStatementExecution extends AbstractStatementExecution
      */
     public function execute()
     {
-        $stmt = $this->connection->prepare($this->specificConfiguration->getStatement());
+        $connection = $this->argumentsBag->get('connection');
+        $specificConfiguration = $this->argumentsBag->get('specific_configuration');
+        $parameters = $this->argumentsBag->get('parameters');
 
-        foreach ($this->parameters as $parameter) {
+        $stmt = $connection->prepare($specificConfiguration->getStatement());
+
+        foreach ($parameters as $parameter) {
             foreach ($parameter as $key => $value) {
                 $stmt->bindValue(
                     $key,
@@ -24,24 +28,8 @@ class SimpleStatementExecution extends AbstractStatementExecution
             }
         }
 
-        foreach ($this->parameters as $parameter) {
+        foreach ($parameters as $parameter) {
             $stmt->execute($parameter);
-        }
-
-        if ($this->specificConfiguration->getType() === 'select') {
-            $result = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
-            if (count($result) === 1) {
-                return new Entity($result[0]);
-            }
-
-            $resultCollection = new EntityCollection();
-
-            foreach ($result as $res) {
-                $resultCollection->add(new Entity($res));
-            }
-
-            return $resultCollection;
         }
     }
 }

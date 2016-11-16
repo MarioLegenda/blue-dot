@@ -6,7 +6,7 @@ configuration:
         password: ''
     # optional
     simple:
-        # if simple is provided, optional
+         # if simple is provided, optional
         select:
             # if select if provided, mandatory
             single_city:

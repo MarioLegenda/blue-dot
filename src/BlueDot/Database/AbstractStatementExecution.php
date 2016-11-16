@@ -2,6 +2,7 @@
 
 namespace BlueDot\Database;
 
+use BlueDot\Common\StorageInterface;
 use BlueDot\Configuration\MainConfiguration;
 use BlueDot\Configuration\ConfigurationInterface;
 use BlueDot\Cache\Report;
@@ -12,60 +13,17 @@ abstract class AbstractStatementExecution
      * @return mixed
      */
     abstract public function execute();
+
     /**
-     * @var \PDO $connection
+     * @var StorageInterface $argumentsBag
      */
-    protected $connection;
+    protected $argumentsBag;
     /**
-     * @var ConfigurationInterface $mainConfiguration
+     * @param StorageInterface $argumentsBag
      */
-    protected $mainConfiguration;
-    /**
-     * @var ConfigurationInterface $specificConfiguration
-     */
-    protected $specificConfiguration;
-    /**
-     * @var array $parameters
-     */
-    protected $parameters;
-    /**
-     * @var Report $report
-     */
-    protected $report;
-    /**
-     * @param string $type
-     * @param string $name
-     * @param \PDO $connection
-     * @param MainConfiguration $configuration
-     * @param mixed $parameters
-     * @param Report $report
-     */
-    public function __construct(string $type, string $name, \PDO $connection, MainConfiguration $configuration, $parameters = null, Report $report)
+    public function __construct(StorageInterface $argumentsBag)
     {
-        $this->connection = $connection;
-        $this->mainConfiguration = $configuration;
-        $this->specificConfiguration = $configuration->findByType($type, $name);
-        $this->parameters = $parameters;
-        $this->report = $report;
-    }
-
-    protected function resolveParameterValue($value)
-    {
-        if (is_bool($value)) {
-            return \PDO::PARAM_BOOL;
-        }
-
-        if (is_string($value)) {
-            return \PDO::PARAM_STR;
-        }
-
-        if ($value === null) {
-            return \PDO::PARAM_NULL;
-        }
-
-        if (is_int($value)) {
-            return \PDO::PARAM_INT;
-        }
+        $this->argumentsBag = $argumentsBag;
     }
 
     protected function isValueResolvable($value) : bool

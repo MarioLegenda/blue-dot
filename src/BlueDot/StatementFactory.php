@@ -16,7 +16,7 @@ class StatementFactory
     {
         $createdSimples = array();
 
-        $validTypes = array('select', 'insert', 'update', 'delete');
+        $validTypes = array('select', 'insert', 'update', 'delete', 'table', 'database');
         $statementTypes = array_keys($simples);
 
         foreach ($statementTypes as $statementType) {

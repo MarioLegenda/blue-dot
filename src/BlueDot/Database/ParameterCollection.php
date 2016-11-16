@@ -2,21 +2,69 @@
 
 namespace BlueDot\Database;
 
-class ParameterCollection implements ParameterCollectionInterface, \IteratorAggregate, \Countable, \ArrayAccess
+class ParameterCollection implements ParameterCollectionInterface, \IteratorAggregate, \Countable
 {
     /**
      * @var array $parameters
      */
     private $parameters = array();
     /**
+     * @param array $parameters
+     */
+    public function __construct(array $parameters)
+    {
+        foreach ($parameters as $key => $value) {
+            $this->add($key, $value);
+        }
+    }
+    /**
      * @param array $parameter
      * @return $this
      */
     public function add(string $name, $value) : ParameterCollectionInterface
     {
-        $this->parameters[] = new Parameters(array($name => $value));
+        if (is_array($value)) {
+            foreach ($value as $val) {
+                $this->parameters[$name][] = new Parameter($name, $val);
+            }
+        }
+
+        if (!is_array($value)) {
+            $this->parameters[$name] = new Parameter($name, $value);
+        }
 
         return $this;
+    }
+    /**
+     * @param string $name
+     * @return mixed
+     */
+    public function get(string $name)
+    {
+        return $this->parameters[$name];
+    }
+    /**
+     * @param string $name
+     * @return bool
+     */
+    public function has(string $name) : bool
+    {
+        return array_key_exists($name, $this->parameters);
+    }
+
+    public function isMultipleValueParameter($name) : bool
+    {
+        if ($this->has($name)) {
+            $parameter = $this->get($name);
+
+            if (is_array($parameter)) {
+                return true;
+            }
+
+            return false;
+        }
+
+        return false;
     }
     /**
      * @return array
@@ -27,55 +75,14 @@ class ParameterCollection implements ParameterCollectionInterface, \IteratorAggr
             return array();
         }
 
-        return array_keys($this->parameters[0]->getParameters());
-    }
-    /**
-     * @param mixed $offset
-     * @return bool
-     */
-    public function offsetExists($offset)
-    {
-        return array_key_exists($offset, $this->parameters);
-    }
-    /**
-     * @param mixed $offset
-     * @return null
-     */
-    public function offsetGet($offset)
-    {
-        if (!$this->offsetExists($offset)) {
-            return null;
-        }
-
-        return $this->parameters[$offset];
-    }
-    /**
-     * @param mixed $offset
-     * @param mixed $value
-     */
-    public function offsetSet($offset, $value)
-    {
-        $this->parameters[$offset] = $value;
-    }
-    /**
-     * @param mixed $offset
-     */
-    public function offsetUnset($offset)
-    {
-        unset($this->parameters[$offset]);
+        return array_keys($this->parameters);
     }
     /**
      * @return \ArrayIterator
      */
     public function getIterator()
     {
-        $params = array();
-
-        foreach ($this->parameters as $parameter) {
-            $params[] = $parameter->getParameters();
-        }
-
-        return new \ArrayIterator($params);
+        return new \ArrayIterator($this->parameters);
     }
     /**
      * @return int
@@ -83,21 +90,5 @@ class ParameterCollection implements ParameterCollectionInterface, \IteratorAggr
     public function count() : int
     {
         return count($this->parameters);
-    }
-    /**
-     * @return array
-     */
-    public function toArray() : array
-    {
-        if (count($this->parameters) === 1) {
-            return $this->parameters[0];
-        }
-
-        $params = array();
-        foreach ($this->parameters as $param) {
-            $params[] = $param->getParameters();
-        }
-
-        return $params;
     }
 }

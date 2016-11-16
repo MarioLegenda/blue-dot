@@ -68,12 +68,26 @@ class MainConfiguration
         }
 
         if ($type === 'simple') {
-            return $this->findSimpleByName($name);
+            $simple = $this->findSimpleByName($name);
+
+            if ($simple === null) {
+                throw new ConfigurationException('Unknown statement simple.'.$name);
+            }
+
+            return $simple;
         }
 
         if ($type === 'scenario') {
-            return $this->findScenarioByName($name);
+            $scenario = $this->findScenarioByName($name);
+
+            if ($scenario === null) {
+                throw new ConfigurationException('Unknown statement scenario.'.$name);
+            }
+
+            return $scenario;
         }
+
+        return null;
     }
     /**
      * @param string $name
@@ -86,6 +100,10 @@ class MainConfiguration
         }
 
         $exploded = explode('.', $name);
+
+        if (count($exploded) === 1) {
+            throw new ConfigurationException('Invalid \'simple\' statement call. The correct notation is simple.some_statement. '.$name.' given');
+        }
 
         if (count($exploded) === 2) {
             $statementType = $exploded[0];
@@ -101,13 +119,6 @@ class MainConfiguration
             }
 
             throw new ConfigurationException('Query with name '.$name.' has not been found in the configuration under '.$statementType.' statement type. This could be an internal error so please contact the creator of this tool at whitepostmail@gmail.com');
-        }
-
-        foreach ($this->simples as $simple) {
-            if ($simple->getName() === $name) {
-                $this->foundStatements[$name] = $simple;
-                return $simple;
-            }
         }
 
         throw new ConfigurationException('Query with name '.$name.' has not been found in the configuration. This could be an internal error so please contact the creator of this tool at whitepostmail@gmail.com');
