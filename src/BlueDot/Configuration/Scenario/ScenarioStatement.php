@@ -2,82 +2,111 @@
 
 namespace BlueDot\Configuration\Scenario;
 
+use BlueDot\Common\ArgumentBag;
+use BlueDot\Common\StorageInterface;
 use BlueDot\Configuration\ConfigurationInterface;
+use BlueDot\Exception\CommonInternalException;
 
-class ScenarioStatement implements ConfigurationInterface
+class ScenarioStatement implements ConfigurationInterface, StorageInterface
 {
     /**
-     * @var bool $executed
+     * @var ArgumentBag $arguments
      */
-    private $executed = false;
+    private $arguments;
     /**
-     * @var ForeginKey $foreignKey
+     * @param StorageInterface $storage
      */
-    private $foreignKey;
-    /**
-     * @var UseOption $useOption
-     */
-    private $useOption;
-    /**
-     * @var bool $atomic
-     */
-    private $atomic;
-    /**
-     * @var string $name
-     */
-    private $name;
-    /**
-     * @var string $statement
-     */
-    private $statement;
-    /**
-     * @var array $parameters
-     */
-    private $parameters = array();
-    /**
-     * @var string $type
-     */
-    private $type;
-    /**
-     * @param string $type
-     * @param string $name
-     * @param string $statement
-     * @param array $parameters
-     */
-    public function __construct(string $type, string $name, string $statement, array $parameters = array())
+    public function __construct(StorageInterface $storage = null)
     {
-        $this->type = $type;
-        $this->name = $name;
-        $this->statement = $statement;
-        $this->parameters = $parameters;
+        $this->arguments = $storage;
+    }
+
+    public function mergeStorage(StorageInterface $storage, bool $overwrite = false) : StorageInterface
+    {
+        if ($storage instanceof StorageInterface) {
+            foreach ($storage as $key => $item) {
+                $this->add($key, $item);
+            }
+        }
+    }
+    /**
+     * @param string $name
+     * @param $value
+     * @param bool|false $overwrite
+     * @return $this
+     * @throws CommonInternalException
+     */
+    public function add(string $name, $value, bool $overwrite = false) : StorageInterface
+    {
+        if ($this->arguments->has($name) and $overwrite === false) {
+            throw new CommonInternalException(ArgumentBag::class.' already contains an argument with name '.$name);
+        }
+
+        $this->arguments[$name] = $value;
+
+        return $this;
+    }
+    /**
+     * @param string $name
+     * @return bool
+     */
+    public function has(string $name) : bool
+    {
+        return $this->arguments->has($name);
+    }
+    /**
+     * @param string $name
+     * @return mixed
+     */
+    public function get(string $name)
+    {
+        if (!$this->arguments->has($name)) {
+            throw new CommonInternalException(ArgumentBag::class.' does not contain an argument with name '.$name);
+        }
+
+        return $this->arguments[$name];
+    }
+    /**
+     * @param string $name
+     * @return bool
+     */
+    public function remove(string $name) : bool
+    {
+        if (!$this->arguments->has($name)) {
+            return false;
+        }
+
+        unset($this->arguments[$name]);
+
+        return true;
     }
     /**
      * @return string|string
      */
     public function getName() : string
     {
-        return $this->name;
+        return $this->arguments->get('name');
     }
     /**
      * @return string|string
      */
     public function getStatement() : string
     {
-        return $this->statement;
+        return $this->arguments->get('sql');
     }
     /**
      * @return array
      */
     public function getParameters() : array
     {
-        return $this->parameters;
+        return $this->arguments->get('parameters');
     }
     /**
      * @return string|string
      */
     public function getType() : string
     {
-        return $this->type;
+        return $this->arguments->get('type');
     }
     /**
      * @param bool $atomic
@@ -85,8 +114,7 @@ class ScenarioStatement implements ConfigurationInterface
      */
     public function setAtomic(bool $atomic) : ScenarioStatement
     {
-        $this->atomic = $atomic;
-
+        $this->arguments->add('atomic', $atomic, true);
         return $this;
     }
     /**
@@ -94,21 +122,21 @@ class ScenarioStatement implements ConfigurationInterface
      */
     public function isAtomic() : bool
     {
-        return $this->atomic;
+        return $this->arguments->get('atomic');
     }
     /**
      * @void
      */
     public function markExecuted()
     {
-        $this->executed = true;
+        $this->arguments->add('executed', true);
     }
     /**
      * @return bool
      */
     public function isExecuted() : bool
     {
-        return $this->executed;
+        return ($this->arguments->get('executed') === true) ? true : false;
     }
     /**
      * @param UseOption $useOption
@@ -116,7 +144,7 @@ class ScenarioStatement implements ConfigurationInterface
      */
     public function setUseOption(UseOption $useOption) : ScenarioStatement
     {
-        $this->useOption = $useOption;
+        $this->arguments->add('use_option', $useOption);
 
         return $this;
     }
@@ -125,14 +153,14 @@ class ScenarioStatement implements ConfigurationInterface
      */
     public function hasUseOption() : bool
     {
-        return $this->useOption instanceof UseOption;
+        return $this->arguments->has('use_option');
     }
     /**
      * @return UseOption
      */
     public function getUseOption() : UseOption
     {
-        return $this->useOption;
+        return $this->arguments->get('use_option');
     }
     /**
      * @param ForeginKey $foreginKey
@@ -140,7 +168,7 @@ class ScenarioStatement implements ConfigurationInterface
      */
     public function setForeignKey(ForeginKey $foreginKey) : ScenarioStatement
     {
-        $this->foreignKey = $foreginKey;
+        $this->arguments->add('foreign_key', $foreginKey);
 
         return $this;
     }
@@ -149,13 +177,20 @@ class ScenarioStatement implements ConfigurationInterface
      */
     public function hasForeignKey() : bool
     {
-        return $this->foreignKey instanceof ForeginKey;
+        return $this->arguments->get('foreign_key') instanceof ForeginKey;
     }
     /**
      * @return ForeginKey
      */
     public function getForeignKey() : ForeginKey
     {
-        return $this->foreignKey;
+        return $this->arguments->get('foreign_key');
+    }
+    /**
+     * @return \ArrayIterator
+     */
+    public function getIterator()
+    {
+        return new \ArrayIterator($this->arguments);
     }
 }

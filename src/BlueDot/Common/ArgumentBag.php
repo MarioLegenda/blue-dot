@@ -4,12 +4,37 @@ namespace BlueDot\Common;
 
 use BlueDot\Exception\CommonInternalException;
 
-class ArgumentBag implements StorageInterface
+class ArgumentBag implements StorageInterface, \IteratorAggregate
 {
     /**
      * @var array $arguments
      */
     private $arguments = array();
+    /**
+     * @param StorageInterface $storage
+     * @throws CommonInternalException
+     */
+    public function __construct(StorageInterface $storage = null)
+    {
+        if ($storage instanceof StorageInterface) {
+            foreach ($storage as $key => $item) {
+                $this->add($key, $item);
+            }
+        }
+    }
+    /**
+     * @param StorageInterface $storage
+     * @param bool|false $overwrite
+     * @throws CommonInternalException
+     */
+    public function mergeStorage(StorageInterface $storage, bool $overwrite = false)
+    {
+        if ($storage instanceof StorageInterface) {
+            foreach ($storage as $key => $item) {
+                $this->add($key, $item);
+            }
+        }
+    }
     /**
      * @param string $name
      * @param $value
@@ -71,5 +96,12 @@ class ArgumentBag implements StorageInterface
         }
 
         return array();
+    }
+    /**
+     * @return \ArrayIterator
+     */
+    public function getIterator()
+    {
+        return new \ArrayIterator($this->arguments);
     }
 }

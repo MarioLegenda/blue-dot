@@ -2,65 +2,49 @@
 
 namespace BlueDot\Configuration\Simple;
 
+use BlueDot\Common\ArgumentBag;
+use BlueDot\Common\StorageInterface;
 use BlueDot\Configuration\ConfigurationInterface;
 
 class SimpleStatement implements ConfigurationInterface
 {
     /**
-     * @var string $type
+     * @var ArgumentBag $argumentBag
      */
-    private $type;
+    private $arguments;
     /**
-     * @var string $name
+     * @param StorageInterface $arguments
      */
-    private $name;
-    /**
-     * @var string $selectStatement
-     */
-    private $statement;
-    /**
-     * @var array parameters
-     */
-    private $parameters;
-    /**
-     * @param string $name
-     * @param string $statement
-     * @param array $parameters
-     * @param string $type
-     */
-    public function __construct(string $type, string $name, string $statement, array $parameters = array())
+    public function __construct(StorageInterface $arguments)
     {
-        $this->type = $type;
-        $this->name = $name;
-        $this->statement = $statement;
-        $this->parameters = $parameters;
+        $this->arguments = $arguments;
     }
     /**
      * @return string
      */
     public function getName() : string
     {
-        return $this->name;
+        return $this->arguments->get('name');
     }
     /**
      * @return string
      */
     public function getStatement() : string
     {
-        return $this->statement;
+        return $this->arguments->get('sql');
     }
     /**
      * @return array
      */
     public function getParameters() : array
     {
-        return $this->parameters;
+        return $this->arguments->get('parameters');
     }
     /**
      * @return string
      */
     public function getType() : string
     {
-        return $this->type;
+        return $this->arguments->get('type');
     }
 }

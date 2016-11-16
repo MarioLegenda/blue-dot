@@ -3,6 +3,7 @@
 namespace BlueDot\Database;
 
 use BlueDot\Database\Scenario\Scenario;
+use BlueDot\Database\Scenario\ScenarioCollection;
 use BlueDot\Entity\Entity;
 use BlueDot\Entity\EntityCollection;
 
@@ -17,30 +18,39 @@ class StatementExecution
      */
     private $scenario;
     /**
-     * @param Scenario $scenario
+     * @param mixed $scenario
      */
-    public function __construct(Scenario $scenario)
+    public function __construct($scenario)
     {
         $this->scenario = $scenario;
     }
 
     public function execute() : StatementExecution
     {
-        $connection = $this->scenario->getArgumentBag()->get('connection');
-        $statementType = $this->scenario->getArgumentBag()->get('specific_configuration')->getType();
-        $sql = $this->scenario->getSql();
+        if ($this->scenario instanceof Scenario) {
+            $connection = $this->scenario->getArgumentBag()->get('connection');
+            $statementType = $this->scenario->getArgumentBag()->get('specific_configuration')->getType();
+            $sql = $this->scenario->getSql();
 
-        $this->pdoStatement = $connection->prepare($sql);
+            $this->pdoStatement = $connection->prepare($sql);
 
-        if ($statementType !== 'table' and $statementType !== 'database') {
-            if ($this->scenario->hasParameters()) {
-                $this->bindParameters($this->scenario->getParameters());
+            if ($statementType !== 'table' and $statementType !== 'database') {
+                if ($this->scenario->hasParameters()) {
+                    $this->bindParameters($this->scenario->getParameters());
+                }
             }
+
+            $this->pdoStatement->execute();
+
+            return $this;
         }
 
-        $this->pdoStatement->execute();
-
-        return $this;
+        if ($this->scenario instanceof ScenarioCollection) {
+            die("kreten");
+            foreach ($this->scenario as $scenario) {
+                var_dump($scenario);
+            }
+        }
     }
 
     public function getResult()

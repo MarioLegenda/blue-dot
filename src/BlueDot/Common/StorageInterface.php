@@ -26,4 +26,10 @@ interface StorageInterface
      * @return mixed
      */
     public function remove(string $name) : bool;
+    /**
+     * @param StorageInterface $storage
+     * @param bool|false $overwrite
+     * @return mixed
+     */
+    public function mergeStorage(StorageInterface $storage, bool $overwrite = false);
 }

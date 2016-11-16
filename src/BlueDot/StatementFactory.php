@@ -2,6 +2,7 @@
 
 namespace BlueDot;
 
+use BlueDot\Common\ArgumentBag;
 use BlueDot\Configuration\Scenario\ForeginKey;
 use BlueDot\Exception\ConfigurationException;
 
@@ -41,7 +42,13 @@ class StatementFactory
                     $parameters = $statement['parameters'];
                 }
 
-                $createdSimples[] = new SimpleStatement($simpleType, $statementName, $statement['sql'], $parameters);
+                $arguments = new ArgumentBag();
+                $arguments
+                    ->add('type', $simpleType)
+                    ->add('name', $statementName)
+                    ->add('sql', $statement['sql'])
+                    ->add('parameters', $parameters);
+                $createdSimples[] = new SimpleStatement($arguments);
             }
         }
 
@@ -68,7 +75,7 @@ class StatementFactory
                 $resolvedName = 'scenario.'.$scenarioName.'.'.$statementName;
 
                 if (!array_key_exists('sql', $scenarioStatement)) {
-                    throw new ConfigurationException('Invalid configuration. A scenario statement should have an \'sql\' value');
+                    throw new ConfigurationException('Invalid configuration. A scenario statement should have an \'sql\' value of '.$resolvedName);
                 }
 
                 $sql = $scenarioStatement['sql'];
@@ -85,12 +92,13 @@ class StatementFactory
                     }
                 }
 
-                $scenarioEntry = new ScenarioStatement(
-                    '',
-                    $statementName,
-                    $sql,
-                    (isset($parameters)) ? $parameters : array()
-                );
+                $arguments = new ArgumentBag();
+                $arguments
+                    ->add('type', '')
+                    ->add('name', $statementName)
+                    ->add('sql', $sql)
+                    ->add('parameters', (isset($parameters)) ? $parameters : array());
+                $scenarioEntry = new ScenarioStatement($arguments);
 
                 $scenarioEntry->setAtomic($atomic);
 
@@ -102,7 +110,7 @@ class StatementFactory
                     }
 
                     if (!$createdScenarios->hasScenarioStatement($scenarioName, $useOption['name'])) {
-                        throw new ConfigurationException('Invalid compound configuration for '.$resolvedName.'. scenario.'.$scenarioName.'.'.$useOption['name'].' should be before the statement that uses it ('.$resolvedName.')');
+                        throw new ConfigurationException('Invalid scenario configuration for '.$resolvedName.'. scenario.'.$scenarioName.'.'.$useOption['name'].' should be before the statement that uses it ('.$resolvedName.')');
                     }
 
                     $statementType = strtolower(substr($createdScenarios->getScenarioStatement($scenarioName, $useOption['name'])->getStatement(), 0, 6));

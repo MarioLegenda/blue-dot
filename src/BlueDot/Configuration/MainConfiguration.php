@@ -45,7 +45,7 @@ class MainConfiguration
 
             foreach ($validKeys as $key) {
                 if (!array_key_exists($key, $connection)) {
-                    throw new ConfigurationException('Invalid connection configuration. Missing '.$key.' configutaion value');
+                    throw new ConfigurationException('Invalid connection configuration. Missing '.$key.' configuration value');
                 }
             }
 
@@ -137,7 +137,7 @@ class MainConfiguration
 
         foreach ($this->scenarios as $key => $scenario) {
             if ($key === $name) {
-                return $scenario;
+                return $this->scenarios->getScenario($name);
             }
         }
 
