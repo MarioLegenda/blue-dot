@@ -73,6 +73,10 @@ class StatementFactory
 
                 $sql = $scenarioStatement['sql'];
 
+                if (!is_string($sql)) {
+                    throw new ConfigurationException('Sql statement has to be a string of scenario.'.$scenarioName.'.'.$statementName);
+                }
+
                 if (array_key_exists('parameters', $scenarioStatement)) {
                     $parameters = $scenarioStatement['parameters'];
 
@@ -97,8 +101,14 @@ class StatementFactory
                         throw new ConfigurationException('\'use\' configuration value should \'name\' and \'values\' configuration values under itself');
                     }
 
-                    if (!$createdScenarios->hasScenario($scenarioName, $useOption['name'])) {
+                    if (!$createdScenarios->hasScenarioStatement($scenarioName, $useOption['name'])) {
                         throw new ConfigurationException('Invalid compound configuration for '.$resolvedName.'. scenario.'.$scenarioName.'.'.$useOption['name'].' should be before the statement that uses it ('.$resolvedName.')');
+                    }
+
+                    $statementType = strtolower(substr($createdScenarios->getScenarioStatement($scenarioName, $useOption['name'])->getStatement(), 0, 6));
+
+                    if ($statementType !== 'select') {
+                        throw new ConfigurationException('An sql statement can only \'use\' a \'select\' sql query');
                     }
 
                     $scenarioEntry->setUseOption(new UseOption($useOption['name'], $useOption['values']));
@@ -119,7 +129,7 @@ class StatementFactory
                         throw new ConfigurationException($resolvedName.'.foreign_key.bind_to should be an associative array where key is the name of the column that is inserted and value is the value name of the column that is used to created the foreign key');
                     }
 
-                    if (!$createdScenarios->hasScenario($scenarioName, $foreignKey['statement_name'])) {
+                    if (!$createdScenarios->hasScenarioStatement($scenarioName, $foreignKey['statement_name'])) {
                         throw new ConfigurationException('scenario.'.$scenarioName.'.'.$foreignKey['statement_name'].' has to be declared before '.$resolvedName);
                     }
 

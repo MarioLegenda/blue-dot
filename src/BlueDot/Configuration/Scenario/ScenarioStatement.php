@@ -7,6 +7,10 @@ use BlueDot\Configuration\ConfigurationInterface;
 class ScenarioStatement implements ConfigurationInterface
 {
     /**
+     * @var bool $executed
+     */
+    private $executed = false;
+    /**
      * @var ForeginKey $foreignKey
      */
     private $foreignKey;
@@ -91,6 +95,20 @@ class ScenarioStatement implements ConfigurationInterface
     public function isAtomic() : bool
     {
         return $this->atomic;
+    }
+    /**
+     * @void
+     */
+    public function markExecuted()
+    {
+        $this->executed = true;
+    }
+    /**
+     * @return bool
+     */
+    public function isExecuted() : bool
+    {
+        return $this->executed;
     }
     /**
      * @param UseOption $useOption

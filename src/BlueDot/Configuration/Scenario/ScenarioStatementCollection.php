@@ -30,28 +30,55 @@ class ScenarioStatementCollection implements \IteratorAggregate
      */
     public function add(string $name, ScenarioStatement $scenarioStatement) : ScenarioStatementCollection
     {
-        $this->scenarioStatements[$name][] = $scenarioStatement;
+        $this->scenarioStatements[$name][$scenarioStatement->getName()] = $scenarioStatement;
 
         return $this;
     }
     /**
-     * @param string $name
      * @param string $scenarioName
+     * @param string $executionName
      * @return bool
      */
-    public function hasScenario(string $name, string $scenarioName) : bool
+    public function hasScenarioStatement(string $scenarioName, string $executionName) : bool
     {
-        if (!array_key_exists($name, $this->scenarioStatements)) {
+        if (!array_key_exists($scenarioName, $this->scenarioStatements)) {
             return false;
         }
 
-        foreach ($this->scenarioStatements[$name] as $scenarioStatement) {
-            if ($scenarioStatement->getName() === $scenarioName) {
+        foreach ($this->scenarioStatements[$scenarioName] as $scenarioStatement) {
+            if ($scenarioStatement->getName() === $executionName) {
                 return true;
             }
         }
 
         return false;
+    }
+
+    public function getScenarioStatement(string $scenarioName, string $executionName)
+    {
+        if ($this->hasScenario($scenarioName, $executionName)) {
+            return $this->scenarioStatements[$scenarioName][$executionName];
+        }
+    }
+    /**
+     * @param string $scenarioName
+     * @return bool
+     */
+    public function hasScenario(string $scenarioName) : bool
+    {
+        return array_key_exists($scenarioName, $this->scenarioStatements);
+    }
+    /**
+     * @param string $scenarioName
+     * @return mixed
+     */
+    public function getScenario(string $scenarioName)
+    {
+        if ($this->hasScenario($scenarioName)) {
+            return $this->scenarioStatements[$scenarioName];
+        }
+
+        return null;
     }
     /**
      * @return \ArrayIterator

@@ -2,6 +2,8 @@
 
 namespace BlueDot\Configuration;
 
+use BlueDot\Configuration\Scenario\ScenarioStatementCollection;
+use BlueDot\Database\Scenario\ScenarioStatementExecution;
 use BlueDot\StatementFactory;
 use BlueDot\Exception\ConfigurationException;
 
@@ -116,7 +118,7 @@ class MainConfiguration
      * @return mixed
      * @throws ConfigurationException
      */
-    public function findScenarioByName(string $name) : array
+    public function findScenarioByName(string $name)
     {
         if (array_key_exists($name, $this->foundStatements)) {
             return $this->foundStatements[$name];

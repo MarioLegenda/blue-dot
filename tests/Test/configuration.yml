@@ -39,7 +39,7 @@ configuration:
 
             # basic:
             # 1. start executing sql in the order of appearance
-            # 2. if there is a 'use' clause, check if there is that statement in the statement collection
+            # 2. if there is a 'use' clause, check if there is that statement in the statement collection. The use statement has to be already executed
             # 3. get data from that statement and execute the current statement
             # 4. check if there is a foreign key clause
             # 5. check if the statement under foreign clause exists

@@ -59,6 +59,9 @@ class MainTest extends \PHPUnit_Framework_TestCase
             'id' => 6,
         ));
 
-        $blueDot->executeScenario('insert_user');
+        $parameters = array(
+            'select_user' => (new ParameterCollection())->add('id', 5)
+        );
+        $blueDot->executeScenario('insert_user', $parameters);
     }
 }

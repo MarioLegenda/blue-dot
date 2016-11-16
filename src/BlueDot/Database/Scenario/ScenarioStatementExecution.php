@@ -12,7 +12,11 @@ class ScenarioStatementExecution extends AbstractStatementExecution
         $scenarioCollection = new ScenarioStatementCollection($this->specificConfiguration);
 
         foreach ($scenarioCollection as $scenario) {
+            if ($scenario->hasUseOption()) {
+                $useOption = $scenario->getUseOption();
 
+
+            }
         }
     }
 }

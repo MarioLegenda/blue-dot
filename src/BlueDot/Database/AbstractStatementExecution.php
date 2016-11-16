@@ -48,4 +48,28 @@ abstract class AbstractStatementExecution
         $this->parameters = $parameters;
         $this->report = $report;
     }
+
+    protected function resolveParameterValue($value)
+    {
+        if (is_bool($value)) {
+            return \PDO::PARAM_BOOL;
+        }
+
+        if (is_string($value)) {
+            return \PDO::PARAM_STR;
+        }
+
+        if ($value === null) {
+            return \PDO::PARAM_NULL;
+        }
+
+        if (is_int($value)) {
+            return \PDO::PARAM_INT;
+        }
+    }
+
+    protected function isValueResolvable($value) : bool
+    {
+        return is_bool($value) or is_string($value) or $value === null or is_int($value);
+    }
 }

@@ -98,9 +98,11 @@ final class BlueDot implements BlueDotInterface
     {
         $this->establishConnection($this->configuration);
 
-        if (!$parameters instanceof EntityInterface and !is_array($parameters) and !$parameters instanceof ParameterCollectionInterface) {
-            throw new QueryException('Invalid argument. If provided, parameters can be an instance of '.EntityInterface::class.', an instance of '.ParameterCollectionInterface::class.' or an array');
+        if (!is_array($parameters)) {
+            throw new QueryException('Parameters argument has to be an array with key names as scenario statements and array entries as instances of '.ParameterCollectionInterface::class);
         }
+
+        $scenarioStatement = $this->configuration->findScenarioByName($name);
 
         $execution = new ScenarioStatementExecution(
             'scenario',
