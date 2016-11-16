@@ -107,11 +107,31 @@ class StatementFactory
 
                     $statementType = strtolower(substr($createdScenarios->getScenarioStatement($scenarioName, $useOption['name'])->getStatement(), 0, 6));
 
-                    if ($statementType !== 'select') {
+                    if ($statementType !== 'select' and $statementType !== 'insert') {
                         throw new ConfigurationException('An sql statement can only \'use\' a \'select\' sql query');
                     }
 
-                    $scenarioEntry->setUseOption(new UseOption($useOption['name'], $useOption['values']));
+                    $values = $useOption['values'];
+
+                    if (!is_string($values) and !is_array($values)) {
+                        throw new ConfigurationException('\'values\' configuration entry under \'use\' can only be a string or an array for ', $resolvedName);
+                    }
+
+                    if (is_string($values)) {
+                        $exploded = explode('.', $values);
+
+                        if (count($exploded) !== 2) {
+                            throw new ConfigurationException('Invalid \'use\' configuration of '.$resolvedName);
+                        }
+
+                        if (!$createdScenarios->hasScenarioStatement($scenarioName, $exploded[0])) {
+                            throw new ConfigurationException('Unknown scenario statement'.$exploded[0].' in \'use\' configuration entry of '.$resolvedName);
+                        }
+
+                        $values = $exploded;
+                    }
+
+                    $scenarioEntry->setUseOption(new UseOption($useOption['name'], $values));
                 }
 
                 if (array_key_exists('foreign_key', $scenarioStatement)) {

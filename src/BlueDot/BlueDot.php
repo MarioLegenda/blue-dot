@@ -76,31 +76,24 @@ final class BlueDot implements BlueDotInterface
         $statementExecution = new StatementExecution($scenario);
 
         return $statementExecution->execute()->getResult();
-/*
-        $argumentsBag = (new ArgumentBag())
-            ->add('connection', $this->connection)
-            ->add('specific_configuration', $this->configuration->findByType('simple', $name))
-            ->add('parameters', $parameters);
-
-        $execution = new SimpleStatementExecution($argumentsBag);*/
     }
 
     public function executeScenario($name, $parameters = array())
     {
         $this->establishConnection($this->configuration);
 
-        if (!is_array($parameters)) {
-            throw new QueryException('Parameters argument has to be an array with key names as scenario statements and array entries as instances of '.ParameterCollectionInterface::class);
-        }
-
-        $argumentsBag = (new ArgumentBag())
+        $scenarioBuilder = new ScenarioBuilder((new ArgumentBag())
+            ->add('type', 'scenario')
+            ->add('parameters', $parameters)
             ->add('connection', $this->connection)
             ->add('specific_configuration', $this->configuration->findByType('scenario', $name))
-            ->add('parameters', $parameters);
+        );
 
-        $execution = new ScenarioStatementExecution($argumentsBag);
+        $scenario = $scenarioBuilder->buildScenario();
 
-        return $execution->execute();
+        $statementExecution = new StatementExecution($scenario);
+
+        return $statementExecution->execute()->getResult();
     }
     /**
      * @param \PDO $connection
