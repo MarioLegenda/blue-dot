@@ -37,6 +37,27 @@ class ScenarioCollection implements \IteratorAggregate
         return $this->scenarious[$name];
     }
 
+    public function isUsedAsOption(string $name) : bool
+    {
+        if (!$this->hasScenario($name)) {
+            throw new QueryException('Scenario '.$name.' has not been found but it should be at this point in ScenarioCollection::isUsedAsOption()');
+        }
+
+        foreach ($this->scenarious as $scenario) {
+            $config = $scenario->getArgumentBag()->get('specific_configuration');
+
+            if ($config->hasUseOption()) {
+                $useOption = $config->getUseOption();
+
+                if ($useOption->getName() === $name) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     public function getIterator()
     {
         return new \ArrayIterator($this->scenarious);

@@ -20,6 +20,13 @@ class SimpleStatement implements ConfigurationInterface
         $this->arguments = $arguments;
     }
     /**
+     * @return ArgumentBag|StorageInterface
+     */
+    public function getArgumentBag() : StorageInterface
+    {
+        return $this->arguments;
+    }
+    /**
      * @return string
      */
     public function getName() : string

@@ -4,10 +4,11 @@ namespace BlueDot\Configuration\Scenario;
 
 use BlueDot\Common\ArgumentBag;
 use BlueDot\Common\StorageInterface;
+use BlueDot\Common\StorageUserInterface;
 use BlueDot\Configuration\ConfigurationInterface;
 use BlueDot\Exception\CommonInternalException;
 
-class ScenarioStatement implements ConfigurationInterface, StorageInterface
+class ScenarioStatement implements ConfigurationInterface, StorageInterface, StorageUserInterface
 {
     /**
      * @var ArgumentBag $arguments
@@ -20,7 +21,11 @@ class ScenarioStatement implements ConfigurationInterface, StorageInterface
     {
         $this->arguments = $storage;
     }
-
+    /**
+     * @param StorageInterface $storage
+     * @param bool|false $overwrite
+     * @throws CommonInternalException
+     */
     public function mergeStorage(StorageInterface $storage, bool $overwrite = false) : StorageInterface
     {
         if ($storage instanceof StorageInterface) {
@@ -64,7 +69,7 @@ class ScenarioStatement implements ConfigurationInterface, StorageInterface
             throw new CommonInternalException(ArgumentBag::class.' does not contain an argument with name '.$name);
         }
 
-        return $this->arguments[$name];
+        return $this->arguments->get($name);
     }
     /**
      * @param string $name
@@ -76,7 +81,7 @@ class ScenarioStatement implements ConfigurationInterface, StorageInterface
             return false;
         }
 
-        unset($this->arguments[$name]);
+        $this->arguments->remove($name);
 
         return true;
     }
@@ -166,9 +171,9 @@ class ScenarioStatement implements ConfigurationInterface, StorageInterface
      * @param ForeginKey $foreginKey
      * @return $this
      */
-    public function setForeignKey(ForeginKey $foreginKey) : ScenarioStatement
+    public function setForeignKey(ForeginKey $foreignKey) : ScenarioStatement
     {
-        $this->arguments->add('foreign_key', $foreginKey);
+        $this->arguments->add('foreign_key', $foreignKey);
 
         return $this;
     }
@@ -177,7 +182,7 @@ class ScenarioStatement implements ConfigurationInterface, StorageInterface
      */
     public function hasForeignKey() : bool
     {
-        return $this->arguments->get('foreign_key') instanceof ForeginKey;
+        return $this->arguments->has('foreign_key');
     }
     /**
      * @return ForeginKey

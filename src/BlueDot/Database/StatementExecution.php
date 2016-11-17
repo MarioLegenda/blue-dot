@@ -2,6 +2,7 @@
 
 namespace BlueDot\Database;
 
+use BlueDot\Common\ArgumentBag;
 use BlueDot\Database\Scenario\Scenario;
 use BlueDot\Database\Scenario\ScenarioCollection;
 use BlueDot\Entity\Entity;
@@ -28,29 +29,57 @@ class StatementExecution
     public function execute() : StatementExecution
     {
         if ($this->scenario instanceof Scenario) {
-            $connection = $this->scenario->getArgumentBag()->get('connection');
-            $statementType = $this->scenario->getArgumentBag()->get('specific_configuration')->getType();
-            $sql = $this->scenario->getSql();
-
-            $this->pdoStatement = $connection->prepare($sql);
-
-            if ($statementType !== 'table' and $statementType !== 'database') {
-                if ($this->scenario->hasParameters()) {
-                    $this->bindParameters($this->scenario->getParameters());
-                }
-            }
-
-            $this->pdoStatement->execute();
+            $this->realExecute($this->scenario);
 
             return $this;
         }
 
         if ($this->scenario instanceof ScenarioCollection) {
-            die("kreten");
             foreach ($this->scenario as $scenario) {
-                var_dump($scenario);
+                $configuration = $scenario->getArgumentBag()->get('specific_configuration');
+
+                if ($this->scenario->isUsedAsOption($configuration->getName())) {
+                    $report = $scenario->getArgumentBag()->get('report');
+                    $resolvedName = $configuration->get('resolved_name');
+
+                    $result = $this->realExecute($scenario)->getResult();
+
+                    $arguments = new ArgumentBag();
+                    $arguments->add($resolvedName, $result);
+
+                    $report->add($resolvedName, $arguments);
+                }
+
+                if ($configuration->hasUseOption()) {
+
+                }
+
+                if ($configuration->hasForeignKey()) {
+
+                }
+
+                die("kreten");
             }
         }
+    }
+
+    private function realExecute(Scenario $scenario) : StatementExecution
+    {
+        $connection = $scenario->getArgumentBag()->get('connection');
+        $statementType = $scenario->getArgumentBag()->get('specific_configuration')->getType();
+        $sql = $scenario->getSql();
+
+        $this->pdoStatement = $connection->prepare($sql);
+
+        if ($statementType !== 'table' and $statementType !== 'database') {
+            if ($scenario->hasParameters()) {
+                $this->bindParameters($scenario->getParameters());
+            }
+        }
+
+        $this->pdoStatement->execute();
+
+        return $this;
     }
 
     public function getResult()
@@ -70,7 +99,8 @@ class StatementExecution
                 $resultCollection->add(new Entity($res));
             }
 
-            return $resultCollection;        }
+            return $resultCollection;
+        }
     }
 
     private function bindParameters(ParameterCollectionInterface $parameters)

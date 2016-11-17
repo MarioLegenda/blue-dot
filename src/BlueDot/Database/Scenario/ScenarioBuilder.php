@@ -26,11 +26,10 @@ class ScenarioBuilder implements ScenarioInterface
     public function buildScenario()
     {
         if ($this->argumentBag->get('type') === 'simple') {
-            $this->resolveParameters();
+            $this->resolveParameters($this->argumentBag);
 
             return new Scenario($this->argumentBag);
         } else if ($this->argumentBag->get('type') === 'scenario') {
-            $this->argumentBag->add('multiple_scenarios', true);
             $scenarious = $this->argumentBag->get('specific_configuration');
 
             $scenarioCollection = new ScenarioCollection();
@@ -41,6 +40,8 @@ class ScenarioBuilder implements ScenarioInterface
                 $argumentBag->mergeStorage($scenario);
                 $argumentBag->add('specific_configuration', $scenario);
 
+                $this->resolveParameters($argumentBag);
+
                 $scenarioCollection->addScenario($scenario->getName(), new Scenario($argumentBag));
             }
 
@@ -48,13 +49,13 @@ class ScenarioBuilder implements ScenarioInterface
         }
     }
 
-    private function resolveParameters()
+    private function resolveParameters(StorageInterface $storage)
     {
-        if ($this->argumentBag->has('parameters')) {
-            $parameters = $this->argumentBag->get('parameters');
-            $specificConfiguration = $this->argumentBag->get('specific_configuration');
+        if ($storage->has('parameters')) {
+            $parameters = $storage->get('parameters');
+            $specificConfiguration = $storage->get('specific_configuration');
 
-            $this->argumentBag->add(
+            $storage->add(
                 'parameters',
                 $this->validateParameters($parameters, $specificConfiguration),
                 true

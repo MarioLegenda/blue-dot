@@ -5,12 +5,7 @@ namespace BlueDot;
 use BlueDot\Common\ArgumentBag;
 use BlueDot\Configuration\MainConfiguration;
 use BlueDot\Database\Scenario\ScenarioBuilder;
-use BlueDot\Database\Scenario\ScenarioStatementExecution;
-use BlueDot\Database\ParameterCollectionInterface;
-use BlueDot\Database\Simple\SimpleStatementExecution;
 use BlueDot\Database\StatementExecution;
-use BlueDot\Exception\QueryException;
-use BlueDot\Entity\EntityInterface;
 use Symfony\Component\Yaml\Yaml;
 use BlueDot\Exception\ConfigurationException;
 use BlueDot\Cache\Report;
@@ -87,6 +82,7 @@ final class BlueDot implements BlueDotInterface
             ->add('parameters', $parameters)
             ->add('connection', $this->connection)
             ->add('specific_configuration', $this->configuration->findByType('scenario', $name))
+            ->add('report', $this->report)
         );
 
         $scenario = $scenarioBuilder->buildScenario();
@@ -124,7 +120,7 @@ final class BlueDot implements BlueDotInterface
 
         $this->connection = new \PDO('mysql:host='.$host.';dbname='.$dbName, $user, $password, array(
             \PDO::ATTR_PERSISTENT => true,
-            \PDO::ERRMODE_EXCEPTION => true,
+            \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
             \PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8',
         ));
     }

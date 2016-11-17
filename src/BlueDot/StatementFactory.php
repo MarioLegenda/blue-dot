@@ -46,6 +46,7 @@ class StatementFactory
                 $arguments
                     ->add('type', $simpleType)
                     ->add('name', $statementName)
+                    ->add('resolved_name', $simpleType.'.'.$statementName)
                     ->add('sql', $statement['sql'])
                     ->add('parameters', $parameters);
                 $createdSimples[] = new SimpleStatement($arguments);
@@ -94,8 +95,10 @@ class StatementFactory
 
                 $arguments = new ArgumentBag();
                 $arguments
-                    ->add('type', '')
+                    ->add('type', 'scenario')
+                    ->add('scenario_name', $scenarioName)
                     ->add('name', $statementName)
+                    ->add('resolved_name', 'scenario.'.$scenarioName.'.'.$statementName)
                     ->add('sql', $sql)
                     ->add('parameters', (isset($parameters)) ? $parameters : array());
                 $scenarioEntry = new ScenarioStatement($arguments);

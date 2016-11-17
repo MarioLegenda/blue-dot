@@ -57,7 +57,7 @@ class MainTest extends \PHPUnit_Framework_TestCase
         $blueDot->executeSimple('delete.single_city', array(
             'id' => 6,
         ));
-
+/*
         $blueDot->executeScenario('insert_user', array(
             'select_user' => array(
                 'id' => 1,
@@ -66,6 +66,6 @@ class MainTest extends \PHPUnit_Framework_TestCase
                 'city' => 'Split',
                 'address' => 'Vinodolska 44'
             ),
-        ));
+        ));*/
     }
 }
