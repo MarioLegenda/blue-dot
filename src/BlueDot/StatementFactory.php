@@ -45,7 +45,7 @@ class StatementFactory
 
                 $arguments = new ArgumentBag();
                 $arguments
-                    ->add('type', $simpleType)
+                    ->add('sql_type', $simpleType)
                     ->add('name', $statementName)
                     ->add('resolved_name', $simpleType.'.'.$statementName)
                     ->add('sql', $statement['sql'])
@@ -104,7 +104,10 @@ class StatementFactory
                     ->add('resolved_name', 'scenario.'.$scenarioName.'.'.$statementName)
                     ->add('sql', $sql)
                     ->add('parameters', (isset($parameters)) ? $parameters : array())
-                    ->add('atomic', $atomic);
+                    ->add('atomic', $atomic)
+                    ->add('sql_type', strtolower(substr($sql, 0, 6))
+                );
+
                 $scenarioEntry = new ScenarioConfiguration($arguments);
 
                 if (array_key_exists('use', $scenarioStatement)) {

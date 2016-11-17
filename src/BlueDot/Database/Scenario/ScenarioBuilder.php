@@ -39,6 +39,7 @@ class ScenarioBuilder implements ScenarioInterface
 
             if ($configuration instanceof ScenarioConfigurationCollection) {
                 $validatedParameters = array();
+
                 foreach ($parameters as $statementName => $parameter) {
                     if (!$configuration->hasScenarioConfiguration($statementName)) {
                         throw new QueryException('You included parameters in your query but not in the configuration for '.$configuration->get('resolved_name'));
@@ -51,7 +52,7 @@ class ScenarioBuilder implements ScenarioInterface
 
                 $storage->add(
                     'user_parameters',
-                    new ParameterCollection($validatedParameters),
+                    $validatedParameters,
                     true
                 );
 

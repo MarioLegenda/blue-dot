@@ -99,6 +99,13 @@ abstract class AbstractArgumentBag implements StorageInterface, \IteratorAggrega
         return $this;
     }
     /**
+     * @return bool
+     */
+    public function isEmpty() : bool
+    {
+        return empty($this->arguments);
+    }
+    /**
      * @return array
      */
     public function getArgumentKeys() : array

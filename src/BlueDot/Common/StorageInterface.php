@@ -33,6 +33,10 @@ interface StorageInterface
      */
     public function rename(string $toRename, string $newName) : StorageInterface;
     /**
+     * @return mixed
+     */
+    public function isEmpty() : bool;
+    /**
      * @param StorageInterface $storage
      * @param bool|false $overwrite
      * @return StorageInterface

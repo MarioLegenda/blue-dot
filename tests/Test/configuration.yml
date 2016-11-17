@@ -60,9 +60,7 @@ configuration:
                     bind_to: {user_id: "user_id"}
 #            get_address_by_id:
 #                sql: "SELECT * FROM address WHERE id = :id"
-#                use:
-#                    name: insert_address
-#                    values: insert_address.last_inserted_id
+#                parameters: [address]
            # return: [select_user.name, select_user.lastname, get_address_by_id]
     callable:
         custom_callable_name:

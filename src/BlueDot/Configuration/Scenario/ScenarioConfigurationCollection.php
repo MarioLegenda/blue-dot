@@ -3,7 +3,6 @@
 namespace BlueDot\Configuration\Scenario;
 
 use BlueDot\Common\AbstractArgumentBag;
-use BlueDot\Common\StorageInterface;
 
 class ScenarioConfigurationCollection extends AbstractArgumentBag
 {
@@ -29,5 +28,20 @@ class ScenarioConfigurationCollection extends AbstractArgumentBag
         }
 
         return $this->get($scenarioStatementName);
+    }
+
+    public function findConfigurationInUseOption()
+    {
+        $useOptionConfigurations = new ScenarioConfigurationCollection();
+        foreach ($this->arguments as $argument) {
+            if ($argument->has('use_option')) {
+                $useOption = $argument->get('use_option');
+                $scenarioConfiguration = $this->getScenarioConfiguration($useOption->getName());
+
+                $useOptionConfigurations->add($useOption->getName(), $scenarioConfiguration);
+            }
+        }
+
+        return $useOptionConfigurations;
     }
 }
