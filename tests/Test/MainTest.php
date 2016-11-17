@@ -62,10 +62,6 @@ class MainTest extends \PHPUnit_Framework_TestCase
             'select_user' => array(
                 'id' => 1,
             ),
-            'insert_address' => array(
-                'city' => 'Split',
-                'address' => 'Vinodolska 44'
-            ),
         ));
     }
 }

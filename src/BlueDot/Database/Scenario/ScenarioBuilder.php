@@ -4,6 +4,7 @@ namespace BlueDot\Database\Scenario;
 
 use BlueDot\Common\ArgumentBag;
 use BlueDot\Common\StorageInterface;
+use BlueDot\Configuration\Scenario\ScenarioConfigurationCollection;
 use BlueDot\Database\ParameterCollection;
 use BlueDot\Database\ParameterCollectionInterface;
 use BlueDot\Exception\QueryException;
@@ -25,28 +26,9 @@ class ScenarioBuilder implements ScenarioInterface
 
     public function buildScenario()
     {
-        if ($this->argumentBag->get('type') === 'simple') {
-            $this->resolveParameters($this->argumentBag);
+        $this->resolveParameters($this->argumentBag);
 
-            return new Scenario($this->argumentBag);
-        } else if ($this->argumentBag->get('type') === 'scenario') {
-            $scenarious = $this->argumentBag->get('specific_configuration');
-
-            $scenarioCollection = new ScenarioCollection();
-            foreach ($scenarious as $scenario) {
-                $this->argumentBag->remove('specific_configuration');
-
-                $argumentBag = new ArgumentBag($this->argumentBag);
-                $argumentBag->mergeStorage($scenario);
-                $argumentBag->add('specific_configuration', $scenario);
-
-                $this->resolveParameters($argumentBag);
-
-                $scenarioCollection->addScenario($scenario->getName(), new Scenario($argumentBag));
-            }
-
-            return $scenarioCollection;
-        }
+        return $this->argumentBag;
     }
 
     private function resolveParameters(StorageInterface $storage)
@@ -54,6 +36,27 @@ class ScenarioBuilder implements ScenarioInterface
         $configuration = $storage->get('configuration');
         if ($storage->has('user_parameters')) {
             $parameters = $storage->get('user_parameters');
+
+            if ($configuration instanceof ScenarioConfigurationCollection) {
+                $validatedParameters = array();
+                foreach ($parameters as $statementName => $parameter) {
+                    if (!$configuration->hasScenarioConfiguration($statementName)) {
+                        throw new QueryException('You included parameters in your query but not in the configuration for '.$configuration->get('resolved_name'));
+                    }
+
+                    $statementConfig = $configuration->getScenarioConfiguration($statementName);
+
+                    $validatedParameters[$statementName] = $this->validateParameters($parameter, $statementConfig);
+                }
+
+                $storage->add(
+                    'user_parameters',
+                    new ParameterCollection($validatedParameters),
+                    true
+                );
+
+                return;
+            }
 
             $storage->add(
                 'user_parameters',
@@ -77,7 +80,7 @@ class ScenarioBuilder implements ScenarioInterface
         $configParameters = $configuration->get('parameters');
 
         if (!empty(array_diff($configParameters, $parameters->getBindingKeys()))) {
-            throw new QueryException('Given parameters and parameters in configuration are not equal for '.$configuration->get('type').'.'.$configuration->get('name'));
+            throw new QueryException('Given parameters and parameters in configuration are not equal for '.$configuration->get('resolved_name'));
         }
 
         return $parameters;

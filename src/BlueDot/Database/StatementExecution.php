@@ -3,6 +3,7 @@
 namespace BlueDot\Database;
 
 use BlueDot\Common\ArgumentBag;
+use BlueDot\Common\StorageInterface;
 use BlueDot\Database\Scenario\Scenario;
 use BlueDot\Database\Scenario\ScenarioCollection;
 use BlueDot\Entity\Entity;
@@ -28,42 +29,22 @@ class StatementExecution
 
     public function execute() : StatementExecution
     {
-        if ($this->scenario instanceof Scenario) {
+        if ($this->scenario->get('type') === 'simple') {
             $this->realExecute($this->scenario);
 
             return $this;
         }
 
-        if ($this->scenario instanceof ScenarioCollection) {
-            foreach ($this->scenario as $scenario) {
-                $configuration = $scenario->getArgumentBag()->get('specific_configuration');
+        if ($this->scenario->get('type') === 'scenario') {
+            $configuration = $this->scenario->get('configuration');
 
-                if ($this->scenario->isUsedAsOption($configuration->getName())) {
-                    $report = $scenario->getArgumentBag()->get('report');
-                    $resolvedName = $configuration->get('resolved_name');
-
-                    $result = $this->realExecute($scenario)->getResult();
-
-                    $arguments = new ArgumentBag();
-                    $arguments->add($resolvedName, $result);
-
-                    $report->add($resolvedName, $arguments);
-                }
-
-                if ($configuration->hasUseOption()) {
-
-                }
-
-                if ($configuration->hasForeignKey()) {
-
-                }
-
+            foreach ($configuration as $scenario) {
                 die("kreten");
             }
         }
     }
 
-    private function realExecute(Scenario $scenario) : StatementExecution
+    private function realExecute(StorageInterface $scenario) : StatementExecution
     {
         $connection = $scenario->get('connection');
         $configuration = $scenario->get('configuration');

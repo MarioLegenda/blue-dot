@@ -83,6 +83,21 @@ abstract class AbstractArgumentBag implements StorageInterface, \IteratorAggrega
 
         return true;
     }
+
+    public function rename(string $toRename, string $newName) : StorageInterface
+    {
+        if (!$this->has($toRename)) {
+            throw new CommonInternalException('Cannot rename argument. '.$toRename.' not found');
+        }
+
+        $temp = $this->get($toRename);
+
+        unset($this->arguments[$toRename]);
+
+        $this->arguments[$newName] = $temp;
+
+        return $this;
+    }
     /**
      * @return array
      */

@@ -135,11 +135,7 @@ class MainConfiguration
             return $this->foundStatements[$name];
         }
 
-        var_dump($this->scenarios);
-        die();
-
         if ($this->scenarios->has($name)) {
-            var_dump($this->scenarios->get($name));
             return $this->scenarios->get($name);
         }
 
