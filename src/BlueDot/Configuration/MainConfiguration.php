@@ -135,10 +135,9 @@ class MainConfiguration
             return $this->foundStatements[$name];
         }
 
-        foreach ($this->scenarios as $key => $scenario) {
-            if ($key === $name) {
-                return $this->scenarios->getScenario($name);
-            }
+        if ($this->scenarios->has($name)) {
+            var_dump($this->scenarios->get($name));
+            return $this->scenarios->get($name);
         }
 
         throw new ConfigurationException('Scenario '.$name.' has not been found under \'scenario\' configuration entry');

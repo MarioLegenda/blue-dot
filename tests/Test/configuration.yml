@@ -30,34 +30,34 @@ configuration:
                 sql: "DELETE FROM village WHERE id = :id"
                 parameters: [id]
 
-#    scenario:
-#        insert_user:
-#            atomic: true
-#            # a statement can have a use clause where can be specified what values should be user from
-#            # other already executed statements. Statements under use have to be executed before
-#            # the statement that uses the use clause.
-#
-#            # basic:
-#            # 1. start executing sql in the order of appearance
-#            # 2. if there is a 'use' clause, check if there is that statement in the statement collection. The use statement has to be already executed
-#            # 3. get data from that statement and execute the current statement
-#            # 4. check if there is a foreign key clause
-#            # 5. check if the statement under foreign clause exists
-#            # 6. get the last inserted id from the foreign key statement
-#            # 7. bind the foreign key, check if exeuction has to be atomic and execute it
-#            select_user:
-#                sql: "SELECT * FROM user WHERE id = :id"
-#                parameters: [id]
-#            insert_user:
-#                sql: "INSERT INTO user (name, lastname) VALUES (:name, :lastname)"
-#                use:
-#                    name: select_user
-#                    values: [name, lastname]
-#            insert_address:
-#                sql: "INSERT INTO address (user_id, city, address) VALUES (:user_id, :city, :address)"
-#                foreign_key:
-#                    statement_name: insert_user
-#                    bind_to: {user_id: "user_id"}
+    scenario:
+        insert_user:
+            atomic: true
+            # a statement can have a use clause where can be specified what values should be user from
+            # other already executed statements. Statements under use have to be executed before
+            # the statement that uses the use clause.
+
+            # basic:
+            # 1. start executing sql in the order of appearance
+            # 2. if there is a 'use' clause, check if there is that statement in the statement collection. The use statement has to be already executed
+            # 3. get data from that statement and execute the current statement
+            # 4. check if there is a foreign key clause
+            # 5. check if the statement under foreign clause exists
+            # 6. get the last inserted id from the foreign key statement
+            # 7. bind the foreign key, check if exeuction has to be atomic and execute it
+            select_user:
+                sql: "SELECT * FROM user WHERE id = :id"
+                parameters: [id]
+            insert_user:
+                sql: "INSERT INTO user (name, lastname) VALUES (:name, :lastname)"
+                use:
+                    name: select_user
+                    values: [name, lastname]
+            insert_address:
+                sql: "INSERT INTO address (user_id, city, address) VALUES (:user_id, :city, :address)"
+                foreign_key:
+                    statement_name: insert_user
+                    bind_to: {user_id: "user_id"}
 #            get_address_by_id:
 #                sql: "SELECT * FROM address WHERE id = :id"
 #                use:

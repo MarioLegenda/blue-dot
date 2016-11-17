@@ -6,7 +6,7 @@ use BlueDot\Exception\CommonInternalException;
 
 abstract class AbstractArgumentBag implements StorageInterface, \IteratorAggregate
 {
-    private $arguments = array();
+    protected $arguments = array();
     /**
      * @param StorageInterface $storage
      * @throws CommonInternalException

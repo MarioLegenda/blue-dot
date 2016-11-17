@@ -4,9 +4,10 @@ namespace BlueDot;
 
 use BlueDot\Common\ArgumentBag;
 use BlueDot\Configuration\Scenario\ForeginKey;
+use BlueDot\Configuration\Scenario\ScenarioConfiguration;
+use BlueDot\Configuration\Scenario\ScenarioConfigurationCollection;
 use BlueDot\Exception\ConfigurationException;
 
-use BlueDot\Configuration\Scenario\ScenarioStatement;
 use BlueDot\Configuration\Scenario\ScenarioStatementCollection;
 use BlueDot\Configuration\Scenario\UseOption;
 use BlueDot\Configuration\Simple\SimpleConfiguration;
@@ -56,13 +57,15 @@ class StatementFactory
         return $createdSimples;
     }
 
-    public static function createScenarioStatements(array $scenarios) : ScenarioStatementCollection
+    public static function createScenarioStatements(array $scenarios) : ScenarioConfigurationCollection
     {
-        $createdScenarios = new ScenarioStatementCollection();
+        $createdScenarios = new ScenarioConfigurationCollection();
 
         $scenarioNames = array_keys($scenarios);
 
         foreach ($scenarioNames as $scenarioName) {
+            $createdScenarioStatements = new ScenarioConfigurationCollection();
+
             $scenarioCluster = $scenarios[$scenarioName];
 
             $atomic = false;
@@ -97,13 +100,12 @@ class StatementFactory
                 $arguments
                     ->add('type', 'scenario')
                     ->add('scenario_name', $scenarioName)
-                    ->add('name', $statementName)
+                    ->add('statement_name', $statementName)
                     ->add('resolved_name', 'scenario.'.$scenarioName.'.'.$statementName)
                     ->add('sql', $sql)
-                    ->add('parameters', (isset($parameters)) ? $parameters : array());
-                $scenarioEntry = new ScenarioStatement($arguments);
-
-                $scenarioEntry->setAtomic($atomic);
+                    ->add('parameters', (isset($parameters)) ? $parameters : array())
+                    ->add('atomic', $atomic);
+                $scenarioEntry = new ScenarioConfiguration($arguments);
 
                 if (array_key_exists('use', $scenarioStatement)) {
                     $useOption = $scenarioStatement['use'];
@@ -112,14 +114,14 @@ class StatementFactory
                         throw new ConfigurationException('\'use\' configuration value should \'name\' and \'values\' configuration values under itself');
                     }
 
-                    if (!$createdScenarios->hasScenarioStatement($scenarioName, $useOption['name'])) {
+                    if (!$createdScenarioStatements->hasScenarioConfiguration($useOption['name'])) {
                         throw new ConfigurationException('Invalid scenario configuration for '.$resolvedName.'. scenario.'.$scenarioName.'.'.$useOption['name'].' should be before the statement that uses it ('.$resolvedName.')');
                     }
 
-                    $statementType = strtolower(substr($createdScenarios->getScenarioStatement($scenarioName, $useOption['name'])->getStatement(), 0, 6));
+                    $statementType = strtolower(substr($sql, 0, 6));
 
                     if ($statementType !== 'select' and $statementType !== 'insert') {
-                        throw new ConfigurationException('An sql statement can only \'use\' a \'select\' sql query');
+                        throw new ConfigurationException('An sql statement can only \'use\' a \'select\' or \'insert\' sql query');
                     }
 
                     $values = $useOption['values'];
@@ -135,14 +137,14 @@ class StatementFactory
                             throw new ConfigurationException('Invalid \'use\' configuration of '.$resolvedName);
                         }
 
-                        if (!$createdScenarios->hasScenarioStatement($scenarioName, $exploded[0])) {
+                        if (!$createdScenarioStatements->hasScenarioConfiguration($exploded[0])) {
                             throw new ConfigurationException('Unknown scenario statement'.$exploded[0].' in \'use\' configuration entry of '.$resolvedName);
                         }
 
                         $values = $exploded;
                     }
 
-                    $scenarioEntry->setUseOption(new UseOption($useOption['name'], $values));
+                    $scenarioEntry->add('use_option', new UseOption($useOption['name'], $values));
                 }
 
                 if (array_key_exists('foreign_key', $scenarioStatement)) {
@@ -160,15 +162,17 @@ class StatementFactory
                         throw new ConfigurationException($resolvedName.'.foreign_key.bind_to should be an associative array where key is the name of the column that is inserted and value is the value name of the column that is used to created the foreign key');
                     }
 
-                    if (!$createdScenarios->hasScenarioStatement($scenarioName, $foreignKey['statement_name'])) {
+                    if (!$createdScenarioStatements->hasScenarioConfiguration($foreignKey['statement_name'])) {
                         throw new ConfigurationException('scenario.'.$scenarioName.'.'.$foreignKey['statement_name'].' has to be declared before '.$resolvedName);
                     }
 
-                    $scenarioEntry->setForeignKey(new ForeginKey($foreignKey['statement_name'], $foreignKey['bind_to']));
+                    $scenarioEntry->add('foreign_key', new ForeginKey($foreignKey['statement_name'], $foreignKey['bind_to']));
                 }
 
-                $createdScenarios->add($scenarioName, $scenarioEntry);
+                $createdScenarioStatements->add($statementName, $scenarioEntry);
             }
+
+            $createdScenarios->add($scenarioName, $createdScenarioStatements);
         }
 
         return $createdScenarios;
