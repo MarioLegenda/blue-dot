@@ -5,7 +5,7 @@ namespace BlueDot\Cache;
 use BlueDot\Common\StorageInterface;
 use BlueDot\Exception\CommonInternalException;
 
-class Report implements StorageInterface
+class Report
 {
     private $reports;
 

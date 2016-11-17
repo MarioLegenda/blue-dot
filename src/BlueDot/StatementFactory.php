@@ -9,7 +9,7 @@ use BlueDot\Exception\ConfigurationException;
 use BlueDot\Configuration\Scenario\ScenarioStatement;
 use BlueDot\Configuration\Scenario\ScenarioStatementCollection;
 use BlueDot\Configuration\Scenario\UseOption;
-use BlueDot\Configuration\Simple\SimpleStatement;
+use BlueDot\Configuration\Simple\SimpleConfiguration;
 
 class StatementFactory
 {
@@ -49,7 +49,7 @@ class StatementFactory
                     ->add('resolved_name', $simpleType.'.'.$statementName)
                     ->add('sql', $statement['sql'])
                     ->add('parameters', $parameters);
-                $createdSimples[] = new SimpleStatement($arguments);
+                $createdSimples[] = new SimpleConfiguration($arguments);
             }
         }
 

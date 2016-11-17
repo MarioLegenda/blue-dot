@@ -110,8 +110,8 @@ class MainConfiguration
             $statementName = $exploded[1];
 
             foreach ($this->simples as $simple) {
-                if ($simple->getType() === $statementType) {
-                    if ($simple->getName() === $statementName) {
+                if ($simple->get('type') === $statementType) {
+                    if ($simple->get('name') === $statementName) {
                         $this->foundStatements[$name] = $simple;
                         return $simple;
                     }

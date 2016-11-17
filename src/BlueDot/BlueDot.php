@@ -61,9 +61,9 @@ final class BlueDot implements BlueDotInterface
 
         $scenarioBuilder = new ScenarioBuilder((new ArgumentBag())
             ->add('type', 'simple')
-            ->add('parameters', $parameters)
+            ->add('user_parameters', $parameters)
             ->add('connection', $this->connection)
-            ->add('specific_configuration', $this->configuration->findByType('simple', $name))
+            ->add('configuration', $this->configuration->findByType('simple', $name))
         );
 
         $scenario = $scenarioBuilder->buildScenario();

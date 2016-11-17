@@ -65,15 +65,17 @@ class StatementExecution
 
     private function realExecute(Scenario $scenario) : StatementExecution
     {
-        $connection = $scenario->getArgumentBag()->get('connection');
-        $statementType = $scenario->getArgumentBag()->get('specific_configuration')->getType();
-        $sql = $scenario->getSql();
+        $connection = $scenario->get('connection');
+        $configuration = $scenario->get('configuration');
+        $statementType = $configuration->get('type');
+        $sql = $scenario->get('configuration')->get('sql');
 
         $this->pdoStatement = $connection->prepare($sql);
 
         if ($statementType !== 'table' and $statementType !== 'database') {
-            if ($scenario->hasParameters()) {
-                $this->bindParameters($scenario->getParameters());
+
+            if ($scenario->has('user_parameters')) {
+                $this->bindParameters($scenario->get('user_parameters'));
             }
         }
 
@@ -84,9 +86,9 @@ class StatementExecution
 
     public function getResult()
     {
-        $specificConfiguration = $this->scenario->getArgumentBag()->get('specific_configuration');
+        $configuration = $this->scenario->get('configuration');
 
-        if ($specificConfiguration->getType() === 'select') {
+        if ($configuration->get('type') === 'select') {
             $result = $this->pdoStatement->fetchAll(\PDO::FETCH_ASSOC);
 
             if (count($result) === 1) {

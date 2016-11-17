@@ -51,19 +51,19 @@ class ScenarioBuilder implements ScenarioInterface
 
     private function resolveParameters(StorageInterface $storage)
     {
-        if ($storage->has('parameters')) {
-            $parameters = $storage->get('parameters');
-            $specificConfiguration = $storage->get('specific_configuration');
+        $configuration = $storage->get('configuration');
+        if ($storage->has('user_parameters')) {
+            $parameters = $storage->get('user_parameters');
 
             $storage->add(
-                'parameters',
-                $this->validateParameters($parameters, $specificConfiguration),
+                'user_parameters',
+                $this->validateParameters($parameters, $configuration),
                 true
             );
         }
     }
 
-    private function validateParameters($parameters, $specificConfiguration)
+    private function validateParameters($parameters, StorageInterface $configuration)
     {
         if (!$parameters instanceof EntityInterface and !is_array($parameters)) {
             throw new QueryException('Invalid argument. If provided, parameters can be an instance of '.EntityInterface::class.', an instance of '.ParameterCollectionInterface::class.' or an array');
@@ -74,10 +74,10 @@ class ScenarioBuilder implements ScenarioInterface
         }
 
         $parameters = new ParameterCollection($parameters);
-        $configParameters = $specificConfiguration->getParameters();
+        $configParameters = $configuration->get('parameters');
 
         if (!empty(array_diff($configParameters, $parameters->getBindingKeys()))) {
-            throw new QueryException('Given parameters and parameters in configuration are not equal for '.$specificConfiguration->getType().'.'.$specificConfiguration->getName());
+            throw new QueryException('Given parameters and parameters in configuration are not equal for '.$configuration->get('type').'.'.$configuration->get('name'));
         }
 
         return $parameters;
