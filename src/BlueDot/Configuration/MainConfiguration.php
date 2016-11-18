@@ -3,9 +3,10 @@
 namespace BlueDot\Configuration;
 
 use BlueDot\Configuration\Scenario\ScenarioStatementCollection;
+use BlueDot\Configuration\Validator\Validator;
+use BlueDot\Database\Scenario\ScenarioStatementExecution;
 use BlueDot\StatementFactory;
 use BlueDot\Exception\ConfigurationException;
-use Symfony\Component\Config\Definition\Processor;
 
 class MainConfiguration
 {
@@ -32,24 +33,9 @@ class MainConfiguration
      */
     public function __construct(array $configuration)
     {
+        $validator = new Validator($configuration);
 
-        $processor = new Processor();
-        $blueDotConfiguration = new BlueDotConfiguration();
-        $processedConfiguration = $processor->processConfiguration(
-            $blueDotConfiguration,
-            $configuration
-        );
-
-        var_dump($processedConfiguration);
-        die();
-
-        if (array_key_exists('simple', $configuration)) {
-            $this->simples = StatementFactory::createSimpleStatements($configuration['simple']);
-        }
-
-        if (array_key_exists('scenario', $configuration)) {
-            $this->scenarios = StatementFactory::createScenarioStatements($configuration['scenario']);
-        }
+        $validator->validate();
     }
 
     public function findByType(string $type, string $name)

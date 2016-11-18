@@ -49,7 +49,7 @@ final class BlueDot implements BlueDotInterface
             $parsedConfiguration = Yaml::parse(file_get_contents($configSource));
         }
 
-        $configuration = new MainConfiguration($parsedConfiguration);
+        $this->configuration = new MainConfiguration($parsedConfiguration);
     }
     /**
      * @param string $name
