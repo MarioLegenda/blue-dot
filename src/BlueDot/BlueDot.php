@@ -7,6 +7,7 @@ use BlueDot\Configuration\BlueDotConfiguration;
 use BlueDot\Configuration\MainConfiguration;
 use BlueDot\Database\Scenario\ScenarioBuilder;
 use BlueDot\Database\StatementExecution;
+use BlueDot\Entity\Entity;
 use Symfony\Component\Yaml\Yaml;
 use BlueDot\Exception\ConfigurationException;
 use BlueDot\Cache\Report;
@@ -60,37 +61,14 @@ final class BlueDot implements BlueDotInterface
     {
         $this->establishConnection($this->configuration);
 
-        $scenarioBuilder = new ScenarioBuilder((new ArgumentBag())
-            ->add('type', 'simple')
-            ->add('user_parameters', $parameters)
-            ->add('connection', $this->connection)
-            ->add('configuration', $this->configuration->findByType('simple', $name))
-        );
-
-        $scenario = $scenarioBuilder->buildScenario();
-
-        $statementExecution = new StatementExecution($scenario);
-
-        return $statementExecution->execute()->getResult();
+        return new Entity();
     }
 
     public function executeScenario($name, $parameters = array())
     {
         $this->establishConnection($this->configuration);
 
-        $scenarioBuilder = new ScenarioBuilder((new ArgumentBag())
-            ->add('type', 'scenario')
-            ->add('user_parameters', $parameters)
-            ->add('connection', $this->connection)
-            ->add('configuration', $this->configuration->findByType('scenario', $name))
-            ->add('report', $this->report)
-        );
-
-        $scenario = $scenarioBuilder->buildScenario();
-
-        $statementExecution = new StatementExecution($scenario);
-
-        return $statementExecution->execute()->getResult();
+        return new Entity();
     }
     /**
      * @param \PDO $connection
