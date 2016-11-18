@@ -11,10 +11,12 @@ class ParameterCollection implements ParameterCollectionInterface, \IteratorAggr
     /**
      * @param array $parameters
      */
-    public function __construct(array $parameters)
+    public function __construct(array $parameters = null)
     {
-        foreach ($parameters as $key => $value) {
-            $this->add($key, $value);
+        if (is_array($parameters)) {
+            foreach ($parameters as $key => $value) {
+                $this->add($key, $value);
+            }
         }
     }
     /**

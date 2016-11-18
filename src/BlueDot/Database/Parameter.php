@@ -2,6 +2,8 @@
 
 namespace BlueDot\Database;
 
+use BlueDot\Entity\Entity;
+
 class Parameter
 {
     /**
@@ -33,6 +35,26 @@ class Parameter
     public function getValue()
     {
         return $this->value;
+    }
+
+    /**
+     * @param Entity $entity
+     * @param array $parameters
+     * @return Parameter
+     */
+    public static function entityToParameter(Entity $entity, array $parameters)
+    {
+        $parameterCollection = new ParameterCollection();
+
+        foreach ($parameters as $parameter) {
+            if (!$entity->has($parameter)) {
+                return null;
+            }
+
+            $parameterCollection->add($parameter, $entity->get($parameter));
+        }
+
+        return $parameterCollection;
     }
 
     public function getType()

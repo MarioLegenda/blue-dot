@@ -2,6 +2,7 @@
 
 namespace BlueDot\Entity;
 
+use BlueDot\Common\StorageInterface;
 use BlueDot\Exception\QueryException;
 
 class EntityCollection implements \IteratorAggregate
@@ -14,7 +15,7 @@ class EntityCollection implements \IteratorAggregate
      * @param EntityInterface $result
      * @return $this
      */
-    public function add(EntityInterface $result) : EntityCollection
+    public function add(StorageInterface $result) : EntityCollection
     {
         $this->collection[] = $result;
 

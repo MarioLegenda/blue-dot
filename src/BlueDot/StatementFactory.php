@@ -77,6 +77,7 @@ class StatementFactory
 
             foreach ($scenarioCluster as $statementName => $scenarioStatement) {
                 $resolvedName = 'scenario.'.$scenarioName.'.'.$statementName;
+                $arguments = new ArgumentBag();
 
                 if (!array_key_exists('sql', $scenarioStatement)) {
                     throw new ConfigurationException('Invalid configuration. A scenario statement should have an \'sql\' value of '.$resolvedName);
@@ -94,16 +95,16 @@ class StatementFactory
                     if (!is_array($parameters)) {
                         throw new ConfigurationException('\'parameters\' configuration entry should be an array');
                     }
+
+                    $arguments->add('parameters', (isset($parameters)) ? $parameters : array());
                 }
 
-                $arguments = new ArgumentBag();
                 $arguments
                     ->add('type', 'scenario')
                     ->add('scenario_name', $scenarioName)
                     ->add('statement_name', $statementName)
                     ->add('resolved_name', 'scenario.'.$scenarioName.'.'.$statementName)
                     ->add('sql', $sql)
-                    ->add('parameters', (isset($parameters)) ? $parameters : array())
                     ->add('atomic', $atomic)
                     ->add('sql_type', strtolower(substr($sql, 0, 6))
                 );

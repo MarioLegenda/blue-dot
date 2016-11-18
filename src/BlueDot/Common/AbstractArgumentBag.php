@@ -11,9 +11,9 @@ abstract class AbstractArgumentBag implements StorageInterface, \IteratorAggrega
      * @param StorageInterface $storage
      * @throws CommonInternalException
      */
-    public function __construct(StorageInterface $storage = null)
+    public function __construct($storage = null)
     {
-        if ($storage instanceof StorageInterface) {
+        if ($storage !== null) {
             foreach ($storage as $key => $item) {
                 $this->add($key, $item);
             }

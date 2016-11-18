@@ -6,6 +6,8 @@ use BlueDot\Database\Scenario\Scenario;
 use BlueDot\Configuration\Scenario\ScenarioConfiguration;
 use BlueDot\Entity\Entity;
 use BlueDot\Entity\EntityCollection;
+use BlueDot\Exception\QueryException;
+use BlueDot\Database\Parameter;
 
 class StatementExecution
 {
@@ -70,14 +72,44 @@ class StatementExecution
 
                 $entity = $this->realExecute()->getInternalResult($useScenario);
 
-                var_dump($entity);
-                die();
+                $useScenario->add('executed', true);
 
                 $this->scenario->get('report')->add($useScenario->get('resolved_name'), $entity);
             }
 
             foreach ($configuration as $scenario) {
+                if ($scenario->has('executed')) {
+                    if ($scenario->get('executed') === true) {
+                        continue;
+                    }
+                }
 
+                $this->pdoStatement = $this->connection->prepare($scenario->get('sql'));
+
+                if ($scenario->has('use_option')) {
+                    $useOption = $scenario->get('use_option');
+                    $resolvedOptionName = 'scenario.'.$scenario->get('scenario_name').'.'.$useOption->getName();
+
+                    $report = $this->scenario->get('report');
+
+                    if (!$report->has($resolvedOptionName)) {
+                        throw new QueryException('An internal exception occurred. Please, contact whitepostmail@gmail.com');
+                    }
+
+                    $entity = $report->get($resolvedOptionName);
+
+                    $this->connection->prepare($scenario->get('sql'));
+
+                    $parameters = Parameter::entityToParameter($entity, $useOption->getValues());
+
+                    if (!$parameters instanceof ParameterCollection) {
+                        throw new QueryException('Some values from \'use\' option select query are missing for '.$scenario->get('resolved_name'));
+                    }
+
+                    $this->bindParameters($parameters);
+                }
+
+                $this->realExecute();
             }
         }
     }
