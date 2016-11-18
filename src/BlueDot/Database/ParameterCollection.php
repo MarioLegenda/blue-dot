@@ -2,38 +2,42 @@
 
 namespace BlueDot\Database;
 
-class ParameterCollection implements ParameterCollectionInterface, \IteratorAggregate, \Countable
+use BlueDot\Exception\QueryParameterException;
+
+class ParameterCollection implements \IteratorAggregate, \Countable
 {
     /**
      * @var array $parameters
      */
     private $parameters = array();
     /**
-     * @param array $parameters
+     * @param mixed $parameters
      */
-    public function __construct(array $parameters = null)
+    public function __construct($parameters = null)
     {
+        if ($parameters instanceof ParameterCollection) {
+            foreach ($parameters as $parameter) {
+                $this->addParameter($parameter);
+            }
+        }
+
         if (is_array($parameters)) {
             foreach ($parameters as $key => $value) {
-                $this->add($key, $value);
+                $this->addParameter(new Parameter($key, $value));
             }
         }
     }
     /**
-     * @param array $parameter
-     * @return $this
+     * @param Parameter $parameter
+     * @return ParameterCollection
      */
-    public function add(string $name, $value) : ParameterCollectionInterface
+    public function addParameter(Parameter $parameter) : ParameterCollection
     {
-        if (is_array($value)) {
-            foreach ($value as $val) {
-                $this->parameters[$name][] = new Parameter($name, $val);
-            }
+        if ($this->hasParameter($parameter->getKey())) {
+            throw new QueryParameterException('Parameter with name'.$parameter->getKey().' already exists');
         }
 
-        if (!is_array($value)) {
-            $this->parameters[$name] = new Parameter($name, $value);
-        }
+        $this->parameters[$parameter->getKey()] = $parameter;
 
         return $this;
     }
@@ -41,24 +45,27 @@ class ParameterCollection implements ParameterCollectionInterface, \IteratorAggr
      * @param string $name
      * @return mixed
      */
-    public function get(string $name)
+    public function getParameter(string $name)
     {
+        if (!$this->hasParameter($name)) {
+            return null;
+        }
+
         return $this->parameters[$name];
     }
     /**
      * @param string $name
      * @return bool
      */
-    public function has(string $name) : bool
+    public function hasParameter(string $name) : bool
     {
         return array_key_exists($name, $this->parameters);
     }
 
     public function isMultipleValueParameter($name) : bool
     {
-        if ($this->has($name)) {
-            $parameter = $this->get($name);
-
+        if ($this->hasParameter($name)) {
+            $parameter = $this->getParameter($name);
             if (is_array($parameter)) {
                 return true;
             }

@@ -161,7 +161,7 @@ class StatementExecution
         return $this;
     }
 
-    private function bindParameters(ParameterCollectionInterface $parameters)
+    private function bindParameters(ParameterCollection $parameters)
     {
         foreach ($parameters as $key => $parameter) {
             if ($parameters->isMultipleValueParameter($key)) {
