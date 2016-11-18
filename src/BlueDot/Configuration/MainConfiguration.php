@@ -3,9 +3,9 @@
 namespace BlueDot\Configuration;
 
 use BlueDot\Configuration\Scenario\ScenarioStatementCollection;
-use BlueDot\Database\Scenario\ScenarioStatementExecution;
 use BlueDot\StatementFactory;
 use BlueDot\Exception\ConfigurationException;
+use Symfony\Component\Config\Definition\Processor;
 
 class MainConfiguration
 {
@@ -32,25 +32,16 @@ class MainConfiguration
      */
     public function __construct(array $configuration)
     {
-        if (!array_key_exists('configuration', $configuration)) {
-            throw new ConfigurationException('Invalid configuration file. Top element should be \'configuration\'');
-        }
 
-        $configuration = $configuration['configuration'];
+        $processor = new Processor();
+        $blueDotConfiguration = new BlueDotConfiguration();
+        $processedConfiguration = $processor->processConfiguration(
+            $blueDotConfiguration,
+            $configuration
+        );
 
-        if (array_key_exists('connection', $configuration)) {
-            $connection = $configuration['connection'];
-
-            $validKeys = array('host', 'database_name', 'user', 'password');
-
-            foreach ($validKeys as $key) {
-                if (!array_key_exists($key, $connection)) {
-                    throw new ConfigurationException('Invalid connection configuration. Missing '.$key.' configuration value');
-                }
-            }
-
-            $this->dsn = $connection;
-        }
+        var_dump($processedConfiguration);
+        die();
 
         if (array_key_exists('simple', $configuration)) {
             $this->simples = StatementFactory::createSimpleStatements($configuration['simple']);

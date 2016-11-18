@@ -8,7 +8,6 @@ use BlueDot\Configuration\Scenario\ScenarioConfiguration;
 use BlueDot\Configuration\Scenario\ScenarioConfigurationCollection;
 use BlueDot\Exception\ConfigurationException;
 
-use BlueDot\Configuration\Scenario\ScenarioStatementCollection;
 use BlueDot\Configuration\Scenario\UseOption;
 use BlueDot\Configuration\Simple\SimpleConfiguration;
 

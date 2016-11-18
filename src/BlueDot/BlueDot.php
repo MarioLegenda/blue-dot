@@ -3,6 +3,7 @@
 namespace BlueDot;
 
 use BlueDot\Common\ArgumentBag;
+use BlueDot\Configuration\BlueDotConfiguration;
 use BlueDot\Configuration\MainConfiguration;
 use BlueDot\Database\Scenario\ScenarioBuilder;
 use BlueDot\Database\StatementExecution;
@@ -48,7 +49,7 @@ final class BlueDot implements BlueDotInterface
             $parsedConfiguration = Yaml::parse(file_get_contents($configSource));
         }
 
-        $this->configuration = new MainConfiguration($parsedConfiguration);
+        $configuration = new MainConfiguration($parsedConfiguration);
     }
     /**
      * @param string $name
