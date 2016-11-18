@@ -17,11 +17,10 @@ class ConfigurationValidator
     {
         $this->configuration = $configuration;
     }
-
     /**
      * @void
      */
-    public function validate()
+    public function validate() : ConfigurationValidator
     {
         $configuration = new ArrayNode('configuration', $this->configuration);
 
@@ -44,6 +43,14 @@ class ConfigurationValidator
 
         $this->validateScenarioConfiguration($scenarioConfiguration);
 
+        return $this;
+    }
+    /**
+     * @return array
+     */
+    public function getConfiguration() : array
+    {
+        return $this->configuration;
     }
 
     private function validateSimpleConfiguration(ArrayNode $node)

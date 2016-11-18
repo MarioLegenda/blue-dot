@@ -4,7 +4,9 @@ namespace BlueDot;
 
 use BlueDot\Common\ArgumentBag;
 use BlueDot\Configuration\BlueDotConfiguration;
+use BlueDot\Configuration\ConfigurationBuilder;
 use BlueDot\Configuration\MainConfiguration;
+use BlueDot\Configuration\Validator\ConfigurationValidator;
 use BlueDot\Database\Scenario\ScenarioBuilder;
 use BlueDot\Database\StatementExecution;
 use BlueDot\Entity\Entity;
@@ -50,7 +52,12 @@ final class BlueDot implements BlueDotInterface
             $parsedConfiguration = Yaml::parse(file_get_contents($configSource));
         }
 
-        $this->configuration = new MainConfiguration($parsedConfiguration);
+        $configBuilder = new ConfigurationBuilder(new ConfigurationValidator($parsedConfiguration));
+
+        $this->configuration =
+            $configBuilder
+                ->buildConfiguration()
+                ->getConfiguration();
     }
     /**
      * @param string $name
