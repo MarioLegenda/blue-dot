@@ -2,6 +2,8 @@
 
 namespace BlueDot\Database;
 
+use BlueDot\Exception\ConnectionException;
+
 class Connection
 {
     /**
@@ -15,7 +17,7 @@ class Connection
     /**
      * @param array $dsn
      */
-    public function __construct(array $dsn)
+    public function __construct(array $dsn = array())
     {
         $this->dsn = $dsn;
     }
@@ -28,6 +30,10 @@ class Connection
             return $this;
         }
 
+        if (empty($this->dsn) and !$this->connection instanceof \PDO) {
+            throw new ConnectionException('Connection could not be established. Either create the connection with dsn values or set an external connection via \'PDO object by calling Connection::setConnection()');
+        }
+
         $host = $this->dsn['host'];
         $dbName = $this->dsn['database_name'];
         $user = $this->dsn['user'];
@@ -38,6 +44,13 @@ class Connection
             \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
             \PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8',
         ));
+    }
+    /**
+     * @param \PDO $connection
+     */
+    public function setConnection(\PDO $connection)
+    {
+        $this->connection = $connection;
     }
     /**
      * @return \PDO

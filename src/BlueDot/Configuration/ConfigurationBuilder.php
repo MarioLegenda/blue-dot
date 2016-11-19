@@ -74,14 +74,17 @@ class ConfigurationBuilder
 
                 $builtStatement->mergeStorage($workConfig);
 
-                $builtSimpleConfiguration->add($builtStatement->get('resolved_name'), $builtStatement);
+                $builtSimpleConfiguration->add('simple.'.$builtStatement->get('resolved_name'), $builtStatement);
             }
         }
+
+        return $builtSimpleConfiguration;
     }
 
     private function buildScenarioConfiguration(array $scenarioConfiguration)
     {
         $mainScenario = new ArgumentBag();
+
         foreach ($scenarioConfiguration as $scenarioName => $scenarioConfigs) {
             $scenarioStatements = $scenarioConfigs['statements'];
             $resolvedScenarioName = 'scenario.'.$scenarioName;
@@ -135,6 +138,8 @@ class ConfigurationBuilder
 
             $mainScenario->add($resolvedScenarioName, $builtScenarioConfiguration);
         }
+
+        return $mainScenario;
     }
 
     private function addSimpleParameters(array $parameters) : ParameterCollection

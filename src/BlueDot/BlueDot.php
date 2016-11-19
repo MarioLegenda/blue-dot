@@ -3,10 +3,13 @@
 namespace BlueDot;
 
 use BlueDot\Common\ArgumentBag;
+use BlueDot\Common\ArgumentValidator;
+use BlueDot\Common\StatementValidator;
 use BlueDot\Configuration\BlueDotConfiguration;
 use BlueDot\Configuration\ConfigurationBuilder;
 use BlueDot\Configuration\MainConfiguration;
 use BlueDot\Configuration\Validator\ConfigurationValidator;
+use BlueDot\Database\Connection;
 use BlueDot\Database\Scenario\ScenarioBuilder;
 use BlueDot\Database\StatementExecution;
 use BlueDot\Entity\Entity;
@@ -21,11 +24,11 @@ final class BlueDot implements BlueDotInterface
      */
     private $report;
     /**
-     * @var object $connection
+     * @var Connection $connection
      */
     private $connection;
     /**
-     * @var MainConfiguration $configuration
+     * @var array $configuration
      */
     private $configuration;
     /**
@@ -66,20 +69,10 @@ final class BlueDot implements BlueDotInterface
      */
     public function execute(string $name, $parameters = array()) : Entity
     {
-        return new Entity();
-    }
-    /**
-     * @param string $name
-     * @param array $parameters
-     * @return BlueDotInterface
-     */
-    public function executeSimple(string $name, $parameters = array())
-    {
-        return new Entity();
-    }
+        $statementValidator = new StatementValidator(new ArgumentValidator($name), $this->configuration);
 
-    public function executeScenario($name, $parameters = array())
-    {
+        $statement = $statementValidator->validate()->getStatement();
+
         return new Entity();
     }
     /**
@@ -88,7 +81,14 @@ final class BlueDot implements BlueDotInterface
      */
     public function setExternalConnection(\PDO $connection) : BlueDotInterface
     {
-        $this->connection = $connection;
+        if (!$this->connection instanceof Connection) {
+            $this->connection = new Connection();
+            $this->connection->setConnection($connection);
+
+            return $this;
+        }
+
+        $this->connection->setConnection($connection);
 
         return $this;
     }
