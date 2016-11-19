@@ -59,6 +59,7 @@ class ConfigurationBuilder
         foreach ($simpleConfiguration as $type => $typeConfig) {
             foreach ($typeConfig as $statementName => $statementConfig) {
                 $builtStatement = new ArgumentBag();
+                $builtStatement->add('type', 'simple');
                 $builtStatement->add('resolved_name', $type.'.'.$statementName);
                 $builtStatement->add('statement_type', $type);
                 $builtStatement->add('statement_name', $statementName);
@@ -90,6 +91,7 @@ class ConfigurationBuilder
             $resolvedScenarioName = 'scenario.'.$scenarioName;
 
             $builtScenarioConfiguration = new ArgumentBag();
+            $builtScenarioConfiguration->add('type', 'scenario');
 
             $rootConfig = new ArgumentBag();
             $rootConfig->add('atomic', $scenarioConfigs['atomic']);

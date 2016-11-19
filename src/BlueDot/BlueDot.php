@@ -10,9 +10,11 @@ use BlueDot\Configuration\ConfigurationBuilder;
 use BlueDot\Configuration\MainConfiguration;
 use BlueDot\Configuration\Validator\ConfigurationValidator;
 use BlueDot\Database\Connection;
+use BlueDot\Database\Execution\ExecutionStrategy;
 use BlueDot\Database\Scenario\ScenarioBuilder;
 use BlueDot\Database\StatementExecution;
 use BlueDot\Entity\Entity;
+use BlueDot\Exception\ConnectionException;
 use Symfony\Component\Yaml\Yaml;
 use BlueDot\Exception\ConfigurationException;
 use BlueDot\Cache\Report;
@@ -36,14 +38,8 @@ final class BlueDot implements BlueDotInterface
      * @param mixed $connection
      * @throws ConfigurationException
      */
-    public function __construct($configSource, $connection = null)
+    public function __construct($configSource, Connection $connection = null)
     {
-        $this->report = new Report();
-
-        if ($connection !== null) {
-            $this->connection = $connection;
-        }
-
         $parsedConfiguration = array();
         if (is_array($configSource)) {
             $parsedConfiguration = $configSource;
@@ -61,6 +57,18 @@ final class BlueDot implements BlueDotInterface
             $configBuilder
                 ->buildConfiguration()
                 ->getConfiguration();
+
+        if (array_key_exists('connection', $this->configuration)) {
+            $this->connection = $this->configuration['connection'];
+        }
+
+        if (!$this->connection instanceof Connection) {
+            if (!$connection instanceof Connection) {
+                throw new ConnectionException('Connection is missing. You can provide connection parameters in the configuration or as a '.Connection::class.' object in the constructor');
+            }
+
+            $this->connection = $connection;
+        }
     }
     /**
      * @param string $name
@@ -72,6 +80,13 @@ final class BlueDot implements BlueDotInterface
         $statementValidator = new StatementValidator(new ArgumentValidator($name), $this->configuration);
 
         $statement = $statementValidator->validate()->getStatement();
+
+        $statement->add('connection', $this->connection);
+
+        $strategy = (new ExecutionStrategy($statement))->getStrategy();
+
+        var_dump($strategy);
+        die();
 
         return new Entity();
     }
