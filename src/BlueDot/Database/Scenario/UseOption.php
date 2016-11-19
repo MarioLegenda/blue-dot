@@ -1,6 +1,6 @@
 <?php
 
-namespace BlueDot\Configuration\Scenario;
+namespace BlueDot\Database\Scenario;
 
 class UseOption
 {

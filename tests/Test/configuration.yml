@@ -27,7 +27,6 @@ configuration:
             single_city:
                 sql: "DELETE FROM village WHERE id = :id"
                 parameters: [id]
-
     scenario:
         insert_user:
             atomic: true

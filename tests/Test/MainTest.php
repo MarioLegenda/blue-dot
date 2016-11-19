@@ -23,7 +23,7 @@ class MainTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals('Kabul', $result->get('Name'), 'Expected Kabul as result');
 
-        $collection = $blueDot->executeSimple('select.entire_world');
+        $collection = $blueDot->execute('select.entire_world');
 
         $this->assertInstanceOf(EntityCollection::class, $collection, '$collection should be an instance of '.EntityCollection::class);
 
@@ -37,11 +37,11 @@ class MainTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf(Entity::class, $singleResult, 'Collection::findOneBy should return an instance of '.Entity::class);
         $this->assertEquals('Kabul', $singleResult->get('Name'), '$singleResult::get(Name) should return Kabul');
 
-        $blueDot->executeSimple('insert.single_village', array(
+        $blueDot->execute('insert.single_village', array(
             'name' => 'Jarmina',
         ));
 
-        $blueDot->executeSimple('insert.single_village', array(
+        $blueDot->execute('insert.single_village', array(
             'name' => array(
                 'Mirkovci',
                 'Èokadinci',
@@ -49,12 +49,12 @@ class MainTest extends \PHPUnit_Framework_TestCase
             )
         ));
 
-        $blueDot->executeSimple('update.single_city', array(
+        $blueDot->execute('update.single_city', array(
             'id' => 1,
             'update_name' => 'Mislovarovci',
         ));
 
-        $blueDot->executeSimple('delete.single_city', array(
+        $blueDot->execute('delete.single_city', array(
             'id' => 6,
         ));
 

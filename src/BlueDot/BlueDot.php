@@ -62,19 +62,24 @@ final class BlueDot implements BlueDotInterface
     /**
      * @param string $name
      * @param array $parameters
+     * @return Entity
+     */
+    public function execute(string $name, $parameters = array()) : Entity
+    {
+        return new Entity();
+    }
+    /**
+     * @param string $name
+     * @param array $parameters
      * @return BlueDotInterface
      */
     public function executeSimple(string $name, $parameters = array())
     {
-        $this->establishConnection($this->configuration);
-
         return new Entity();
     }
 
     public function executeScenario($name, $parameters = array())
     {
-        $this->establishConnection($this->configuration);
-
         return new Entity();
     }
     /**
@@ -86,28 +91,5 @@ final class BlueDot implements BlueDotInterface
         $this->connection = $connection;
 
         return $this;
-    }
-    /**
-     * @param MainConfiguration $configuration
-     * @return null
-     */
-    private function establishConnection(MainConfiguration $configuration)
-    {
-        if ($this->connection instanceof \PDO) {
-            return null;
-        }
-
-        $dsn = $configuration->getDsn();
-
-        $host = $dsn['host'];
-        $dbName = $dsn['database_name'];
-        $user = $dsn['user'];
-        $password = $dsn['password'];
-
-        $this->connection = new \PDO('mysql:host='.$host.';dbname='.$dbName, $user, $password, array(
-            \PDO::ATTR_PERSISTENT => true,
-            \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-            \PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8',
-        ));
     }
 }

@@ -31,6 +31,8 @@ abstract class AbstractArgumentBag implements StorageInterface, \IteratorAggrega
                 $this->add($key, $item);
             }
         }
+
+        return $this;
     }
     /**
      * @param string $name
@@ -46,6 +48,23 @@ abstract class AbstractArgumentBag implements StorageInterface, \IteratorAggrega
         }
 
         $this->arguments[$name] = $value;
+
+        return $this;
+    }
+
+    public function addTo(string $name, array $values) : StorageInterface
+    {
+        if (!$this->has($name)) {
+            throw new CommonInternalException('\''.$name.'\' not found. Nothing to add to');
+        }
+
+        if (empty($values)) {
+            throw new CommonInternalException('Invalid \''.$name.'\'. Cannot add empty array');
+        }
+
+        foreach ($values as $key => $value) {
+            $this->arguments[$name][$key] = $value;
+        }
 
         return $this;
     }
@@ -95,6 +114,22 @@ abstract class AbstractArgumentBag implements StorageInterface, \IteratorAggrega
         unset($this->arguments[$toRename]);
 
         $this->arguments[$newName] = $temp;
+
+        return $this;
+    }
+    /**
+     * @param string $name
+     * @param StorageInterface $storage
+     * @return $this
+     * @throws CommonInternalException
+     */
+    public function append(string $name, StorageInterface $storage) : StorageInterface
+    {
+        if (!$this->has($name)) {
+            $this->arguments[$name] = null;
+        }
+
+        $this->arguments[$name][] = $storage;
 
         return $this;
     }
