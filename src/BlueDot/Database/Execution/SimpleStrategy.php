@@ -2,11 +2,18 @@
 
 namespace BlueDot\Database\Execution;
 
+use BlueDot\Common\StorageInterface;
 use BlueDot\Database\Parameter\Parameter;
 use BlueDot\Database\Parameter\ParameterCollection;
+use BlueDot\Entity\Entity;
+use BlueDot\Entity\EntityCollection;
 
 class SimpleStrategy extends AbstractStrategy implements StrategyInterface
 {
+    /**
+     * @var StorageInterface $entity
+     */
+    private $entity;
     /**
      * @var \PDOStatement $pdoStatement
      */
@@ -36,16 +43,46 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
         return $this;
     }
 
-    public function getResult()
+    /**
+     * @return StorageInterface
+     */
+    public function getResult() : StorageInterface
     {
+        if ($this->entity instanceof StorageInterface) {
+            return $this->entity;
+        }
 
+        if ($this->statement->get('statement_type') === 'select') {
+            $result = $this->pdoStatement->fetchAll(\PDO::FETCH_ASSOC);
+
+            $resultCount = count($result);
+
+            switch ($resultCount) {
+                case 0:
+                    $this->entity = new Entity();
+
+                    return $this->entity;
+                case 1:
+                    $this->entity = new Entity($result[0]);
+
+                    return $this->entity;
+                default:
+                    $this->entity = new EntityCollection($result);
+
+                    return $this->entity;
+            }
+        }
     }
 
     private function singleStatementExecution(ParameterCollection $parameters = null)
     {
         $this->pdoStatement = $this->connection->getConnection()->prepare($this->statement->get('sql'));
 
-        $parameters = ($parameters instanceof ParameterCollection) ? $parameters : $this->statement->get('parameters');
+        if (!$parameters instanceof ParameterCollection) {
+            if ($this->statement->has('parameters')) {
+                $parameters = $this->statement->get('parameters');
+            }
+        }
 
         if ($this->statement->has('parameters')) {
             $this->bindParameterCollection($parameters);

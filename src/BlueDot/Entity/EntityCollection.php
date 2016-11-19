@@ -2,72 +2,14 @@
 
 namespace BlueDot\Entity;
 
-use BlueDot\Common\StorageInterface;
-use BlueDot\Exception\QueryException;
+use BlueDot\Common\AbstractArgumentBag;
 
-class EntityCollection implements \IteratorAggregate
+class EntityCollection extends AbstractArgumentBag
 {
-    /**
-     * @var array $collection
-     */
-    private $collection = array();
-    /**
-     * @param StorageInterface $result
-     * @return $this
-     */
-    public function add(StorageInterface $result) : EntityCollection
+    public function __construct(array $resultCollection)
     {
-        $this->collection[] = $result;
-
-        return $this;
-    }
-
-    /**
-     * @param string $columnName
-     * @param $columnValue
-     * @return array
-     * @throws QueryException
-     */
-    public function findOneBy(string $columnName, $columnValue)
-    {
-        $foundValues = $this->find($columnName, $columnValue);
-
-        if (empty($foundValues)) {
-            return $foundValues;
+        foreach ($resultCollection as $numericKey => $value) {
+            $this->add($numericKey, new Entity($value));
         }
-
-        if (count($foundValues) !== 1) {
-            throw new QueryException('Multiple values found when searching with ResultCollection::findOneBy(). Try using ResultCollection::findBy()');
-        }
-
-        return $foundValues[0];
-    }
-    /**
-     * @param string $columnName
-     * @param $columnValue
-     * @return array
-     */
-    public function findBy(string $columnName, $columnValue)
-    {
-        return $this->find($columnName, $columnValue);
-    }
-    /**
-     * @return \ArrayIterator
-     */
-    public function getIterator()
-    {
-        return new \ArrayIterator($this->collection);
-    }
-
-    private function find(string $columnName, $columnValue) : array
-    {
-        $foundValues = array();
-        foreach ($this->collection as $result) {
-            if ($result->get($columnName) === $columnValue) {
-                $foundValues[] = $result;
-            }
-        }
-
-        return $foundValues;
     }
 }

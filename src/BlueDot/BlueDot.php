@@ -5,12 +5,14 @@ namespace BlueDot;
 use BlueDot\Common\ArgumentBag;
 use BlueDot\Common\ArgumentValidator;
 use BlueDot\Common\StatementValidator;
+use BlueDot\Common\StorageInterface;
 use BlueDot\Configuration\BlueDotConfiguration;
 use BlueDot\Configuration\ConfigurationBuilder;
 use BlueDot\Configuration\MainConfiguration;
 use BlueDot\Configuration\Validator\ConfigurationValidator;
 use BlueDot\Database\Connection;
 use BlueDot\Database\Execution\ExecutionStrategy;
+use BlueDot\Database\Execution\StrategyInterface;
 use BlueDot\Database\ParameterConversion;
 use BlueDot\Database\Scenario\ScenarioBuilder;
 use BlueDot\Database\StatementExecution;
@@ -22,6 +24,10 @@ use BlueDot\Cache\Report;
 
 final class BlueDot implements BlueDotInterface
 {
+    /**
+     * @var StrategyInterface $strategy
+     */
+    private $strategy;
     /**
      * @var Connection $connection
      */
@@ -87,11 +93,17 @@ final class BlueDot implements BlueDotInterface
         $strategy = (new ExecutionStrategy($statement))->getStrategy();
 
         $strategy->execute();
+
+        $this->strategy = $strategy;
+
+        return $this;
     }
-
-    public function getResult() :
+    /**
+     * @return StorageInterface
+     */
+    public function getResult() : StorageInterface
     {
-
+        return $this->strategy->getResult();
     }
     /**
      * @param \PDO $connection
