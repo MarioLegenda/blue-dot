@@ -16,8 +16,8 @@ configuration:
                 sql: "SELECT * FROM city"
         insert:
             single_village:
-                sql: "INSERT INTO village (name) VALUES (:name)"
-                parameters: [name]
+                sql: "INSERT INTO village (name, country) VALUES (:name, :country)"
+                parameters: [name, country]
         update:
             single_city:
                 sql: "UPDATE village SET name = :update_name WHERE id = :id"

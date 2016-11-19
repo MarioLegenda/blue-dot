@@ -39,6 +39,14 @@ class ParameterConversion
 
         $configParameters = $statement->get('parameters');
 
+        foreach ($this->userParameters as $parameters) {
+            if (is_array($parameters)) {
+                if (!$statement->has('multi_insert')) {
+                    $statement->add('multi_insert', true);
+                }
+            }
+        }
+
         $configParameters
             ->compare($this->userParameters)
             ->bindValues($this->userParameters);

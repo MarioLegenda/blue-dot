@@ -12,7 +12,7 @@ class EntityCollection implements \IteratorAggregate
      */
     private $collection = array();
     /**
-     * @param EntityInterface $result
+     * @param StorageInterface $result
      * @return $this
      */
     public function add(StorageInterface $result) : EntityCollection

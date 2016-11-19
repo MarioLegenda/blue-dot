@@ -23,10 +23,6 @@ use BlueDot\Cache\Report;
 final class BlueDot implements BlueDotInterface
 {
     /**
-     * @var Report $report
-     */
-    private $report;
-    /**
      * @var Connection $connection
      */
     private $connection;
@@ -76,7 +72,7 @@ final class BlueDot implements BlueDotInterface
      * @param array $parameters
      * @return Entity
      */
-    public function execute(string $name, $parameters = array()) : Entity
+    public function execute(string $name, $parameters = array()) : BlueDotInterface
     {
         $statementValidator = new StatementValidator(
             new ArgumentValidator($name),
@@ -91,8 +87,11 @@ final class BlueDot implements BlueDotInterface
         $strategy = (new ExecutionStrategy($statement))->getStrategy();
 
         $strategy->execute();
+    }
 
-        return new Entity();
+    public function getResult() :
+    {
+
     }
     /**
      * @param \PDO $connection

@@ -5,6 +5,10 @@ namespace BlueDot\Database\Parameter;
 class Parameter
 {
     /**
+     * @var bool $multiValued
+     */
+    private $multiValued = false;
+    /**
      * @var string $key
      */
     private $key;
@@ -20,6 +24,29 @@ class Parameter
     {
         $this->key = $key;
         $this->value = $value;
+    }
+    /**
+     * @void
+     */
+    public function markMultiValued()
+    {
+        $this->multiValued = true;
+    }
+    /**
+     * @return bool
+     */
+    public function isMultiValued() : bool
+    {
+        return $this->multiValued;
+    }
+
+    public function getValuesCount()
+    {
+        if (!is_array($this->value)) {
+            return null;
+        }
+
+        return count($this->value);
     }
     /**
      * @param string $key
@@ -55,23 +82,26 @@ class Parameter
     }
 
     /**
+     * @param $inlineType
      * @return int
      */
-    public function getType() : int
+    public function getType($inlineType = array()) : int
     {
-        if (is_string($this->value)) {
+        $value = (!is_array($inlineType)) ? $inlineType : $this->value;
+
+        if (is_string($value)) {
             return \PDO::PARAM_STR;
         }
 
-        if (is_bool($this->value)) {
+        if (is_bool($value)) {
             return \PDO::PARAM_BOOL;
         }
 
-        if ($this->value === null) {
+        if ($value === null) {
             return \PDO::PARAM_NULL;
         }
 
-        if (is_int($this->value)) {
+        if (is_int($value)) {
             return \PDO::PARAM_INT;
         }
 
