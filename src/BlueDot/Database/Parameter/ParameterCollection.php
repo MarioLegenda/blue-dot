@@ -2,11 +2,9 @@
 
 namespace BlueDot\Database\Parameter;
 
-use BlueDot\Exception\CommonInternalException;
-use BlueDot\Exception\ConfigurationException;
 use BlueDot\Exception\QueryException;
 
-class ParameterCollection
+class ParameterCollection implements \IteratorAggregate
 {
     /**
      * @var array $parameters
@@ -63,7 +61,10 @@ class ParameterCollection
 
         return $this;
     }
-
+    /**
+     * @param array $parameters
+     * @return $this
+     */
     public function bindValues(array $parameters) : ParameterCollection
     {
         foreach ($parameters as $key => $value) {
@@ -73,5 +74,12 @@ class ParameterCollection
         }
 
         return $this;
+    }
+    /**
+     * @return \ArrayIterator
+     */
+    public function getIterator()
+    {
+        return new \ArrayIterator($this->parameters);
     }
 }

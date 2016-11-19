@@ -20,6 +20,8 @@ class MainTest extends \PHPUnit_Framework_TestCase
 
         $this->assertInstanceOf(Entity::class, $result, '$result should be an instance of '.Entity::class);
 
-        $blueDot->execute('scenario.insert_user');
+        $blueDot->execute('simple.insert.single_village', array(
+            'name' => 'Harkanovci'
+        ));
     }
 }

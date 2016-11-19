@@ -53,4 +53,28 @@ class Parameter
 
         return $this;
     }
+
+    /**
+     * @return int
+     */
+    public function getType() : int
+    {
+        if (is_string($this->value)) {
+            return \PDO::PARAM_STR;
+        }
+
+        if (is_bool($this->value)) {
+            return \PDO::PARAM_BOOL;
+        }
+
+        if ($this->value === null) {
+            return \PDO::PARAM_NULL;
+        }
+
+        if (is_int($this->value)) {
+            return \PDO::PARAM_INT;
+        }
+
+        return \PDO::PARAM_STR;
+    }
 }
