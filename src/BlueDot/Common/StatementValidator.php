@@ -2,6 +2,7 @@
 
 namespace BlueDot\Common;
 
+use BlueDot\Database\ParameterConversion;
 use BlueDot\Exception\CommonInternalException;
 use BlueDot\Exception\QueryException;
 
@@ -20,13 +21,19 @@ class StatementValidator
      */
     private $configuration;
     /**
+     * @var ParameterConversion $parameterConversion
+     */
+    private $parameterConversion;
+    /**
      * @param ArgumentValidator $validator
      * @param array $configuration
+     * @param ParameterConversion $parameterConversion
      */
-    public function __construct(ArgumentValidator $validator, array $configuration)
+    public function __construct(ArgumentValidator $validator, array $configuration, ParameterConversion $parameterConversion)
     {
         $this->argumentValidator = $validator;
         $this->configuration = $configuration;
+        $this->parameterConversion = $parameterConversion;
     }
     /**
      * @return $this
@@ -49,7 +56,11 @@ class StatementValidator
             throw new CommonInternalException('Invalid input. \''.$this->argumentValidator->getResolvedName().'\' does not exist');
         }
 
-        $this->statement = $this->configuration[$type]->get($this->argumentValidator->getResolvedName());
+        $statement = $this->configuration[$type]->get($this->argumentValidator->getResolvedName());
+
+        $this->parameterConversion->convert($statement->get('type'), $statement);
+
+        $this->statement = $statement;
 
         return $this;
     }

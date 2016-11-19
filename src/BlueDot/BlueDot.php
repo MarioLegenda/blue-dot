@@ -11,6 +11,7 @@ use BlueDot\Configuration\MainConfiguration;
 use BlueDot\Configuration\Validator\ConfigurationValidator;
 use BlueDot\Database\Connection;
 use BlueDot\Database\Execution\ExecutionStrategy;
+use BlueDot\Database\ParameterConversion;
 use BlueDot\Database\Scenario\ScenarioBuilder;
 use BlueDot\Database\StatementExecution;
 use BlueDot\Entity\Entity;
@@ -77,7 +78,11 @@ final class BlueDot implements BlueDotInterface
      */
     public function execute(string $name, $parameters = array()) : Entity
     {
-        $statementValidator = new StatementValidator(new ArgumentValidator($name), $this->configuration);
+        $statementValidator = new StatementValidator(
+            new ArgumentValidator($name),
+            $this->configuration,
+            new ParameterConversion($parameters)
+        );
 
         $statement = $statementValidator->validate()->getStatement();
 
