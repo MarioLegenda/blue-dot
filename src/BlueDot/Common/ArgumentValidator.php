@@ -62,21 +62,21 @@ class ArgumentValidator
         throw new QueryException('Invalid execute statement name. Given '.$this->arguments);
     }
     /**
-     * @return mixed
+     * @return string
      */
     public function getType() : string
     {
         return $this->type;
     }
     /**
-     * @return mixed
+     * @return string
      */
     public function getResolvedName() : string
     {
         return $this->resolvedName;
     }
     /**
-     * @return mixed
+     * @return string
      */
     public function getStatementName() : string
     {

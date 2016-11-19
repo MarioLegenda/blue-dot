@@ -14,8 +14,6 @@ class MainTest extends \PHPUnit_Framework_TestCase
 
         $entity = $blueDot->execute('simple.select.entire_world')->getResult();
 
-        //var_dump($entity);
-/*
         $blueDot->execute('simple.insert.single_village', array(
             'name' => array(
                 'Solin',
@@ -27,6 +25,6 @@ class MainTest extends \PHPUnit_Framework_TestCase
                 'Zagreb',
                 'Osijek',
             )
-        ));*/
+        ));
     }
 }

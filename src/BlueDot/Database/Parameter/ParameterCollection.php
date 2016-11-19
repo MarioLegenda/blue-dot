@@ -81,7 +81,10 @@ class ParameterCollection implements \IteratorAggregate, \ArrayAccess
 
         return false;
     }
-
+    /**
+     * @param string $key
+     * @return Parameter
+     */
     public function getParameter(string $key) : Parameter
     {
         foreach ($this->parameters as $parameter) {
@@ -92,7 +95,7 @@ class ParameterCollection implements \IteratorAggregate, \ArrayAccess
     }
     /**
      * @param array $parameters
-     * @return $this
+     * @return ParameterCollection
      * @throws QueryException
      */
     public function compare(array $parameters) : ParameterCollection
@@ -123,7 +126,7 @@ class ParameterCollection implements \IteratorAggregate, \ArrayAccess
     }
     /**
      * @param array $parameters
-     * @return $this
+     * @return ParameterCollection
      */
     public function bindValues(array $parameters) : ParameterCollection
     {

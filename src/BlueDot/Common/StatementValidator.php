@@ -36,7 +36,7 @@ class StatementValidator
         $this->parameterConversion = $parameterConversion;
     }
     /**
-     * @return $this
+     * @return StatementValidator
      * @throws CommonInternalException
      * @throws QueryException
      */

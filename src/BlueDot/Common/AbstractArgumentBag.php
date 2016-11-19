@@ -4,12 +4,14 @@ namespace BlueDot\Common;
 
 use BlueDot\Exception\CommonInternalException;
 
-abstract class AbstractArgumentBag implements StorageInterface, \IteratorAggregate
+abstract class AbstractArgumentBag implements StorageInterface, \IteratorAggregate, \ArrayAccess, \Countable
 {
+    /**
+     * @var array $arguments
+     */
     protected $arguments = array();
     /**
      * @param StorageInterface $storage
-     * @throws CommonInternalException
      */
     public function __construct($storage = null)
     {
@@ -22,7 +24,6 @@ abstract class AbstractArgumentBag implements StorageInterface, \IteratorAggrega
     /**
      * @param StorageInterface $storage
      * @param bool|false $overwrite
-     * @throws CommonInternalException
      */
     public function mergeStorage(StorageInterface $storage, bool $overwrite = false) : StorageInterface
     {
@@ -36,10 +37,10 @@ abstract class AbstractArgumentBag implements StorageInterface, \IteratorAggrega
     }
     /**
      * @param string $name
-     * @param $value
+     * @param mixed $value
      * @param bool $overwrite
      * @throws CommonInternalException
-     * @return $this
+     * @return StorageInterface
      */
     public function add(string $name, $value, bool $overwrite = false) : StorageInterface
     {
@@ -51,7 +52,12 @@ abstract class AbstractArgumentBag implements StorageInterface, \IteratorAggrega
 
         return $this;
     }
-
+    /**
+     * @param string $name
+     * @param array $values
+     * @return $this
+     * @throws CommonInternalException
+     */
     public function addTo(string $name, array $values) : StorageInterface
     {
         if (!$this->has($name)) {
@@ -102,7 +108,12 @@ abstract class AbstractArgumentBag implements StorageInterface, \IteratorAggrega
 
         return true;
     }
-
+    /**
+     * @param string $toRename
+     * @param string $newName
+     * @return $this
+     * @throws CommonInternalException
+     */
     public function rename(string $toRename, string $newName) : StorageInterface
     {
         if (!$this->has($toRename)) {
@@ -120,8 +131,7 @@ abstract class AbstractArgumentBag implements StorageInterface, \IteratorAggrega
     /**
      * @param string $name
      * @param StorageInterface $storage
-     * @return $this
-     * @throws CommonInternalException
+     * @return StorageInterface
      */
     public function append(string $name, StorageInterface $storage) : StorageInterface
     {
@@ -143,6 +153,13 @@ abstract class AbstractArgumentBag implements StorageInterface, \IteratorAggrega
     /**
      * @return array
      */
+    public function toArray() : array
+    {
+        return $this->arguments;
+    }
+    /**
+     * @return array
+     */
     public function getArgumentKeys() : array
     {
         if (!empty($this->arguments)) {
@@ -152,17 +169,48 @@ abstract class AbstractArgumentBag implements StorageInterface, \IteratorAggrega
         return array();
     }
     /**
-     * @return array
-     */
-    public function toArray() : array
-    {
-        return $this->arguments;
-    }
-    /**
      * @return \ArrayIterator
      */
     public function getIterator()
     {
         return new \ArrayIterator($this->arguments);
+    }
+    /**
+     * @param mixed $offset
+     * @return bool
+     */
+    public function offsetExists($offset)
+    {
+        return array_key_exists($offset, $this->arguments[$offset]);
+    }
+    /**
+     * @param mixed $offset
+     * @return mixed
+     */
+    public function offsetGet($offset)
+    {
+        return (array_key_exists($offset, $this->arguments)) ? $this->arguments[$offset] : null;
+    }
+    /**
+     * @param mixed $offset
+     * @param mixed $value
+     */
+    public function offsetSet($offset, $value)
+    {
+        $this->arguments[$offset] = $value;
+    }
+    /**
+     * @param mixed $offset
+     */
+    public function offsetUnset($offset)
+    {
+        unset($this->arguments[$offset]);
+    }
+    /**
+     * @return int
+     */
+    public function count()
+    {
+        return count($this->arguments);
     }
 }
