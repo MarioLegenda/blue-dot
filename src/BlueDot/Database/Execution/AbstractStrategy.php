@@ -19,6 +19,7 @@ abstract class AbstractStrategy
     public function __construct(ArgumentBag $statement)
     {
         $this->connection = $statement->get('connection');
+        $statement->remove('connection');
         $this->statement = $statement;
     }
 }

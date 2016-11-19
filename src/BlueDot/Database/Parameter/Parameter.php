@@ -22,6 +22,14 @@ class Parameter
         $this->value = $value;
     }
     /**
+     * @param string $key
+     * @return bool
+     */
+    public function hasKey(string $key) : bool
+    {
+        return $this->key === $key;
+    }
+    /**
      * @return string|string
      */
     public function getKey() : string
@@ -34,5 +42,15 @@ class Parameter
     public function getValue()
     {
         return $this->value;
+    }
+    /**
+     * @param $value
+     * @return Parameter
+     */
+    public function setValue($value) : Parameter
+    {
+        $this->value = $value;
+
+        return $this;
     }
 }
