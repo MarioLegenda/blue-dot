@@ -37,6 +37,7 @@ class ConfigurationBuilder
         $this->builtConfiguration['simple'] = $this->buildSimpleConfiguration($configuration['simple']);
         $this->builtConfiguration['scenario'] = $this->buildScenarioConfiguration($configuration['scenario']);
         $this->builtConfiguration['connection'] = $this->buildConnection($configuration['connection']);
+        $this->builtConfiguration['callable'] = $this->buildCallableConfiguration($configuration['callable']);
         return $this;
     }
     /**
@@ -142,6 +143,22 @@ class ConfigurationBuilder
         }
 
         return $mainScenario;
+    }
+
+    private function buildCallableConfiguration(array $callableConfiguration) : ArgumentBag
+    {
+        $callableConfig = new ArgumentBag();
+
+        foreach ($callableConfiguration as $key => $config) {
+            $subConfig = new ArgumentBag();
+
+            $subConfig->add('type', $config['type']);
+            $subConfig->add('name', $config['name']);
+
+            $callableConfig->add($key, $subConfig);
+        }
+
+        return $callableConfig;
     }
 
     private function addSimpleParameters(array $parameters) : ParameterCollection
