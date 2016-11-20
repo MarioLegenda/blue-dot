@@ -92,9 +92,7 @@ final class BlueDot implements BlueDotInterface
 
         $strategy = (new ExecutionStrategy($statement))->getStrategy();
 
-        $strategy->execute();
-
-        $this->strategy = $strategy;
+        $this->strategy = $strategy->execute();
 
         return $this;
     }
