@@ -11,6 +11,7 @@ use BlueDot\Configuration\ConfigurationBuilder;
 use BlueDot\Configuration\MainConfiguration;
 use BlueDot\Configuration\Validator\ConfigurationValidator;
 use BlueDot\Database\Connection;
+use BlueDot\Database\Execution\CallableStrategy;
 use BlueDot\Database\Execution\ExecutionStrategy;
 use BlueDot\Database\Execution\StrategyInterface;
 use BlueDot\Database\ParameterConversion;
@@ -22,7 +23,7 @@ use Symfony\Component\Yaml\Yaml;
 use BlueDot\Exception\ConfigurationException;
 use BlueDot\Cache\Report;
 
-final class BlueDot implements BlueDotInterface
+class BlueDot implements BlueDotInterface
 {
     /**
      * @var StrategyInterface $strategy
@@ -87,6 +88,14 @@ final class BlueDot implements BlueDotInterface
         );
 
         $statement = $statementValidator->validate()->getStatement();
+
+        if ($statement->get('type') === 'callable') {
+            $callableStrategy = new CallableStrategy($statement, $this, $parameters);
+
+            $this->strategy = $callableStrategy->execute();
+
+            return $this;
+        }
 
         $statement->add('connection', $this->connection);
 

@@ -38,6 +38,7 @@ class ConfigurationBuilder
         $this->builtConfiguration['scenario'] = $this->buildScenarioConfiguration($configuration['scenario']);
         $this->builtConfiguration['connection'] = $this->buildConnection($configuration['connection']);
         $this->builtConfiguration['callable'] = $this->buildCallableConfiguration($configuration['callable']);
+
         return $this;
     }
     /**
@@ -60,10 +61,11 @@ class ConfigurationBuilder
         foreach ($simpleConfiguration as $type => $typeConfig) {
             foreach ($typeConfig as $statementName => $statementConfig) {
                 $builtStatement = new ArgumentBag();
-                $builtStatement->add('type', 'simple');
-                $builtStatement->add('resolved_name', $type.'.'.$statementName);
-                $builtStatement->add('statement_type', $type);
-                $builtStatement->add('statement_name', $statementName);
+                $builtStatement
+                    ->add('type', 'simple')
+                    ->add('resolved_name', $type.'.'.$statementName)
+                    ->add('statement_type', $type)
+                    ->add('statement_name', $statementName);
 
                 $workConfig = new ArgumentBag();
                 $workConfig->add('sql', $statementConfig['sql']);
@@ -95,17 +97,19 @@ class ConfigurationBuilder
             $builtScenarioConfiguration->add('type', 'scenario');
 
             $rootConfig = new ArgumentBag();
-            $rootConfig->add('atomic', $scenarioConfigs['atomic']);
-            $rootConfig->add('returns', $scenarioConfigs['return']);
+            $rootConfig
+                ->add('atomic', $scenarioConfigs['atomic'])
+                ->add('returns', $scenarioConfigs['return']);
 
             $statemens = new ArgumentBag();
             foreach ($scenarioStatements as $statementName => $statementConfig) {
                 $resolvedStatementName = 'scenario.'.$scenarioName.'.'.$statementName;
 
                 $scenarioStatement = new ArgumentBag();
-                $scenarioStatement->add('resolved_statement_name', $resolvedStatementName);
-                $scenarioStatement->add('statement_name', $statementName);
-                $scenarioStatement->add('sql', $statementConfig['sql']);
+                $scenarioStatement
+                    ->add('resolved_statement_name', $resolvedStatementName)
+                    ->add('statement_name', $statementName)
+                    ->add('sql', $statementConfig['sql']);
 
 
 
@@ -148,14 +152,17 @@ class ConfigurationBuilder
     private function buildCallableConfiguration(array $callableConfiguration) : ArgumentBag
     {
         $callableConfig = new ArgumentBag();
+        $callableConfig->add('type', 'callable');
 
         foreach ($callableConfiguration as $key => $config) {
             $subConfig = new ArgumentBag();
 
-            $subConfig->add('type', $config['type']);
-            $subConfig->add('name', $config['name']);
+            $subConfig
+                ->add('type', 'callable')
+                ->add('data_type', $config['type'])
+                ->add('name', $config['name']);
 
-            $callableConfig->add($key, $subConfig);
+            $callableConfig->add('callable.'.$key, $subConfig);
         }
 
         return $callableConfig;

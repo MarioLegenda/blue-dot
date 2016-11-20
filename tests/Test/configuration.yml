@@ -51,4 +51,4 @@ configuration:
     callable:
         validate_user:
             type: object # or symfony service
-            name: object_namespace_or_service
+            name: Test\CallableService

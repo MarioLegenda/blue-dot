@@ -2,6 +2,7 @@
 
 namespace BlueDot\Database\Execution;
 
+use BlueDot\BlueDotInterface;
 use BlueDot\Common\ArgumentBag;
 use BlueDot\Exception\CommonInternalException;
 
@@ -13,6 +14,7 @@ class ExecutionStrategy
     private $statement;
     /**
      * @param ArgumentBag $statement
+     * @param BlueDotInterface $blueDot
      */
     public function __construct(ArgumentBag $statement)
     {
@@ -31,6 +33,7 @@ class ExecutionStrategy
                 return new SimpleStrategy($this->statement);
             case 'scenario':
                 return new ScenarioStrategy($this->statement);
+            case 'callable':
         }
 
         throw new CommonInternalException('Internal error. Strategy \''.$type.'\' has not been found. Please, contact whitepostmail@gmail.com');
