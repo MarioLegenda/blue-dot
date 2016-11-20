@@ -48,7 +48,7 @@ configuration:
                 get_address_by_id:
                     sql: "SELECT * FROM address WHERE id = :id"
                     parameters: [address]
-#    callable:
-#        custom_callable_name:
-#            type: object # or symfony service
-#            name: object_namespace_or_service
+    callable:
+        validate_user:
+            type: object # or symfony service
+            name: object_namespace_or_service

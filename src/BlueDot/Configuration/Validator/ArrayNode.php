@@ -313,6 +313,19 @@ class ArrayNode implements \IteratorAggregate
 
         return $this;
     }
+
+    public function hasToBeOneOf($nodeName, array $values) : ArrayNode
+    {
+        if ($this->conditionalIgnore === false) {
+            $this->internalKeyExists($nodeName, $this->workingNode);
+
+            if (in_array($this->workingNode[$nodeName], $values) === false) {
+                throw new ConfigurationException('One of values '.implode(', ', $values).' in node \''.$nodeName.'\' has to be present');
+            }
+        }
+
+        return $this;
+    }
     /**
      * @param string $nodeName
      * @return bool

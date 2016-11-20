@@ -3,6 +3,7 @@
 namespace BlueDot\Configuration\Validator;
 
 use BlueDot\Exception\ConfigurationException;
+use BlueDot\Configuration\Validator\ArrayNode;
 
 class ConfigurationValidator
 {
@@ -41,7 +42,27 @@ class ConfigurationValidator
                     ->isAssociativeStringArray('scenario')
                     ->stepInto('scenario');
 
-        $this->validateScenarioConfiguration($scenarioConfiguration);
+        $callableConfiguration = $this->validateScenarioConfiguration($scenarioConfiguration);
+
+        $callableConfiguration
+            ->cannotBeEmptyIfExists('callable')
+            ->isArrayIfExists('callable')
+            ->stepInto('callable')
+                ->closureValidator('callable', function($nodeName, ArrayNode $nodes) {
+                    foreach ($nodes as $key => $node) {
+                        if (!is_string($key)) {
+                            throw new ConfigurationException('\''.$key.'\' has to be a string');
+                        }
+
+                        $node = new ArrayNode($key, $node);
+                        $node
+                            ->cannotBeEmpty('type')
+                            ->isString('type')
+                            ->hasToBeOneOf('type', array('object', 'service'))
+                            ->cannotBeEmpty('name')
+                            ->isString('name');
+                    }
+                });
 
         return $this;
     }
@@ -82,7 +103,7 @@ class ConfigurationValidator
 
     private function validateScenarioConfiguration(ArrayNode $node)
     {
-        $node
+        return $node
             ->closureValidator('scenario', function($nodeName, ArrayNode $node) {
             foreach ($node as $key => $value) {
                 $node
@@ -119,7 +140,8 @@ class ConfigurationValidator
                                     ->cannotBeEmpty('bind_to')->isAssociativeStringArray('bind_to');
                         }
                     });
-            }
-        });
+                }
+            })
+            ->stepOut();
     }
 }
