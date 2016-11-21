@@ -80,7 +80,12 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
 
         if ($statement->get('sql_type') === 'select') {
             $this->saveResult($statement);
+        } else if ($statement->get('sql_type') === 'insert') {
+            $this->saveLastInsertId($statement);
         }
+
+        var_dump($this->resultReport);
+        die();
     }
 
     private function singleStatementRecursiveExecution(ArgumentBag $statement)
@@ -175,8 +180,12 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
         }
     }
 
-    private function saveLastInsertId()
+    private function saveLastInsertId(ArgumentBag $statement)
     {
+        if (!$this->resultReport instanceof ArgumentBag) {
+            $this->resultReport = new ArgumentBag();
+        }
 
+        $this->resultReport->add($statement->get('resolved_statement_name'), $this->statement->lastInsertId());
     }
 }
