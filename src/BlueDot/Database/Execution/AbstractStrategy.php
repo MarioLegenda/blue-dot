@@ -4,6 +4,7 @@ namespace BlueDot\Database\Execution;
 
 use BlueDot\Common\ArgumentBag;
 use BlueDot\Database\Connection;
+use BlueDot\Database\Parameter\ParameterCollection;
 
 abstract class AbstractStrategy
 {
@@ -15,6 +16,10 @@ abstract class AbstractStrategy
      * @var ArgumentBag $statement
      */
     protected $statement;
+    /**
+     * @var \PDOStatement $pdoStatement
+     */
+    protected $pdoStatement;
 
     public function __construct(ArgumentBag $statement)
     {

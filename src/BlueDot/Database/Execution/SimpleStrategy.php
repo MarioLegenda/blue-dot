@@ -2,6 +2,7 @@
 
 namespace BlueDot\Database\Execution;
 
+use BlueDot\Common\ArgumentBag;
 use BlueDot\Common\StorageInterface;
 use BlueDot\Database\Parameter\Parameter;
 use BlueDot\Database\Parameter\ParameterCollection;
@@ -14,10 +15,6 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
      * @var StorageInterface $entity
      */
     private $entity;
-    /**
-     * @var \PDOStatement $pdoStatement
-     */
-    private $pdoStatement;
     /**
      * @return StrategyInterface
      */
@@ -42,11 +39,12 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
 
         return $this;
     }
-
     /**
-     * @return StorageInterface
+     * @param ArgumentBag|null $statement
+     * @return StorageInterface|Entity|EntityCollection
+     * @throws \BlueDot\Exception\CommonInternalException
      */
-    public function getResult() : StorageInterface
+    public function getResult(ArgumentBag $statement = null) : StorageInterface
     {
         if ($this->entity instanceof StorageInterface) {
             return $this->entity;
@@ -55,22 +53,27 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
         if ($this->statement->get('statement_type') === 'select') {
             $result = $this->pdoStatement->fetchAll(\PDO::FETCH_ASSOC);
 
-            $resultCount = count($result);
+            return $this->createEntity($result);
+        }
+    }
 
-            switch ($resultCount) {
-                case 0:
-                    $this->entity = new Entity();
+    private function createEntity(array $result) : StorageInterface
+    {
+        $resultCount = count($result);
 
-                    return $this->entity;
-                case 1:
-                    $this->entity = new Entity($result[0]);
+        switch ($resultCount) {
+            case 0:
+                $this->entity = new Entity();
 
-                    return $this->entity;
-                default:
-                    $this->entity = new EntityCollection($result);
+                return $this->entity;
+            case 1:
+                $this->entity = new Entity($result[0]);
 
-                    return $this->entity;
-            }
+                return $this->entity;
+            default:
+                $this->entity = new EntityCollection($result);
+
+                return $this->entity;
         }
     }
 

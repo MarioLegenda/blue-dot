@@ -4,6 +4,7 @@ namespace BlueDot\Common;
 
 use BlueDot\Database\ParameterConversion;
 use BlueDot\Exception\CommonInternalException;
+use BlueDot\Exception\ConfigurationException;
 use BlueDot\Exception\QueryException;
 
 class StatementValidator
@@ -58,6 +59,8 @@ class StatementValidator
 
         $statement = $this->configuration[$type]->get($this->argumentValidator->getResolvedName());
 
+        $this->validateUseOptions($statement->get('statements'));
+
         $this->parameterConversion->convert($statement->get('type'), $statement);
 
         $this->statement = $statement;
@@ -70,5 +73,25 @@ class StatementValidator
     public function getStatement() : ArgumentBag
     {
         return $this->statement;
+    }
+
+    private function validateUseOptions(ArgumentBag $statements)
+    {
+        foreach ($statements as $statement) {
+            if ($statement->has('use_option')) {
+                $useOption = $statement->get('use_option');
+                $useOptionStatementName = $statement->get('scenario_name').'.'.$useOption->getName();
+
+                if (!$statements->has($useOptionStatementName)) {
+                    throw new ConfigurationException('\''.$useOption->getName().'\' not found in '.$statement->get('resolved_statement_name'));
+                }
+
+                $useOptionStatement = $statements->get($useOptionStatementName);
+
+                if ($useOptionStatement->get('sql_type') !== 'select') {
+                    throw new ConfigurationException('\'use\' option can only be \'select\' sql statements');
+                }
+            }
+        }
     }
 }

@@ -107,6 +107,8 @@ class ConfigurationBuilder
 
                 $scenarioStatement = new ArgumentBag();
                 $scenarioStatement
+                    ->add('sql_type', $statementConfig['sql_type'])
+                    ->add('scenario_name', $resolvedScenarioName)
                     ->add('resolved_statement_name', $resolvedStatementName)
                     ->add('statement_name', $statementName)
                     ->add('sql', $statementConfig['sql']);
@@ -124,7 +126,7 @@ class ConfigurationBuilder
 
                     $scenarioStatement->add(
                         'use_option',
-                        new UseOption($useOption['name'], $useOption['values'])
+                        new UseOption($useOption['statement_name'], $useOption['values'])
                     );
                 }
 

@@ -12,7 +12,14 @@ class MainTest extends \PHPUnit_Framework_TestCase
     {
         $blueDot = new BlueDot(__DIR__.'/configuration.yml');
 
-        $result = $blueDot->execute('callable.validate_user', array());
+        $blueDot->execute('scenario.insert_user', array(
+            'select_user' => array(
+                'id' => 1,
+            ),
+            'insert_user' => array(
+                'occupation' => 'Inventor',
+            )
+        ));
 /*
         $entity = $blueDot->execute('simple.select.entire_world')->getResult();
 
