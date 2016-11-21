@@ -18,9 +18,9 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
      */
     private $statements;
     /**
-     * @var array $resultReport
+     * @var ArgumentBag $resultReport
      */
-    private $resultReport = array();
+    private $resultReport;
     /**
      * @var StorageInterface $entity
      */
@@ -30,6 +30,8 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
      */
     public function execute() : StrategyInterface
     {
+        $this->resultReport = new ArgumentBag();
+
         $this->connection->connect();
 
         $this->connection->getConnection()->beginTransaction();
@@ -113,7 +115,6 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
             $useStatement = $this->statements->get($statement->get('statement_name').'.'.$useOption->getName());
 
             if (!$this->resultReport->has($useStatement->get('resolved_statement_name'))) {
-                $this->realSingleStatementExecution($useStatement);
                 $this->singleStatementRecursiveExecution($useStatement);
             }
         }
@@ -193,7 +194,9 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
 
         $result = $this->pdoStatement->fetchAll(\PDO::FETCH_ASSOC);
 
-        $this->resultReport->add($statement->get('resolved_statement_name'), $this->createEntity($result));
+        if (!$this->resultReport->has($statement->get('resolved_statement_name'))) {
+            $this->resultReport->add($statement->get('resolved_statement_name'), $this->createEntity($result));
+        }
     }
 
     private function createEntity(array $result) : StorageInterface

@@ -32,10 +32,6 @@ configuration:
             atomic: true
             return: [select_user.name, select_user.lastname, get_address_by_id]
             statements:
-                select_user:
-                    sql_type: select
-                    sql: "SELECT * FROM user WHERE id = :id"
-                    parameters: [id]
                 insert_user:
                     sql_type: insert
                     sql: "INSERT INTO user (name, lastname, occupation) VALUES (:name, :lastname, :occupation)"
@@ -43,6 +39,10 @@ configuration:
                         statement_name: select_user
                         values: {select_user.name : name, select_user.lastname : lastname}
                     parameters: [occupation]
+                select_user:
+                    sql_type: select
+                    sql: "SELECT * FROM user WHERE id = :id"
+                    parameters: [id]
                 insert_address:
                     sql_type: insert
                     sql: "INSERT INTO address (user_id, city, address) VALUES (:user_id, :city, :address)"
