@@ -302,7 +302,11 @@ class ArrayNode implements \IteratorAggregate
     public function isAssociativeStringArray(string $nodeName) : ArrayNode
     {
         if ($this->conditionalIgnore === false) {
-            $keys = array_keys($this->workingNode);
+            if (!is_array($this->workingNode[$nodeName])) {
+                throw new ConfigurationException('\''.$nodeName.'\' has to be a associative array with string keys');
+            }
+
+            $keys = array_keys($this->workingNode[$nodeName]);
 
             foreach ($keys as $key) {
                 if (!is_string($key)) {

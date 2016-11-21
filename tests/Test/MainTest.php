@@ -18,6 +18,10 @@ class MainTest extends \PHPUnit_Framework_TestCase
             ),
             'insert_user' => array(
                 'occupation' => 'Inventor',
+            ),
+            'insert_address' => array(
+                'city' => 'Split',
+                'address' => 'Vinodolska 44',
             )
         ));
 /*

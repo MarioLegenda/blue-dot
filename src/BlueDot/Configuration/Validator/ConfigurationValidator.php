@@ -119,28 +119,30 @@ class ConfigurationValidator
                     ->stepInto('statements')
                     ->closureValidator('statements', function($nodeName, ArrayNode $node) {
                         foreach ($node as $key => $nodeValue) {
-                            $node->isAssociativeStringArray($key);
+                            if ($key === 'insert_address') {
+                                $node->isAssociativeStringArray($key);
 
-                            $nodeValue = new ArrayNode($key, $nodeValue);
+                                $nodeValue = new ArrayNode($key, $nodeValue);
 
-                            $nodeValue
-                                ->cannotBeEmpty('sql')
-                                ->isString('sql')
-                                ->cannotBeEmpty('sql_type')
-                                ->isString('sql_type')
-                                ->hasToBeOneOf('sql_type', array('select', 'insert', 'update', 'delete', 'database', 'table'))
-                                ->isArrayIfExists('parameters')
-                                ->cannotBeEmptyIfExists('use')
-                                ->isArrayIfExists('use')
-                                ->stepIntoIfExists('use')
+                                $nodeValue
+                                    ->cannotBeEmpty('sql')
+                                    ->isString('sql')
+                                    ->cannotBeEmpty('sql_type')
+                                    ->isString('sql_type')
+                                    ->hasToBeOneOf('sql_type', array('select', 'insert', 'update', 'delete', 'database', 'table'))
+                                    ->isArrayIfExists('parameters')
+                                    ->cannotBeEmptyIfExists('use')
+                                    ->isArrayIfExists('use')
+                                    ->stepIntoIfExists('use')
                                     ->cannotBeEmpty('statement_name')->isString('statement_name')
                                     ->cannotBeEmpty('values')->isArray('values')
-                                ->stepOut()
-                                ->isArrayIfExists('foreign_key')
-                                ->cannotBeEmptyIfExists('foreign_key')
-                                ->stepIntoIfExists('foreign_key')
+                                    ->stepOut()
+                                    ->isArrayIfExists('foreign_key')
+                                    ->cannotBeEmptyIfExists('foreign_key')
+                                    ->stepIntoIfExists('foreign_key')
                                     ->cannotBeEmpty('statement_name')->isString('statement_name')
-                                    ->cannotBeEmpty('bind_to')->isAssociativeStringArray('bind_to');
+                                    ->cannotBeEmpty('bind_to')->isString('bind_to');
+                            }
                         }
                     });
                 }

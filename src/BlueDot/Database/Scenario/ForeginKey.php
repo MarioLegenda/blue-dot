@@ -14,9 +14,9 @@ class ForeginKey
     private $bindTo = array();
     /**
      * @param string $statementName
-     * @param array $bindTo
+     * @param string $bindTo
      */
-    public function __construct(string $statementName, array $bindTo)
+    public function __construct(string $statementName, string $bindTo)
     {
         $this->statementName = $statementName;
         $this->bindTo = $bindTo;
@@ -24,14 +24,14 @@ class ForeginKey
     /**
      * @return string
      */
-    public function getStatementName() : string
+    public function getName() : string
     {
         return $this->statementName;
     }
     /**
-     * @return array
+     * @return string
      */
-    public function getBindTo() : array
+    public function getBindTo() : string
     {
         return $this->bindTo;
     }

@@ -48,10 +48,14 @@ configuration:
                     sql: "INSERT INTO address (user_id, city, address) VALUES (:user_id, :city, :address)"
                     foreign_key:
                         statement_name: insert_user
-                        bind_to: {user_id: "user_id"}
+                        bind_to: user_id
+                    parameters: [city, address]
                 get_address_by_id:
                     sql_type: select
                     sql: "SELECT * FROM address WHERE id = :id"
+                    foreign_key:
+                        statement_name: insert_address
+                        bind_to: id
 
     callable:
         validate_user:
