@@ -49,6 +49,13 @@ class ReturnData
     /**
      * @return bool
      */
+    public function hasColumnName() : bool
+    {
+        return is_string($this->columnName);
+    }
+    /**
+     * @return bool
+     */
     public function hasAlias() : bool
     {
         return is_string($this->alias);

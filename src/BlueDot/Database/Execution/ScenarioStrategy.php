@@ -79,7 +79,44 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
 
     public function getResult() : StorageInterface
     {
+        $returnEntities = $this->statement->get('root_config')->get('return_entity')->getAllReturnData();
+        $scenarioName = $this->statement->get('root_config')->get('scenario_name');
 
+        $entity = new Entity();
+
+        foreach ($returnEntities as $returnEntity) {
+            $statementName = $returnEntity->getStatementName();
+            $resolvedStatementName = 'scenario.'.$scenarioName.'.'.$statementName;
+
+            if ($this->resultReport->has($resolvedStatementName)) {
+                $resultEntity = $this->resultReport->get($resolvedStatementName);
+
+                if (!$resultEntity instanceof $resultEntity) {
+                    throw new QueryException('Return result specified in \'return_entity\' has to be a select sql type for '.$resolvedStatementName);
+                }
+
+                if (!$returnEntity->hasColumnName()) {
+                    $entity->add($statementName, $resultEntity);
+
+                    continue;
+                }
+
+                $resultEntityColumnName = $returnEntity->getColumnName();
+                $resultValue = $resultEntity->get($resultEntityColumnName);
+
+                if ($returnEntity->hasAlias()) {
+                    $alias = $returnEntity->getAlias();
+
+                    $entity->add($alias, $resultValue);
+
+                    continue;
+                }
+
+                $entity->add($resultEntityColumnName, $resultValue);
+            }
+        }
+
+        return $entity;
     }
 
     private function realSingleStatementExecution(ArgumentBag $statement)

@@ -30,7 +30,7 @@ configuration:
     scenario:
         insert_user:
             atomic: true
-            return_entity: [select_user.id, "select_user.name  as   user_name", "select_user.lastname  as   user_lastname", get_address_by_id]
+            return_entity: [select_user.id, "select_user.name  as user_name", "select_user.lastname  as   user_lastname", get_address_by_id]
             statements:
                 insert_user:
                     sql_type: insert
