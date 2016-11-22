@@ -59,8 +59,10 @@ class StatementValidator
 
         $statement = $this->configuration[$type]->get($this->argumentValidator->getResolvedName());
 
-        $this->validateUseOptions($statement->get('statements'));
-        $this->validateReturnData($statement);
+        if ($statement->get('type') === 'scenario') {
+            $this->validateUseOptions($statement->get('statements'));
+            $this->validateReturnData($statement);
+        }
 
         $this->parameterConversion->convert($statement->get('type'), $statement);
 

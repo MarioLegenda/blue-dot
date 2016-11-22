@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "a1f3dc5b70b3f020daf0e5c8f50b12e7",
-    "content-hash": "1281e781a71ee93d7c6cecd5567b0227",
+    "hash": "369831369f4e60efbd577c5d6f49f36e",
+    "content-hash": "6be5bcae168689ff79bf86fbba746b82",
     "packages": [
         {
             "name": "symfony/config",
@@ -59,66 +59,6 @@
             "description": "Symfony Config Component",
             "homepage": "https://symfony.com",
             "time": "2016-09-25 08:27:07"
-        },
-        {
-            "name": "symfony/event-dispatcher",
-            "version": "v3.1.6",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/symfony/event-dispatcher.git",
-                "reference": "28b0832b2553ffb80cabef6a7a812ff1e670c0bc"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/symfony/event-dispatcher/zipball/28b0832b2553ffb80cabef6a7a812ff1e670c0bc",
-                "reference": "28b0832b2553ffb80cabef6a7a812ff1e670c0bc",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=5.5.9"
-            },
-            "require-dev": {
-                "psr/log": "~1.0",
-                "symfony/config": "~2.8|~3.0",
-                "symfony/dependency-injection": "~2.8|~3.0",
-                "symfony/expression-language": "~2.8|~3.0",
-                "symfony/stopwatch": "~2.8|~3.0"
-            },
-            "suggest": {
-                "symfony/dependency-injection": "",
-                "symfony/http-kernel": ""
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "3.1-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Symfony\\Component\\EventDispatcher\\": ""
-                },
-                "exclude-from-classmap": [
-                    "/Tests/"
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Fabien Potencier",
-                    "email": "fabien@symfony.com"
-                },
-                {
-                    "name": "Symfony Community",
-                    "homepage": "https://symfony.com/contributors"
-                }
-            ],
-            "description": "Symfony EventDispatcher Component",
-            "homepage": "https://symfony.com",
-            "time": "2016-10-13 06:28:43"
         },
         {
             "name": "symfony/filesystem",

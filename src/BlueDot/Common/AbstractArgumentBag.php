@@ -54,22 +54,39 @@ abstract class AbstractArgumentBag implements StorageInterface, \IteratorAggrega
     }
     /**
      * @param string $name
-     * @param array $values
+     * @param mixed $values
      * @return $this
      * @throws CommonInternalException
      */
-    public function addTo(string $name, array $values) : StorageInterface
+    public function addTo(string $name, $values) : StorageInterface
     {
-        if (!$this->has($name)) {
-            throw new CommonInternalException('\''.$name.'\' not found. Nothing to add to');
-        }
-
         if (empty($values)) {
             throw new CommonInternalException('Invalid \''.$name.'\'. Cannot add empty array');
         }
 
-        foreach ($values as $key => $value) {
-            $this->arguments[$name][$key] = $value;
+        if (!$this->has($name)) {
+            throw new CommonInternalException('\''.$name.'\' not found. Nothing to add to');
+        }
+
+        $entry = $this->get($name);
+
+        if (!is_array($entry) and !$entry instanceof StorageInterface) {
+            throw new CommonInternalException('Cannot add values to storage for \''.$name.'\'. Storage does not contain an iterable data type');
+        }
+
+        if (is_array($entry)) {
+            throw new CommonInternalException('\''.$name.'\' cannot add values to it. Probably because you used StorageInterface::append() method with it and that cannot be done');
+        }
+
+        if (is_array($values)) {
+            $mergingStorage = new ArgumentBag($values);
+            $entry->mergeStorage($mergingStorage);
+
+            return $this;
+        }
+
+        if ($values instanceof StorageInterface) {
+            $entry->mergeStorage($values);
         }
 
         return $this;
@@ -135,8 +152,16 @@ abstract class AbstractArgumentBag implements StorageInterface, \IteratorAggrega
      */
     public function append(string $name, StorageInterface $storage) : StorageInterface
     {
+        if ($this->has($name)) {
+            $internalStorage = $this->get($name);
+
+            if (!is_array($internalStorage) and !$internalStorage instanceof StorageInterface) {
+                throw new CommonInternalException('StorageInterface::append() only supports appending values on traversable data types');
+            }
+        }
+
         if (!$this->has($name)) {
-            $this->arguments[$name] = null;
+            $this->arguments[$name] = $this->createInternalStorage($name);
         }
 
         $this->arguments[$name][] = $storage;
@@ -167,6 +192,20 @@ abstract class AbstractArgumentBag implements StorageInterface, \IteratorAggrega
         }
 
         return array();
+    }
+    /**
+     * @param string $name
+     * @throws CommonInternalException
+     */
+    public function createInternalStorage(string $name)
+    {
+        if ($this->has($name)) {
+            if (!$this->get($name) instanceof StorageInterface) {
+                throw new CommonInternalException('Storage for \''.$name.'\' already exists');
+            }
+        }
+
+        $this->arguments[$name] = new ArgumentBag();
     }
     /**
      * @return \ArrayIterator

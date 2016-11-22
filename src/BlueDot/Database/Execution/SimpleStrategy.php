@@ -55,6 +55,14 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
 
             return $this->createEntity($result);
         }
+
+        if ($this->statement->get('statement_type') === 'insert') {
+            $entity = new Entity();
+
+            return $entity->add('last_insert_id', $this->connection->getConnection()->lastInsertId());
+        }
+
+        return $this->createEntity(array());
     }
 
     private function createEntity(array $result) : StorageInterface

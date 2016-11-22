@@ -15,22 +15,25 @@ configuration:
             entire_world:
                 sql: "SELECT * FROM city"
         insert:
+            insert_user:
+                sql: "INSERT INTO user (name, lastname, occupation) VALUES (:name, :lastname, :occupation)"
+                parameters: [name, lastname, occupation]
             single_village:
                 sql: "INSERT INTO village (name, country) VALUES (:name, :country)"
                 parameters: [name, country]
         update:
-            single_city:
+            single_village:
                 sql: "UPDATE village SET name = :update_name WHERE id = :id"
                 parameters: [update_name, id]
 
         delete:
-            single_city:
+            single_village:
                 sql: "DELETE FROM village WHERE id = :id"
                 parameters: [id]
     scenario:
         insert_user:
             atomic: true
-            return_entity: [select_user.id, "select_user.name  as user_name", "select_user.lastname  as   user_lastname", get_address_by_id]
+            return_entity: [select_user.id, "select_user.name as user_name", "select_user.lastname  as user_lastname", get_address_by_id]
             statements:
                 insert_user:
                     sql_type: insert

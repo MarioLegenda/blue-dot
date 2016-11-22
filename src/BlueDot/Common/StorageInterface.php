@@ -23,10 +23,10 @@ interface StorageInterface
     public function add(string $name, $value, bool $overwrite = false) : StorageInterface;
     /**
      * @param string $name
-     * @param array $values
+     * @param mixed $values
      * @return mixed
      */
-    public function addTo(string $name, array $values) : StorageInterface;
+    public function addTo(string $name, $values) : StorageInterface;
     /**
      * @param string $name
      * @return mixed
@@ -59,7 +59,12 @@ interface StorageInterface
     /**
      * @param string $name
      * @param StorageInterface $storage
-     * @return mixed
+     * @return StorageInterface
      */
     public function append(string $name, StorageInterface $storage) : StorageInterface;
+    /**
+     * @param string $name
+     * @return StorageInterface
+     */
+    public function createInternalStorage(string $name);
 }
