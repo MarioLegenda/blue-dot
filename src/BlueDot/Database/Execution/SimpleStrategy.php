@@ -18,6 +18,7 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
     private $entity;
     /**
      * @return StrategyInterface
+     * @throws CommonInternalException
      */
     public function execute() : StrategyInterface
     {
