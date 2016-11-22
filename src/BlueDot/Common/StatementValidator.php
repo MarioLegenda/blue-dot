@@ -60,6 +60,7 @@ class StatementValidator
         $statement = $this->configuration[$type]->get($this->argumentValidator->getResolvedName());
 
         $this->validateUseOptions($statement->get('statements'));
+        $this->validateReturnData($statement);
 
         $this->parameterConversion->convert($statement->get('type'), $statement);
 
@@ -73,6 +74,21 @@ class StatementValidator
     public function getStatement() : ArgumentBag
     {
         return $this->statement;
+    }
+
+    private function validateReturnData(ArgumentBag $mainStatement)
+    {
+        $returnEntities = $mainStatement->get('root_config')->get('return_entity')->getAllReturnData();
+        $scenarioName = $mainStatement->get('root_config')->get('scenario_name');
+        $statements = $mainStatement->get('statements');
+
+        foreach ($returnEntities as $returnEntity) {
+            $scenarioStatementName = 'scenario.'.$scenarioName.'.'.$returnEntity->getStatementName();
+
+            if (!$statements->has($scenarioStatementName)) {
+                throw new ConfigurationException('Scenario statement name provided in the return statement for '.$scenarioStatementName.' does not exist');
+            }
+        }
     }
 
     private function validateUseOptions(ArgumentBag $statements)

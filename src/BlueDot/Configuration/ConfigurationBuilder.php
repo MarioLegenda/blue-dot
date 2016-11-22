@@ -8,6 +8,7 @@ use BlueDot\Database\Connection;
 use BlueDot\Database\Parameter\Parameter;
 use BlueDot\Database\Parameter\ParameterCollection;
 use BlueDot\Database\Scenario\ForeginKey;
+use BlueDot\Database\Scenario\ScenarioReturnEntity;
 use BlueDot\Database\Scenario\UseOption;
 
 class ConfigurationBuilder
@@ -99,7 +100,8 @@ class ConfigurationBuilder
             $rootConfig = new ArgumentBag();
             $rootConfig
                 ->add('atomic', $scenarioConfigs['atomic'])
-                ->add('returns', $scenarioConfigs['return']);
+                ->add('return_entity', new ScenarioReturnEntity($scenarioConfigs['return_entity']))
+                ->add('scenario_name', $scenarioName);
 
             $statemens = new ArgumentBag();
             foreach ($scenarioStatements as $statementName => $statementConfig) {

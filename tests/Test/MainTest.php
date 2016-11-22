@@ -23,7 +23,7 @@ class MainTest extends \PHPUnit_Framework_TestCase
                 'city' => 'Split',
                 'address' => 'Vinodolska 44',
             )
-        ));
+        ))->getResult();
 /*
         $entity = $blueDot->execute('simple.select.entire_world')->getResult();
 
