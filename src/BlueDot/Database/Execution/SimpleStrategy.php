@@ -8,6 +8,7 @@ use BlueDot\Database\Parameter\Parameter;
 use BlueDot\Database\Parameter\ParameterCollection;
 use BlueDot\Entity\Entity;
 use BlueDot\Entity\EntityCollection;
+use BlueDot\Exception\CommonInternalException;
 
 class SimpleStrategy extends AbstractStrategy implements StrategyInterface
 {
@@ -20,24 +21,28 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
      */
     public function execute() : StrategyInterface
     {
-        $this->connection->connect();
+        try {
+            $this->connection->connect();
 
-        $multiValue = $this->statement->has('multi_insert');
+            $multiValue = $this->statement->has('multi_insert');
 
-        $this->connection->getConnection()->beginTransaction();
+            $this->connection->getConnection()->beginTransaction();
 
-        switch ($multiValue) {
-            case false:
-                $this->singleStatementExecution();
-                break;
-            case true:
-                $this->multiInsertStatementExecution();
-                break;
+            switch ($multiValue) {
+                case false:
+                    $this->singleStatementExecution();
+                    break;
+                case true:
+                    $this->multiInsertStatementExecution();
+                    break;
+            }
+
+            $this->connection->getConnection()->commit();
+
+            return $this;
+        } catch (\PDOException $e) {
+            throw new CommonInternalException('A PDOException was thrown with message \''.$e->getMessage().'\'');
         }
-
-        $this->connection->getConnection()->commit();
-
-        return $this;
     }
     /**
      * @param ArgumentBag|null $statement
