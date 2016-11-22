@@ -75,5 +75,17 @@ class MainTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf(Entity::class, $scenarioResult->get('get_address_by_id'), 'scenario.insert_user should have an instance of '.Entity::class.' under \'get_address_by_id\'');
 
         $address = $scenarioResult->get('get_address_by_id');
+
+        $this->assertTrue($address->has('id'), 'scenario.insert_user.get_address_by_id result entity should contain \'id\'');
+        $this->assertInternalType('int', (int) $address->get('id'), 'scenario.insert_user.get_address_by_id \'id\' should be an integer');
+
+        $this->assertTrue($address->has('user_id'), 'scenario.insert_user.get_address_by_id result entity should contain \'user_id\'');
+        $this->assertInternalType('int', (int) $address->get('user_id'), 'scenario.insert_user.get_address_by_id \'user_id\' should be an integer');
+
+        $this->assertTrue($address->has('city'), 'scenario.insert_user.get_address_by_id result entity should contain \'city\'');
+        $this->assertInternalType('string', $address->get('city'), 'scenario.insert_user.get_address_by_id \'city\' should be a string');
+
+        $this->assertTrue($address->has('address'), 'scenario.insert_user.get_address_by_id result entity should contain \'address\'');
+        $this->assertInternalType('string', $address->get('address'), 'scenario.insert_user.get_address_by_id \'address\' should be a string');
     }
 }
