@@ -3,10 +3,12 @@
     "description": "Pure Sql Database abstraction layer",
     "type": "library",
     "license": "MIT",
+    "keywords": ["database", "mysql", "abstraction", "sql"],
     "authors": [
         {
             "name": "Mario Skrlec",
-            "email": "whitepostmail@gmail.com"
+            "email": "whitepostmail@gmail.com",
+            "role": "Developer"
         }
     ],
 
