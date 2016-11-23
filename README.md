@@ -11,7 +11,7 @@
     * Simple sql statements
 4. Simple statements
     * Parameters explained
-    * Multi inserts
+    * Atomic inserts, updates and deletes
 5. Scenario statements
     * How it works
     * 'use' configuration feature
@@ -81,17 +81,19 @@ In your code, instantiate **BlueDot** and run the ```BlueDot::execute()``` metho
 
     $resultEntity = $blueDot->execute('simple.select.get_all_cities')->getResult();
     
-```$resultEntity``` will be in ```EntityCollection``` object that will contain all cities (more about working with ```Entity``` later)
+```$resultEntity``` will be and ```EntityCollection``` object that will contain all cities (more about working with ```Entity``` later)
 And that is it. Configure and execute.
 
 ###4. Simple statements###
 
-Simple statements are what the name describes. Simple. The execute only one sql statement that you specify. It the example from
+Simple statements are what the name describes. Simple. They execute only one sql statement that you specify. It the example from
 the chapter above, it executed ```get_all_cities``` and returned the result.
 
 There are four types of simple statements. ```select```, ```insert```, ```update``` and ```delete```. If there is a ```simple```
 configuration value present, there has to be at least one of the above configuration values present. The name of the statement can
 be anything you like. In the above example, it is ```get_all_cities```
+
+**4.1 Parameters explained**
 
 If your sql statement has parameters, you configure them and pass them as the second parameter to ```BlueDot::execute()``` method.
 
@@ -118,7 +120,12 @@ The parameters all have to have the same name. That means, if you specified ```:
 has to be in the ```parameters``` configuration entry and also as an entry in the second argument of ```BlueDot::execute()```
 method.
 
-Same goes for insert, update, and delete statements. But, there is a special feature of the ```insert``` statement.
+Same goes for insert, update, and delete statements. 
+
+**4.2 Atomic inserts, updates and deletes**
+
+If you wish to have multiple atomic insert, update and delete statements, you provide the values as the second argument of
+```BlueDot::execute()```
 
 For example
 
@@ -144,7 +151,12 @@ If you call this statement like this
     ));
     
 it will execute ```insert_user``` three times, one for each name and lastname value. The number of values have to be the same. That is,
-if you provide three values for ```name```, you have to provide three values for ```lastname```, even if it is null.
+if you provide three values for ```name```, you have to provide three values for ```lastname```, even if they are null. Same applies
+for update and delete statements.
+
+
+
+
 
 
 
