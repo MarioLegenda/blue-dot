@@ -1,7 +1,7 @@
-##BlueDot##
+###BlueDot###
 *Pure sql database abstraction layer*
 
-##Content##
+###Content###
 
 1. Introduction
 2. Installation
