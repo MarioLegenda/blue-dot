@@ -14,7 +14,6 @@ class ExecutionStrategy
     private $statement;
     /**
      * @param ArgumentBag $statement
-     * @param BlueDotInterface $blueDot
      */
     public function __construct(ArgumentBag $statement)
     {
