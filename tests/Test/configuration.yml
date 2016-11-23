@@ -4,7 +4,6 @@ configuration:
         database_name: world
         user: 'root'
         password: ''
-    # optional
     simple:
          # if simple is provided, optional
         select:
