@@ -88,7 +88,7 @@ class StatementValidator
             $scenarioStatementName = 'scenario.'.$scenarioName.'.'.$returnEntity->getStatementName();
 
             if (!$statements->has($scenarioStatementName)) {
-                throw new ConfigurationException('Scenario statement name provided in the return statement for '.$scenarioStatementName.' does not exist');
+                throw new ConfigurationException('Scenario statement name provided in the \'return_entity\' configuration value for '.$scenarioStatementName.' does not exist');
             }
         }
     }

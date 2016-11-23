@@ -138,8 +138,30 @@ class ArrayNode implements \IteratorAggregate
      */
     public function applyToSubelementsOf(array $childNodes, \Closure $closure) : ArrayNode
     {
-        foreach ($childNodes as $childNode) {
-            if ($this->internalKeyExists($childNode, $this->workingNode)) {
+        if ($this->conditionalIgnore === false) {
+            foreach ($childNodes as $childNode) {
+                if ($this->internalKeyExists($childNode, $this->workingNode)) {
+                    $closure->__invoke($childNode, new ArrayNode($childNode, $this->workingNode[$childNode]));
+                }
+            }
+        }
+
+        return $this;
+    }
+    /**
+     * @param array $childNodes
+     * @param \Closure $closure
+     * @return $this
+     * @throws ConfigurationException
+     */
+    public function applyToSubelementsIfTheyExist(array $childNodes, \Closure $closure) : ArrayNode
+    {
+        if ($this->conditionalIgnore === false) {
+            foreach ($childNodes as $childNode) {
+                if (!array_key_exists($childNode, $this->workingNode)) {
+                    continue;
+                }
+
                 $closure->__invoke($childNode, new ArrayNode($childNode, $this->workingNode[$childNode]));
             }
         }
@@ -254,9 +276,11 @@ class ArrayNode implements \IteratorAggregate
      */
     public function isArrayIfExists(string $nodeName) : ArrayNode
     {
-        if (array_key_exists($nodeName, $this->workingNode)) {
-            if (!is_array($this->workingNode[$nodeName])) {
-                throw new ConfigurationException('If exists, \''.$nodeName.'\' has to be an array for parent \''.$this->getNodeName().'\'');
+        if ($this->conditionalIgnore === false) {
+            if (array_key_exists($nodeName, $this->workingNode)) {
+                if (!is_array($this->workingNode[$nodeName])) {
+                    throw new ConfigurationException('If exists, \''.$nodeName.'\' has to be an array for parent \''.$this->getNodeName().'\'');
+                }
             }
         }
 
@@ -286,9 +310,11 @@ class ArrayNode implements \IteratorAggregate
      */
     public function isBooleanIfExists(string $nodeName) : ArrayNode
     {
-        if (array_key_exists($nodeName, $this->workingNode)) {
-            if (!is_bool($this->workingNode[$nodeName])) {
-                throw new ConfigurationException('If exists, \''.$nodeName.'\' has to be a boolean for parent \''.$this->getNodeName().'\'');
+        if ($this->conditionalIgnore === false) {
+            if (array_key_exists($nodeName, $this->workingNode)) {
+                if (!is_bool($this->workingNode[$nodeName])) {
+                    throw new ConfigurationException('If exists, \''.$nodeName.'\' has to be a boolean for parent \''.$this->getNodeName().'\'');
+                }
             }
         }
 

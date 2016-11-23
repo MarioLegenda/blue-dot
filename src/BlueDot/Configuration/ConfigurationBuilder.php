@@ -35,10 +35,19 @@ class ConfigurationBuilder
     {
         $configuration = $this->rawConfiguration['configuration'];
 
-        $this->builtConfiguration['simple'] = $this->buildSimpleConfiguration($configuration['simple']);
-        $this->builtConfiguration['scenario'] = $this->buildScenarioConfiguration($configuration['scenario']);
+        if (array_key_exists('simple', $configuration)) {
+            $this->builtConfiguration['simple'] = $this->buildSimpleConfiguration($configuration['simple']);
+        }
+
+        if (array_key_exists('scenario', $configuration)) {
+            $this->builtConfiguration['scenario'] = $this->buildScenarioConfiguration($configuration['scenario']);
+        }
+
+        if (array_key_exists('callable', $configuration)) {
+            $this->builtConfiguration['callable'] = $this->buildCallableConfiguration($configuration['callable']);
+        }
+
         $this->builtConfiguration['connection'] = $this->buildConnection($configuration['connection']);
-        $this->builtConfiguration['callable'] = $this->buildCallableConfiguration($configuration['callable']);
 
         return $this;
     }

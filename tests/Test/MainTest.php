@@ -11,7 +11,7 @@ class MainTest extends \PHPUnit_Framework_TestCase
 {
     public function testMain()
     {
-        $blueDot = new BlueDot(__DIR__.'/configuration.yml');
+        $blueDot = BlueDot::instance(__DIR__.'/configuration.yml');
 
         $blueDot->execute('simple.insert.insert_user', array(
             'name' => array('Mile', 'Mirko', 'Mirza'),
@@ -24,7 +24,7 @@ class MainTest extends \PHPUnit_Framework_TestCase
             'country_code' => 'AFG',
         ))->getResult();
 
-        $this->assertInstanceOf(Entity::class, $singleCity, 'simple.select.single_city does not return a '.Entity::class.' instance');
+        $this->assertInstanceOf(Entity::class, $singleCity, 'simple.select.single_city does not return a ' . Entity::class . ' instance');
         $this->assertEquals('Kabul', $singleCity->get('Name'), 'simple.select.single_city does not return correct value for column \'Name\'. \'Kabul\' expected');
         $this->assertEquals('AFG', $singleCity->get('CountryCode', 'simple.select.single_city does not return correct value for column \'CountryCode\'. \'AFG\' expected'));
         $this->assertEquals('Kabol', $singleCity->get('District'), 'simple.select.single_city does not return correct value for column \'District\'. Expected \'Kabol\'');
@@ -34,7 +34,7 @@ class MainTest extends \PHPUnit_Framework_TestCase
             'country' => 'Split',
         ))->getResult();
 
-        $this->assertTrue($insertVillage->has('last_insert_id'), 'simple.insert.single_village should return an '.Entity::class.' with entry \'last_insert_id\'');
+        $this->assertTrue($insertVillage->has('last_insert_id'), 'simple.insert.single_village should return an ' . Entity::class . ' with entry \'last_insert_id\'');
 
         $updateVillage = $blueDot->execute('simple.update.single_village', array(
             'update_name' => 'Makarska',
@@ -60,10 +60,10 @@ class MainTest extends \PHPUnit_Framework_TestCase
             )
         ))->getResult();
 
-        $this->assertInstanceOf(Entity::class, $scenarioResult, 'scenario.insert_user should return an instance of '.Entity::class);
+        $this->assertInstanceOf(Entity::class, $scenarioResult, 'scenario.insert_user should return an instance of ' . Entity::class);
 
         $this->assertTrue($scenarioResult->has('id'), 'scenario.insert_user should return a column \'id\'');
-        $this->assertInternalType('int', (int) $scenarioResult->get('id'), 'scenario.insert_user should return a numeric \'id\'');
+        $this->assertInternalType('int', (int)$scenarioResult->get('id'), 'scenario.insert_user should return a numeric \'id\'');
 
         $this->assertTrue($scenarioResult->has('user_name'), 'scenario.insert_user should return a column \'user_name\'');
         $this->assertInternalType('string', $scenarioResult->get('user_name'), 'scenario.insert_user should return a string from \'user_name\'');
@@ -72,15 +72,15 @@ class MainTest extends \PHPUnit_Framework_TestCase
         $this->assertInternalType('string', $scenarioResult->get('user_lastname'), 'scenario.insert_user should return a string from \'user_lastname\'');
 
         $this->assertTrue($scenarioResult->has('get_address_by_id'), 'scenario.insert_user should return a column \'get_address_by_id\'');
-        $this->assertInstanceOf(Entity::class, $scenarioResult->get('get_address_by_id'), 'scenario.insert_user should have an instance of '.Entity::class.' under \'get_address_by_id\'');
+        $this->assertInstanceOf(Entity::class, $scenarioResult->get('get_address_by_id'), 'scenario.insert_user should have an instance of ' . Entity::class . ' under \'get_address_by_id\'');
 
         $address = $scenarioResult->get('get_address_by_id');
 
         $this->assertTrue($address->has('id'), 'scenario.insert_user.get_address_by_id result entity should contain \'id\'');
-        $this->assertInternalType('int', (int) $address->get('id'), 'scenario.insert_user.get_address_by_id \'id\' should be an integer');
+        $this->assertInternalType('int', (int)$address->get('id'), 'scenario.insert_user.get_address_by_id \'id\' should be an integer');
 
         $this->assertTrue($address->has('user_id'), 'scenario.insert_user.get_address_by_id result entity should contain \'user_id\'');
-        $this->assertInternalType('int', (int) $address->get('user_id'), 'scenario.insert_user.get_address_by_id \'user_id\' should be an integer');
+        $this->assertInternalType('int', (int)$address->get('user_id'), 'scenario.insert_user.get_address_by_id \'user_id\' should be an integer');
 
         $this->assertTrue($address->has('city'), 'scenario.insert_user.get_address_by_id result entity should contain \'city\'');
         $this->assertInternalType('string', $address->get('city'), 'scenario.insert_user.get_address_by_id \'city\' should be a string');

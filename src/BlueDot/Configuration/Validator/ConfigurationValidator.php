@@ -38,16 +38,16 @@ class ConfigurationValidator
 
         $scenarioConfiguration =
             $this->validateSimpleConfiguration($simpleConfiguration)
-                    ->cannotBeEmpty('scenario')
-                    ->isAssociativeStringArray('scenario')
-                    ->stepInto('scenario');
+                    ->cannotBeEmptyIfExists('scenario')
+                    ->isArrayIfExists('scenario')
+                    ->stepIntoIfExists('scenario');
 
         $callableConfiguration = $this->validateScenarioConfiguration($scenarioConfiguration);
 
         $callableConfiguration
             ->cannotBeEmptyIfExists('callable')
             ->isArrayIfExists('callable')
-            ->stepInto('callable')
+            ->stepIntoIfExists('callable')
                 ->closureValidator('callable', function($nodeName, ArrayNode $nodes) {
                     foreach ($nodes as $key => $node) {
                         if (!is_string($key)) {
@@ -77,27 +77,27 @@ class ConfigurationValidator
     private function validateSimpleConfiguration(ArrayNode $node)
     {
         return $node
-            ->keyExists('simple')->cannotBeEmpty('simple')
-            ->stepInto('simple')
-            ->isArrayIfExists('select')->isAssociativeStringArray('select')
-            ->isArrayIfExists('insert')->isAssociativeStringArray('insert')
-            ->isArrayIfExists('update')->isAssociativeStringArray('update')
-            ->isArrayIfExists('delete')->isAssociativeStringArray('delete')
-            ->applyToSubelementsOf(array('select', 'insert', 'update', 'delete'), function($nodeName, ArrayNode $node) {
-                if ($node->isEmpty()) {
-                    throw new ConfigurationException('\''.$nodeName.'\' cannot be empty');
-                }
+            ->cannotBeEmptyIfExists('simple')
+            ->stepIntoIfExists('simple')
+                ->isArrayIfExists('select')
+                ->isArrayIfExists('insert')
+                ->isArrayIfExists('update')
+                ->isArrayIfExists('delete')
+                ->applyToSubelementsIfTheyExist(array('select', 'insert', 'update', 'delete'), function($nodeName, ArrayNode $node) {
+                    if ($node->isEmpty()) {
+                        throw new ConfigurationException('\''.$nodeName.'\' cannot be empty');
+                    }
 
-                foreach ($node as $key => $nodeValue) {
-                    $node->isAssociativeStringArray($key);
+                    foreach ($node as $key => $nodeValue) {
+                        $node->isAssociativeStringArray($key);
 
-                    $nodeValue = new ArrayNode($key, $nodeValue);
-                    $nodeValue
-                        ->cannotBeEmpty('sql')
-                        ->isString('sql')
-                        ->isArrayIfExists('parameters');
-                }
-            })
+                        $nodeValue = new ArrayNode($key, $nodeValue);
+                        $nodeValue
+                            ->cannotBeEmpty('sql')
+                            ->isString('sql')
+                            ->isArrayIfExists('parameters');
+                    }
+                })
             ->stepOut();
     }
 
@@ -119,30 +119,28 @@ class ConfigurationValidator
                     ->stepInto('statements')
                     ->closureValidator('statements', function($nodeName, ArrayNode $node) {
                         foreach ($node as $key => $nodeValue) {
-                            if ($key === 'insert_address') {
-                                $node->isAssociativeStringArray($key);
+                            $node->isAssociativeStringArray($key);
 
-                                $nodeValue = new ArrayNode($key, $nodeValue);
+                            $nodeValue = new ArrayNode($key, $nodeValue);
 
-                                $nodeValue
-                                    ->cannotBeEmpty('sql')
-                                    ->isString('sql')
-                                    ->cannotBeEmpty('sql_type')
-                                    ->isString('sql_type')
-                                    ->hasToBeOneOf('sql_type', array('select', 'insert', 'update', 'delete', 'database', 'table'))
-                                    ->isArrayIfExists('parameters')
-                                    ->cannotBeEmptyIfExists('use')
-                                    ->isArrayIfExists('use')
-                                    ->stepIntoIfExists('use')
+                            $nodeValue
+                                ->cannotBeEmpty('sql')
+                                ->isString('sql')
+                                ->cannotBeEmpty('sql_type')
+                                ->isString('sql_type')
+                                ->hasToBeOneOf('sql_type', array('select', 'insert', 'update', 'delete', 'database', 'table'))
+                                ->isArrayIfExists('parameters')
+                                ->cannotBeEmptyIfExists('use')
+                                ->isArrayIfExists('use')
+                                ->stepIntoIfExists('use')
                                     ->cannotBeEmpty('statement_name')->isString('statement_name')
                                     ->cannotBeEmpty('values')->isArray('values')
-                                    ->stepOut()
+                                ->stepOut()
                                     ->isArrayIfExists('foreign_key')
                                     ->cannotBeEmptyIfExists('foreign_key')
                                     ->stepIntoIfExists('foreign_key')
                                     ->cannotBeEmpty('statement_name')->isString('statement_name')
                                     ->cannotBeEmpty('bind_to')->isString('bind_to');
-                            }
                         }
                     });
                 }

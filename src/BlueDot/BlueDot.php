@@ -26,6 +26,10 @@ use BlueDot\Cache\Report;
 class BlueDot implements BlueDotInterface
 {
     /**
+     * @var BlueDot $singletonInstance
+     */
+    private static $singletonInstance;
+    /**
      * @var StrategyInterface $strategy
      */
     private $strategy;
@@ -37,6 +41,20 @@ class BlueDot implements BlueDotInterface
      * @var array $configuration
      */
     private $configuration;
+    /**
+     * @param $configSource
+     * @param Connection|null $connection
+     * @return BlueDot
+     */
+    public static function instance($configSource, Connection $connection = null)
+    {
+        self::$singletonInstance =
+            (self::$singletonInstance instanceof self) ?
+                self::$singletonInstance :
+                new self($configSource, $connection);
+
+        return self::$singletonInstance;
+    }
     /**
      * @param $configSource
      * @param mixed $connection
