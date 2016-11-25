@@ -34,7 +34,11 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
 
         $this->connection->connect();
 
-        $this->connection->getConnection()->beginTransaction();
+        $rootConfig = $this->statement->get('root_config');
+
+        if ($rootConfig->get('atomic') === true) {
+            $this->connection->getConnection()->beginTransaction();
+        }
 
         $this->statements = $this->statement->get('statements');
 
@@ -72,7 +76,9 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
             }
         }
 
-        $this->connection->getConnection()->commit();
+        if ($rootConfig->get('atomic') === true) {
+            $this->connection->getConnection()->commit();
+        }
 
         return $this;
     }

@@ -198,6 +198,10 @@ class ArrayNode implements \IteratorAggregate
                 throw new ConfigurationException('Node \''.$nodeName.'\' does not exist and and cannot be empty for parent node \''.$this->getNodeName().'\'');
             }
 
+            if (is_bool($this->workingNode[$nodeName])) {
+                return $this;
+            }
+
             if (empty($this->workingNode[$nodeName])) {
                 throw new ConfigurationException('Node \''.$nodeName.'\' cannot be empty for parent node \''.$this->getNodeName().'\'');
             }
@@ -213,6 +217,10 @@ class ArrayNode implements \IteratorAggregate
     public function cannotBeEmptyIfExists(string $nodeName) : ArrayNode
     {
         if (array_key_exists($nodeName, $this->workingNode)) {
+            if (is_bool($this->workingNode[$nodeName])) {
+                return $this;
+            }
+
             if (empty($this->workingNode[$nodeName])) {
                 throw new ConfigurationException('If \''.$nodeName.'\' exists, it cannot be empty');
             }

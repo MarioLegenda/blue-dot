@@ -29,8 +29,8 @@ configuration:
                 parameters: [id]
     scenario:
         # scenario rules:
-            # - a scenario has to have at least one select statement
-            # - a scenario has to return the exact result specified in the return_result config value
+            # - a scenario has to have at least one select statement, if rules say otherwise
+            # - a scenario has to return the exact result specified in the return_result config value, if rules say otherwise
             # - a 'use' option can be used with all the statements. If insert, update or delete then 'use' statement has to be a select statement or last_insert_id from an insert
             # - a 'foreign_key' option can be use with all the statements but the foreign statement has to be an insert sql statement
         clear_database:
@@ -49,6 +49,7 @@ configuration:
                 truncate_village:
                     sql_type: table
                     sql: "TRUNCATE TABLE village"
+
         insert_user:
             atomic: true
             return_entity: [select_user.id, "select_user.name as user_name", "select_user.lastname  as user_lastname", select_address]
