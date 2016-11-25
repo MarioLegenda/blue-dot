@@ -147,6 +147,15 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
 
     private function singleStatementRecursiveExecution(ArgumentBag $statement)
     {
+        if ($statement->has('foreign_key')) {
+            $foreignKey = $statement->get('foreign_key');
+            $foreignKeyStatement = $this->statements->get($statement->get('scenario_name').'.'.$foreignKey->getName());
+
+            if (!$this->resultReport->has($foreignKeyStatement->get('resolved_statement_name'))) {
+                $this->singleStatementRecursiveExecution($foreignKeyStatement);
+            }
+        }
+
         if ($statement->has('use_option')) {
             $useOption = $statement->get('use_option');
             $useStatement = $this->statements->get($statement->get('statement_name').'.'.$useOption->getName());
@@ -177,8 +186,12 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
 
             $columnName = (array_key_exists(1, $exploded)) ? $exploded[1] : $exploded[0];
 
+            if ($entity instanceof EntityCollection) {
+                throw new QueryException('Invalid entity selection for '.$statement->get('resolved_statement_name').'. You can only select a single result in a \'use\' option. Multiple results given');
+            }
+
             if (!$entity->has($columnName)) {
-                throw new QueryException('Selected entity for statement '.$optionStatementName.' does not contain a column \''.$columnName.'\'');
+                throw new QueryException('Selected entity for statement '.$optionStatementName.' does not contain a column \''.$columnName.'\'. If you specify a column in the return_entity configuration, then that column has to be fetched from the database');
             }
 
             $entityValue = $entity->get($columnName);
@@ -199,10 +212,10 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
             throw new CommonInternalException('\'foreign_key\' option '.$foreignKeyStatementName.' has not been executed but it should have been. This could be a bug so please, contact whitepostmail@gmail.com or post an issue on https://github.com/MarioLegenda/blue-dot');
         }
 
-        $id = $this->resultReport->get($foreignKeyStatementName);
+        $statementLastInsertId = $this->resultReport->get($foreignKeyStatementName);
         $parameterCollection = new ParameterCollection();
 
-        $parameterCollection->addParameter(new Parameter($bindTo, $id));
+        $parameterCollection->addParameter(new Parameter($bindTo, (int) $statementLastInsertId->get('last_insert_id')));
 
         $this->bindParameterCollection($parameterCollection);
     }
@@ -262,6 +275,9 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
             $this->resultReport = new ArgumentBag();
         }
 
-        $this->resultReport->add($statement->get('resolved_statement_name'), $this->connection->getConnection()->lastInsertId());
+        $lastInsertIdStorage = new ArgumentBag();
+        $lastInsertIdStorage->add('last_insert_id', $this->connection->getConnection()->lastInsertId());
+
+        $this->resultReport->add($statement->get('resolved_statement_name'), $lastInsertIdStorage);
     }
 }

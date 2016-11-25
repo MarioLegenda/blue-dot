@@ -154,7 +154,34 @@ it will execute ```insert_user``` three times, one for each name and lastname va
 if you provide three values for ```name```, you have to provide three values for ```lastname```, even if they are null. Same applies
 for update and delete statements.
 
+###5. Scenario statements###
 
+**5.1 How it works**
+
+Scenario statements are statements that are meant to be executed in bulk, together. For example, let's say that you have 50 users in 
+the users table. The you create an address table that has a one-to-many relationship with the users table and you wish to populate 
+that table with some user data for later testing. For that task, you would have to fetch all users from the database and 
+insert the correct address user_id as the foreign_key of the address table. This task can be done with configuration only and
+minimal code
+
+    configuration:
+        connection:
+            host: localhost
+            database_name: employees
+            user: root
+            password: root
+            
+        scenario:
+            insert_users:
+                atomic: true
+                return_entity: []
+                statements:
+                    get_all_users:
+                        sql_type: select
+                        sql: "SELECT * FROM users"
+                    insert_address:
+                        sql_type: insert
+                        sql: "INSERT INTO address (user_id, 
 
 
 

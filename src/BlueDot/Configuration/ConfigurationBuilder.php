@@ -8,6 +8,7 @@ use BlueDot\Database\Connection;
 use BlueDot\Database\Parameter\Parameter;
 use BlueDot\Database\Parameter\ParameterCollection;
 use BlueDot\Database\Scenario\ForeginKey;
+use BlueDot\Database\Scenario\Rules;
 use BlueDot\Database\Scenario\ScenarioReturnEntity;
 use BlueDot\Database\Scenario\UseOption;
 
@@ -112,6 +113,11 @@ class ConfigurationBuilder
                 ->add('return_entity', new ScenarioReturnEntity($scenarioConfigs['return_entity']))
                 ->add('scenario_name', $scenarioName);
 
+
+            if (array_key_exists('rules', $scenarioConfigs)) {
+                $rootConfig->add('rules', new Rules($scenarioConfigs['rules']));
+            }
+
             $statemens = new ArgumentBag();
             foreach ($scenarioStatements as $statementName => $statementConfig) {
                 $resolvedStatementName = 'scenario.'.$scenarioName.'.'.$statementName;
@@ -123,8 +129,6 @@ class ConfigurationBuilder
                     ->add('resolved_statement_name', $resolvedStatementName)
                     ->add('statement_name', $statementName)
                     ->add('sql', $statementConfig['sql']);
-
-
 
                 if (array_key_exists('parameters', $statementConfig)) {
                     $parameters = $statementConfig['parameters'];

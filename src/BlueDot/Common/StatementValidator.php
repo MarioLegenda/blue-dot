@@ -60,6 +60,7 @@ class StatementValidator
         $statement = $this->configuration[$type]->get($this->argumentValidator->getResolvedName());
 
         if ($statement->get('type') === 'scenario') {
+            $this->generalValidation($statement);
             $this->validateUseOptions($statement->get('statements'));
             $this->validateReturnData($statement);
         }
@@ -78,11 +79,49 @@ class StatementValidator
         return $this->statement;
     }
 
+    private function generalValidation(ArgumentBag $mainStatement)
+    {
+        $hasSelectStatement = false;
+        $statements = $mainStatement->get('statements');
+        foreach ($statements as $statement) {
+            $sqlType = $statement->get('sql_type');
+
+            if ($sqlType === 'select') {
+                $hasSelectStatement = true;
+            }
+        }
+
+        if ($mainStatement->has('rules')) {
+            $rules = $mainStatement->get('rules');
+
+            if ($rules->has('minimal_select_statement')) {
+                $minimalSelectStatement = $rules->getRule('minimal_select_statement');
+
+                if ($minimalSelectStatement === true) {
+                    if ($hasSelectStatement === false) {
+                        throw new CommonInternalException('A scenario should have at least one \'select\' sql query. Found none in '.$mainStatement->get('root_config')->get('scenario_name'));
+                    }
+                }
+            }
+        }
+    }
+
     private function validateReturnData(ArgumentBag $mainStatement)
     {
-        $returnEntities = $mainStatement->get('root_config')->get('return_entity')->getAllReturnData();
-        $scenarioName = $mainStatement->get('root_config')->get('scenario_name');
+        $rootConfig = $mainStatement->get('root_config');
+        $returnEntities = $rootConfig->get('return_entity')->getAllReturnData();
+        $scenarioName = $rootConfig->get('scenario_name');
         $statements = $mainStatement->get('statements');
+
+        if ($rootConfig->has('rules')) {
+            $rules = $rootConfig->get('rules');
+
+            $rule = $rules->getRule('return_entity');
+
+            if ($rule === false) {
+                return;
+            }
+        }
 
         foreach ($returnEntities as $returnEntity) {
             $scenarioStatementName = 'scenario.'.$scenarioName.'.'.$returnEntity->getStatementName();
@@ -104,10 +143,14 @@ class StatementValidator
                     throw new ConfigurationException('\''.$useOption->getName().'\' not found in '.$statement->get('resolved_statement_name'));
                 }
 
-                $useOptionStatement = $statements->get($useOptionStatementName);
+                $sqlType = $statement->get('sql_type');
 
-                if ($useOptionStatement->get('sql_type') !== 'select') {
-                    throw new ConfigurationException('\'use\' option can only be \'select\' sql statements');
+                if ($sqlType === 'delete' or $sqlType === 'insert' or $sqlType === 'update') {
+                    $useOptionStatement = $statements->get($useOptionStatementName);
+
+                    if ($useOptionStatement->get('sql_type') !== 'select') {
+                        throw new ConfigurationException('\'use\' option statement has to be a select \'sql_type\'');
+                    }
                 }
             }
         }

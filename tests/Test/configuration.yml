@@ -28,9 +28,30 @@ configuration:
                 sql: "DELETE FROM village WHERE id = :id"
                 parameters: [id]
     scenario:
+        # scenario rules:
+            # - a scenario has to have at least one select statement
+            # - a scenario has to return the exact result specified in the return_result config value
+            # - a 'use' option can be used with all the statements. If insert, update or delete then 'use' statement has to be a select statement or last_insert_id from an insert
+            # - a 'foreign_key' option can be use with all the statements but the foreign statement has to be an insert sql statement
+        clear_database:
+            atomic: true
+            return_entity: []
+            # - if 'minimal_select_statement' is true, then at least one select statement has to be present in this scenario
+            # - if 'return_entity' is true, then 'return_entity' config value cannot be an empty array
+            rules: {minimal_select_statement: false, return_entity: false}
+            statements:
+                truncate_user:
+                    sql_type: table
+                    sql: "TRUNCATE TABLE user"
+                truncate_address:
+                    sql_type: table
+                    sql: "TRUNCATE TABLE address"
+                truncate_village:
+                    sql_type: table
+                    sql: "TRUNCATE TABLE village"
         insert_user:
             atomic: true
-            return_entity: [select_user.id, "select_user.name as user_name", "select_user.lastname  as user_lastname", get_address_by_id]
+            return_entity: [select_user.id, "select_user.name as user_name", "select_user.lastname  as user_lastname", select_address]
             statements:
                 insert_user:
                     sql_type: insert
@@ -50,12 +71,12 @@ configuration:
                         statement_name: insert_user
                         bind_to: user_id
                     parameters: [city, address]
-                get_address_by_id:
+                select_address:
                     sql_type: select
-                    sql: "SELECT * FROM address WHERE id = :id"
+                    sql: "SELECT * FROM address WHERE user_id = :user_id"
                     foreign_key:
-                        statement_name: insert_address
-                        bind_to: id
+                        statement_name: insert_user
+                        bind_to: user_id
 
     callable:
         validate_user:
