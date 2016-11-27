@@ -6,6 +6,33 @@ configuration:
         password: ''
 
     scenario:
+        create_database:
+            atomic: true
+            rules: { return_entity: false, minimal_select_statement: false }
+            return_entity: []
+            statements:
+                create_database:
+                    sql_type: database
+                    sql: "CREATE DATABASE IF NOT EXISTS company"
+                use_database:
+                    sql_type: database
+                    sql: "USE company"
+                create_users_table:
+                    sql_type: table
+                    sql: "CREATE TABLE IF NOT EXISTS users (id INT(6) AUTO_INCREMENT PRIMARY KEY NOT NULL, name VARCHAR(256) NOT NULL, lastname VARCHAR(256) NOT NULL)"
+                create_address:
+                    sql_type: table
+                    sql: "CREATE TABLE IF NOT EXISTS address (id INT(6) AUTO_INCREMENT PRIMARY KEY NOT NULL, user_id INT(6) NOT NULL, city VARCHAR(256) NOT NULL, address VARCHAR(256) NOT NULL)"
+                create_category:
+                    sql_type: table
+                    sql: "CREATE TABLE IF NOT EXISTS category (id INT(6) AUTO_INCREMENT PRIMARY KEY NOT NULL, name VARCHAR(256) NOT NULL)"
+                create_product:
+                    sql_type: table
+                    sql: "CREATE TABLE IF NOT EXISTS product (id INT(6) AUTO_INCREMENT PRIMARY KEY NOT NULL, category_id INT(6) NOT NULL, attribute_id INT(6) NOT NULL, name VARCHAR(256) NOT NULL)"
+                create_attribute:
+                    sql_type: table
+                    sql: "CREATE TABLE IF NOT EXISTS attribute (id INT(6) AUTO_INCREMENT PRIMARY KEY NOT NULL, name VARCHAR(256) NOT NULL)"
+
         clothes_company:
             atomic: true
             rules: { return_entity: false }
