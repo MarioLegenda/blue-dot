@@ -37,6 +37,10 @@ configuration:
             # - a 'use' option can be used with all the statements. If insert, update or delete then 'use' statement has to be a select statement or last_insert_id from an insert
             # - a 'foreign_key' option can be use with all the statements but the foreign statement has to be an insert sql statement
 
+            # - rules can be:
+                 # - minimal_select_statement: true/false - disables or enables rule that a scenario has to have at least one select sql statement
+                 # - return_entity: true/false - disables or enables rule that a scenario has to return an entity/result
+                       # if set to false, return_entity has to be an empty array, for example return_entity: []
         create_database:
             atomic: true
             rules: { minimal_select_statement: false, return_entity: false }
