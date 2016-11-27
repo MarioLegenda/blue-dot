@@ -7,13 +7,15 @@ require __DIR__.'/../../vendor/autoload.php';
 use BlueDot\BlueDot;
 use BlueDot\Entity\Entity;
 
-class MainTest extends \PHPUnit_Framework_TestCase
+class UserInfoDatabaseTest extends \PHPUnit_Framework_TestCase
 {
-    public function testMain()
+    public function testWorldDatabase()
     {
-        $blueDot = BlueDot::instance(__DIR__.'/configuration.yml');
+        $blueDot = BlueDot::instance(__DIR__.'/config/user_info_db_config.yml');
 
+        $blueDot->execute('scenario.create_database');
         $blueDot->execute('scenario.clear_database');
+        $blueDot->execute('simple.insert.insert_city');
 
         $blueDot->execute('simple.insert.insert_user', array(
             'name' => array('Mile', 'Mirko', 'Mirza'),
@@ -27,9 +29,9 @@ class MainTest extends \PHPUnit_Framework_TestCase
         ))->getResult();
 
         $this->assertInstanceOf(Entity::class, $singleCity, 'simple.select.single_city does not return a ' . Entity::class . ' instance');
-        $this->assertEquals('Kabul', $singleCity->get('Name'), 'simple.select.single_city does not return correct value for column \'Name\'. \'Kabul\' expected');
-        $this->assertEquals('AFG', $singleCity->get('CountryCode', 'simple.select.single_city does not return correct value for column \'CountryCode\'. \'AFG\' expected'));
-        $this->assertEquals('Kabol', $singleCity->get('District'), 'simple.select.single_city does not return correct value for column \'District\'. Expected \'Kabol\'');
+        $this->assertEquals('Kabul', $singleCity->get('name'), 'simple.select.single_city does not return correct value for column \'name\'. \'Kabul\' expected');
+        $this->assertEquals('AFG', $singleCity->get('country_code', 'simple.select.single_city does not return correct value for column \'country_code\'. \'AFG\' expected'));
+        $this->assertEquals('Kabol', $singleCity->get('district'), 'simple.select.single_city does not return correct value for column \'district\'. Expected \'Kabol\'');
 
         $insertVillage = $blueDot->execute('simple.insert.single_village', array(
             'name' => 'Kucine',
@@ -49,7 +51,7 @@ class MainTest extends \PHPUnit_Framework_TestCase
             'id' => 7,
         ));
 
-        $scenarioResult = $blueDot->execute('scenario.insert_user', array(
+        $scenarioResult = $blueDot->execute('scenario.user_info_database', array(
             'select_user' => array(
                 'id' => 1,
             ),
@@ -73,7 +75,7 @@ class MainTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($scenarioResult->has('user_lastname'), 'scenario.insert_user should return a column \'user_lastname\'');
         $this->assertInternalType('string', $scenarioResult->get('user_lastname'), 'scenario.insert_user should return a string from \'user_lastname\'');
 
-/*
+
         $this->assertTrue($scenarioResult->has('get_address_by_id'), 'scenario.insert_user should return a column \'get_address_by_id\'');
         $this->assertInstanceOf(Entity::class, $scenarioResult->get('get_address_by_id'), 'scenario.insert_user should have an instance of ' . Entity::class . ' under \'get_address_by_id\'');
 
@@ -89,6 +91,6 @@ class MainTest extends \PHPUnit_Framework_TestCase
         $this->assertInternalType('string', $address->get('city'), 'scenario.insert_user.get_address_by_id \'city\' should be a string');
 
         $this->assertTrue($address->has('address'), 'scenario.insert_user.get_address_by_id result entity should contain \'address\'');
-        $this->assertInternalType('string', $address->get('address'), 'scenario.insert_user.get_address_by_id \'address\' should be a string');*/
+        $this->assertInternalType('string', $address->get('address'), 'scenario.insert_user.get_address_by_id \'address\' should be a string');
     }
 }

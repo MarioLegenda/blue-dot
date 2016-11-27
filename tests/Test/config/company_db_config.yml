@@ -1,0 +1,27 @@
+configuration:
+    connection:
+        host: localhost
+        database_name: ''
+        user: root
+        password: ''
+
+    scenario:
+        clothes_company:
+            atomic: true
+            rules: { return_entity: false }
+            return_entity: []
+            statements:
+                insert_user:
+                    sql_type: insert
+                    sql: "INSERT INTO users (name, lastname) VALUES (:name, :lastname)"
+                    parameters: [name, lastname]
+                insert_address:
+                    sql_type: insert
+                    sql: "INSERT INTO address (user_id, city, address) VALUES (:user_id, :city, :address)"
+                    foreign_key:
+                        statement_name: insert_user
+                        bind_to: user_id
+                insert_category:
+                    sql_type: insert
+                    sql: "INSERT INTO category (name) VALUES (:name)"
+                    parameters: [name]

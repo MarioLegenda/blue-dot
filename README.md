@@ -158,30 +158,46 @@ for update and delete statements.
 
 **5.1 How it works**
 
-Scenario statements are statements that are meant to be executed in bulk, together. For example, let's say that you have 50 users in 
-the users table. The you create an address table that has a one-to-many relationship with the users table and you wish to populate 
-that table with some user data for later testing. For that task, you would have to fetch all users from the database and 
-insert the correct address user_id as the foreign_key of the address table. This task can be done with configuration only and
-minimal code
+Scenario statements are statements that are meant to be executed in bulk, together as one unit of work. 
+
+Let's image a webshop that sells clothes. It's frontend has a search feature that the user can search various clothes with it.
+We could have a table ```category``` and ```product``` with which we use an ```inner join``` to collect product data.
+But, after the product has been fetched from the database, we would like to save some preferences data to our 
+```user_preferences``` table. So, we need to make one query to find the product that best matches the search input, then, 
+make an inner join with our ```category``` table, select the logged in user and save the data to our ```user_preferences```
+table. So let's do all that with a scenario...
+
 
     configuration:
         connection:
             host: localhost
-            database_name: employees
+            database_name: search_application
             user: root
             password: root
             
         scenario:
-            insert_users:
+            search:
                 atomic: true
                 return_entity: []
                 statements:
-                    get_all_users:
+                    find_product:
                         sql_type: select
-                        sql: "SELECT * FROM users"
-                    insert_address:
+                        sql: "SELECT name, description, price, category_id FROM product WHERE name LIKE :name"
+                    find_by_category:
+                        sql_type: select
+                        sql: "SELECT p.name, p.description, p.price, c.name FROM product AS p INNER JOIN category AS c ON p.category_id = category_id"
+                        use: 
+                            statement_name: find_product
+                            values: [find_product: category_id]
+                    # this is the currently logged in user
+                    find_user:
+                        sql_type: select
+                        sql: "SELECT * FROM user WHERE id = :id"
+                    create_preference:
                         sql_type: insert
-                        sql: "INSERT INTO address (user_id, 
+                        sql: "INSERT INTO user_preferences (user_id, category_id, product_id) VALUES (:user_id, :category_id, :product_id)
+                        use:
+                            
 
 
 

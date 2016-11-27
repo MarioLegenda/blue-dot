@@ -5,7 +5,8 @@
         <testsuite name="Run">
             <directory suffix=".php">tests</directory>
             <file>tests/StorageTest</file>
-            <file>tests/MainTest</file>
+            <file>tests/UserInfoDatabaseTest</file>
+            <file>tests/CompanyDatabaseTest</file>
         </testsuite>
     </testsuites>
 

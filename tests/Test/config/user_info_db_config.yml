@@ -1,17 +1,19 @@
 configuration:
     connection:
         host: localhost
-        database_name: world
+        database_name: ''
         user: 'root'
         password: ''
     simple:
         select:
             single_city:
-                sql: "SELECT * FROM city WHERE Name = :name AND CountryCode = :country_code"
+                sql: "SELECT * FROM city WHERE name = :name AND country_code = :country_code"
                 parameters: [name, country_code]
             entire_world:
                 sql: "SELECT * FROM city"
         insert:
+            insert_city:
+                sql: "INSERT INTO city (name, country_code, district, population) VALUES ('Kabul', 'AFG', 'Kabol', 260000)"
             insert_user:
                 sql: "INSERT INTO user (name, lastname, occupation) VALUES (:name, :lastname, :occupation)"
                 parameters: [name, lastname, occupation]
@@ -27,32 +29,59 @@ configuration:
             single_village:
                 sql: "DELETE FROM village WHERE id = :id"
                 parameters: [id]
+
     scenario:
         # scenario rules:
             # - a scenario has to have at least one select statement, if rules say otherwise
             # - a scenario has to return the exact result specified in the return_result config value, if rules say otherwise
             # - a 'use' option can be used with all the statements. If insert, update or delete then 'use' statement has to be a select statement or last_insert_id from an insert
             # - a 'foreign_key' option can be use with all the statements but the foreign statement has to be an insert sql statement
+
+        create_database:
+            atomic: true
+            rules: { minimal_select_statement: false, return_entity: false }
+            return_entity: []
+            statements:
+                create_user_info_database:
+                    sql_type: database
+                    sql: "CREATE DATABASE IF NOT EXISTS user_information"
+                use_database:
+                    sql_type: database
+                    sql: "USE user_information"
+                create_user_table:
+                    sql_type: table
+                    sql: "CREATE TABLE IF NOT EXISTS user (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, name VARCHAR(256) NOT NULL, lastname VARCHAR(256) NOT NULL, occupation VARCHAR(256) NOT NULL)"
+                create_address:
+                    sql_type: table
+                    sql: "CREATE TABLE IF NOT EXISTS address (id INT(6) AUTO_INCREMENT PRIMARY KEY, user_id INT(6) NOT NULL, city VARCHAR(256) NOT NULL, address VARCHAR(256) NOT NULL)"
+                create_village:
+                    sql_type: table
+                    sql: "CREATE TABLE IF NOT EXISTS village (id INT(6) AUTO_INCREMENT PRIMARY KEY, name VARCHAR(256) NOT NULL, country VARCHAR(256) NOT NULL)"
+                create_city:
+                    sql_type: table
+                    sql: "CREATE TABLE IF NOT EXISTS city (id INT(6) AUTO_INCREMENT PRIMARY KEY, name VARCHAR(256) NOT NULL, country_code VARCHAR(256) NOT NULL, district VARCHAR(256) NOT NULL, population INT(16) NOT NULL)"
+
         clear_database:
             atomic: true
+            rules: { minimal_select_statement: false, return_entity: false }
             return_entity: []
-            # - if 'minimal_select_statement' is true, then at least one select statement has to be present in this scenario
-            # - if 'return_entity' is true, then 'return_entity' config value cannot be an empty array
-            rules: {minimal_select_statement: false, return_entity: false}
             statements:
-                truncate_user:
+                clear_users:
                     sql_type: table
                     sql: "TRUNCATE TABLE user"
-                truncate_address:
+                clear_address:
                     sql_type: table
                     sql: "TRUNCATE TABLE address"
-                truncate_village:
+                clear_village:
                     sql_type: table
                     sql: "TRUNCATE TABLE village"
+                clear_city:
+                    sql_type: table
+                    sql: "TRUNCATE TABLE city"
 
-        insert_user:
+        user_info_database:
             atomic: true
-            return_entity: [select_user.id, "select_user.name as user_name", "select_user.lastname  as user_lastname", select_address]
+            return_entity: [select_user.id, "select_user.name as user_name", "select_user.lastname  as user_lastname", get_address_by_id]
             statements:
                 insert_user:
                     sql_type: insert
@@ -72,12 +101,12 @@ configuration:
                         statement_name: insert_user
                         bind_to: user_id
                     parameters: [city, address]
-                select_address:
+                get_address_by_id:
                     sql_type: select
-                    sql: "SELECT * FROM address WHERE user_id = :user_id"
+                    sql: "SELECT * FROM address WHERE id = :id"
                     foreign_key:
-                        statement_name: insert_user
-                        bind_to: user_id
+                        statement_name: insert_address
+                        bind_to: id
 
     callable:
         validate_user:
