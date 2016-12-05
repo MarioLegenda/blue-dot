@@ -33,6 +33,11 @@ configuration:
                     sql_type: table
                     sql: "CREATE TABLE IF NOT EXISTS attribute (id INT(6) AUTO_INCREMENT PRIMARY KEY NOT NULL, name VARCHAR(256) NOT NULL)"
 
+        # REQUIREMENTS:
+        # 1. Multiple inserts on multiple insert parameters
+        #    - when saving the result of inserts, every insert has to be saved under the statement name
+        #    - the statement that uses the above statement as a foreign_key option should know that it is a multiple insert and take the last inserted id
+        #    - the statement that uses the above statement can have an option to select from what insert to take the last inserted id
         clothes_company:
             atomic: true
             rules: { return_entity: false }
@@ -42,6 +47,7 @@ configuration:
                     sql_type: insert
                     sql: "INSERT INTO users (name, lastname) VALUES (:name, :lastname)"
                     parameters: [name, lastname]
+                # foreign_key option cannot have multiple parameters bound to it
                 insert_address:
                     sql_type: insert
                     sql: "INSERT INTO address (user_id, city, address) VALUES (:user_id, :city, :address)"

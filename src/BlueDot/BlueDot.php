@@ -2,26 +2,19 @@
 
 namespace BlueDot;
 
-use BlueDot\Common\ArgumentBag;
-use BlueDot\Common\ArgumentValidator;
-use BlueDot\Common\StatementValidator;
-use BlueDot\Common\StorageInterface;
-use BlueDot\Configuration\BlueDotConfiguration;
+use BlueDot\Common\{ ArgumentValidator, StatementValidator, StorageInterface };
 use BlueDot\Configuration\ConfigurationBuilder;
-use BlueDot\Configuration\MainConfiguration;
+
 use BlueDot\Configuration\Validator\ConfigurationValidator;
 use BlueDot\Database\Connection;
-use BlueDot\Database\Execution\CallableStrategy;
-use BlueDot\Database\Execution\ExecutionStrategy;
-use BlueDot\Database\Execution\StrategyInterface;
+
+use BlueDot\Database\Execution\{ CallableStrategy, ExecutionContext, StrategyInterface };
 use BlueDot\Database\ParameterConversion;
-use BlueDot\Database\Scenario\ScenarioBuilder;
-use BlueDot\Database\StatementExecution;
+
 use BlueDot\Entity\Entity;
 use BlueDot\Exception\ConnectionException;
 use Symfony\Component\Yaml\Yaml;
 use BlueDot\Exception\ConfigurationException;
-use BlueDot\Cache\Report;
 
 class BlueDot implements BlueDotInterface
 {
@@ -117,7 +110,7 @@ class BlueDot implements BlueDotInterface
 
         $statement->add('connection', $this->connection);
 
-        $strategy = (new ExecutionStrategy($statement))->getStrategy();
+        $strategy = (new ExecutionContext($statement))->getStrategy();
 
         $this->strategy = $strategy->execute();
 
@@ -146,5 +139,12 @@ class BlueDot implements BlueDotInterface
         $this->connection->setConnection($connection);
 
         return $this;
+    }
+    /**
+     * @return Connection
+     */
+    public function getConnection() : Connection
+    {
+        return $this->connection;
     }
 }

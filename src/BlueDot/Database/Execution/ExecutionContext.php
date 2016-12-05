@@ -6,7 +6,7 @@ use BlueDot\BlueDotInterface;
 use BlueDot\Common\ArgumentBag;
 use BlueDot\Exception\CommonInternalException;
 
-class ExecutionStrategy
+class ExecutionContext
 {
     /**
      * @var ArgumentBag $statement

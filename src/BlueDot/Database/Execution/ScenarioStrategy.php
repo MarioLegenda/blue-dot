@@ -61,14 +61,6 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
                         $this->singleStatementRecursiveExecution($useStatement);
                     }
                 }
-/*
-                if (isset($useStatement)) {
-                    $entity = $this->resultReport->get($useStatement->get('resolved_statement_name'));
-
-                    if ($entity->isEmpty()) {
-                        continue;
-                    }
-                }*/
 
                 $this->realSingleStatementExecution($statement);
             } catch (\PDOException $e) {
