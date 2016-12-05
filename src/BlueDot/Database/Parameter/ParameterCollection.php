@@ -126,9 +126,10 @@ class ParameterCollection implements \IteratorAggregate, \ArrayAccess
     }
     /**
      * @param array $parameters
-     * @return ParameterCollection
+     * @param bool $isMultiInsert
+     * @return array
      */
-    public function bindValues(array $parameters) : ParameterCollection
+    public function bindValues(array $parameters, bool $isMultiInsert = false)
     {
         foreach ($parameters as $key => $value) {
             $parameter = $this->getParameter($key);
@@ -139,6 +140,29 @@ class ParameterCollection implements \IteratorAggregate, \ArrayAccess
             }
 
             $parameter->setValue($value);
+        }
+
+        if ($isMultiInsert === true) {
+            $keys  = array_keys($parameters);
+
+            $valueCount = count($parameters[$keys[0]]);
+
+            $validParameters = array();
+            $i = 0;
+            while ($i < $valueCount) {
+                $parameterCollection = new ParameterCollection();
+
+                foreach ($parameters as $key => $values) {
+                    $parameter = new Parameter($key,  $values[$i]);
+                    $parameterCollection->addParameter($parameter);
+                }
+
+                $validParameters[] = $parameterCollection;
+
+                $i++;
+            }
+
+            return $validParameters;
         }
 
         return $this;

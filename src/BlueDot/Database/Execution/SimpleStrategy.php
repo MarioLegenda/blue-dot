@@ -126,7 +126,7 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
 
     private function multiInsertStatementExecution()
     {
-        $parameters = $this->resolveMultiInsertParameters();
+        $parameters = $this->statement->get('parameters');
 
         foreach ($parameters as $parameter) {
             $this->singleStatementExecution($parameter);

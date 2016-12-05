@@ -85,8 +85,10 @@ class ParameterConversion
             }
         }
 
-        $configParameters
+        $parameters = $configParameters
             ->compare($userParameters)
-            ->bindValues($userParameters);
+            ->bindValues($userParameters, $statement->has('multi_insert'));
+
+        $statement->add('parameters', $parameters, true);
     }
 }

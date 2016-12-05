@@ -6,7 +6,6 @@
             <directory suffix=".php">tests</directory>
             <file>tests/StorageTest</file>
             <file>tests/UserInfoDatabaseTest</file>
-            <file>tests/CompanyDatabaseTest</file>
         </testsuite>
     </testsuites>
 
