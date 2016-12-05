@@ -10,6 +10,10 @@ use BlueDot\Exception\QueryException;
 class StatementValidator
 {
     /**
+     * @var StatementValidator $instance
+     */
+    private static $instance;
+    /**
      * @var ArgumentBag $statement
      */
     private $statement;
@@ -21,20 +25,24 @@ class StatementValidator
      * @var array $configuration
      */
     private $configuration;
-    /**
-     * @var ParameterConversion $parameterConversion
-     */
-    private $parameterConversion;
+
     /**
      * @param ArgumentValidator $validator
      * @param array $configuration
-     * @param ParameterConversion $parameterConversion
+     * @return StatementValidator
      */
-    public function __construct(ArgumentValidator $validator, array $configuration, ParameterConversion $parameterConversion)
+    public static function instance(ArgumentValidator $validator, array $configuration) : StatementValidator
+    {
+        return (self::$instance instanceof self) ? self::$instance : new self($validator, $configuration);
+    }
+    /**
+     * @param ArgumentValidator $validator
+     * @param array $configuration
+     */
+    private function __construct(ArgumentValidator $validator, array $configuration)
     {
         $this->argumentValidator = $validator;
         $this->configuration = $configuration;
-        $this->parameterConversion = $parameterConversion;
     }
     /**
      * @return StatementValidator
@@ -65,7 +73,7 @@ class StatementValidator
             $this->validateReturnData($statement);
         }
 
-        $this->parameterConversion->convert($statement->get('type'), $statement);
+        //$this->parameterConversion->convert($statement->get('type'), $statement);
 
         $this->statement = $statement;
 

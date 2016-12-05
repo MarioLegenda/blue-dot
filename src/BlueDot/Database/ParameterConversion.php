@@ -3,33 +3,57 @@
 namespace BlueDot\Database;
 
 use BlueDot\Common\ArgumentBag;
+use BlueDot\Common\ArgumentValidator;
+use BlueDot\Exception\CommonInternalException;
 use BlueDot\Exception\QueryException;
+use phpDocumentor\Reflection\DocBlock\Tags\Param;
 
 class ParameterConversion
 {
+    /**
+     * @var ParameterConversion $instance
+     */
+    private static $instance;
     /**
      * @var array $userParameters
      */
     private $userParameters;
     /**
-     * @param array $userParameters
+     * @var ArgumentBag $statement;
      */
-    public function __construct(array $userParameters)
+    private $statement;
+    /**
+     * @param array $userParameters
+     * @param ArgumentBag $statement
+     * @return ParameterConversion
+     */
+    public static function instance(array $userParameters, ArgumentBag $statement) : ParameterConversion
     {
-        $this->userParameters = $userParameters;
+        return (self::$instance instanceof self) ? self::$instance : new self($userParameters, $statement);
     }
     /**
-     * @param string $type
+     * ParameterConversion constructor.
+     * @param array $userParameters
      * @param ArgumentBag $statement
      */
-    public function convert(string $type, ArgumentBag $statement)
+    private function __construct(array $userParameters, ArgumentBag $statement)
     {
+        $this->userParameters = $userParameters;
+        $this->statement = $statement;
+    }
+    /**
+     * @throws QueryException
+     */
+    public function convert()
+    {
+        $type = $this->statement->get('type');
+
         if ($type === 'simple') {
-            if ($statement->has('parameters')) {
-                $this->convertSimpleParameters($statement, $this->userParameters);
+            if ($this->statement->has('parameters')) {
+                $this->convertSimpleParameters($this->statement, $this->userParameters);
             }
         } else if ($type === 'scenario') {
-            $statements = $statement->get('statements');
+            $statements = $this->statement->get('statements');
 
             foreach ($statements as $singleStatement) {
                 if ($singleStatement->has('parameters')) {

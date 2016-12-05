@@ -92,13 +92,11 @@ class BlueDot implements BlueDotInterface
      */
     public function execute(string $name, $parameters = array()) : BlueDotInterface
     {
-        $statementValidator = new StatementValidator(
-            new ArgumentValidator($name),
-            $this->configuration,
-            new ParameterConversion($parameters)
-        );
+        $statement = StatementValidator::instance(new ArgumentValidator($name), $this->configuration)->validate()->getStatement();
 
-        $statement = $statementValidator->validate()->getStatement();
+        ParameterConversion::instance($parameters, $statement)->convert();
+
+        //$statement = $statementValidator->validate()->getStatement();
 
         if ($statement->get('type') === 'callable') {
             $callableStrategy = new CallableStrategy($statement, $this, $parameters);
