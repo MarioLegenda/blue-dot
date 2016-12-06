@@ -2,8 +2,8 @@
 
 namespace BlueDot\Common;
 
+use BlueDot\Exception\BlueDotRuntimeException;
 use BlueDot\Exception\CompileException;
-use BlueDot\Exception\QueryException;
 
 class ArgumentValidator implements ValidatorInterface
 {
@@ -51,7 +51,7 @@ class ArgumentValidator implements ValidatorInterface
     /**
      * @param string $arguments
      * @return bool
-     * @throws QueryException
+     * @throws BlueDotRuntimeException
      */
     public function validate() : ValidatorInterface
     {
@@ -74,7 +74,7 @@ class ArgumentValidator implements ValidatorInterface
             return $this;
         }
 
-        throw new QueryException('Invalid execute statement name. Given '.$this->arguments);
+        throw new BlueDotRuntimeException('Invalid execute statement name. Given '.$this->arguments);
     }
     /**
      * @return string

@@ -97,7 +97,6 @@ class BlueDot implements BlueDotInterface
 
         ParameterConversion::instance($parameters, $statement)->convert();
 
-
         if ($statement->get('type') === 'callable') {
             $callableStrategy = new CallableStrategy($statement, $this, $parameters);
 

@@ -31,9 +31,8 @@ class ExecutionContext
                 return new SimpleStrategy($this->statement);
             case 'scenario':
                 return new ScenarioStrategy($this->statement);
-            case 'callable':
         }
 
-        throw new BlueDotRuntimeException('Internal error. Strategy \''.$type.'\' has not been found. Please, contact whitepostmail@gmail.com');
+        throw new BlueDotRuntimeException('Internal error. Strategy \''.$type.'\' has not been found. Please, contact whitepostmail@gmail.com or post an issue');
     }
 }

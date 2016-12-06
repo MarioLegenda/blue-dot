@@ -2,7 +2,7 @@
 
 namespace BlueDot\Database\Parameter;
 
-use BlueDot\Exception\QueryException;
+use BlueDot\Exception\BlueDotRuntimeException;
 
 class ParameterCollection implements \IteratorAggregate, \ArrayAccess
 {
@@ -96,7 +96,7 @@ class ParameterCollection implements \IteratorAggregate, \ArrayAccess
     /**
      * @param array $parameters
      * @return ParameterCollection
-     * @throws QueryException
+     * @throws BlueDotRuntimeException
      */
     public function compare(array $parameters) : ParameterCollection
     {
@@ -104,7 +104,7 @@ class ParameterCollection implements \IteratorAggregate, \ArrayAccess
 
         foreach ($keys as $key) {
             if (!$this->hasParameter($key)) {
-                throw new QueryException('Parameter \''.$key.'\' does not exist in the configuration but is provided as a parameter');
+                throw new BlueDotRuntimeException('Parameter \''.$key.'\' does not exist in the configuration but is provided as a parameter');
             }
         }
 
@@ -117,7 +117,7 @@ class ParameterCollection implements \IteratorAggregate, \ArrayAccess
                 }
 
                 if (count($value) !== $firstCount) {
-                    throw new QueryException('When using multi valued parameters for atomic insert, all the parameter keys should have the same number of values');
+                    throw new BlueDotRuntimeException('When using multi valued parameters for atomic insert, all the parameter keys should have the same number of values');
                 }
             }
         }

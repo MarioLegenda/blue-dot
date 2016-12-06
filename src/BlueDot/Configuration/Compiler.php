@@ -219,7 +219,7 @@ class Compiler
         $foundConfig = false;
 
         foreach ($this->configuration['callable'] as $key => $config) {
-            $resolvedName = 'callable.'.$config[$key];
+            $resolvedName = 'callable.'.$key;
 
             if ($resolvedName === $name) {
                 $subConfig = new ArgumentBag();

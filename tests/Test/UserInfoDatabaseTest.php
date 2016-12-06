@@ -97,5 +97,7 @@ class UserInfoDatabaseTest extends \PHPUnit_Framework_TestCase
 
         $this->assertTrue($address->has('address'), 'scenario.insert_user.get_address_by_id result entity should contain \'address\'');
         $this->assertInternalType('string', $address->get('address'), 'scenario.insert_user.get_address_by_id \'address\' should be a string');
+
+        $blueDot->execute('callable.validate_user');
     }
 }

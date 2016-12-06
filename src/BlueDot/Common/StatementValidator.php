@@ -2,10 +2,8 @@
 
 namespace BlueDot\Common;
 
-use BlueDot\Exception\BlueDotRuntimeException;
 use BlueDot\Exception\CompileException;
 use BlueDot\Exception\ConfigurationException;
-use BlueDot\Exception\QueryException;
 
 class StatementValidator implements ValidatorInterface
 {
@@ -28,27 +26,9 @@ class StatementValidator implements ValidatorInterface
     }
     /**
      * @return StatementValidator
-     * @throws BlueDotRuntimeException
-     * @throws QueryException
      */
     public function validate() : ValidatorInterface
     {
-   /*     $this->argumentValidator->validate();
-
-        $type = $this->argumentValidator->getType();
-
-        if (!array_key_exists($type, $this->configuration)) {
-            throw new BlueDotRuntimeException('Invalid input. \''.$this->argumentValidator->getResolvedName().'\' does not exist');
-        }
-
-        $statementType = $this->configuration[$type];
-
-        if (!$statementType->has($this->argumentValidator->getResolvedName())) {
-            throw new BlueDotRuntimeException('Invalid input. \''.$this->argumentValidator->getResolvedName().'\' does not exist');
-        }
-
-        $statement = $this->configuration[$type]->get($this->argumentValidator->getResolvedName());*/
-
         if ($this->statement->get('type') === 'scenario') {
             $this->generalValidation($this->statement);
             $this->validateUseOptions($this->statement->get('statements'));

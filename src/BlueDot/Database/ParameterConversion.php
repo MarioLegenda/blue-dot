@@ -3,7 +3,7 @@
 namespace BlueDot\Database;
 
 use BlueDot\Common\ArgumentBag;
-use BlueDot\Exception\QueryException;
+use BlueDot\Exception\BlueDotRuntimeException;
 
 class ParameterConversion
 {
@@ -39,7 +39,7 @@ class ParameterConversion
         $this->statement = $statement;
     }
     /**
-     * @throws QueryException
+     * @throws BlueDotRuntimeException
      */
     public function convert()
     {
@@ -57,7 +57,7 @@ class ParameterConversion
                     $statementName = $singleStatement->get('statement_name');
 
                     if (!array_key_exists($statementName, $this->userParameters)) {
-                        throw new QueryException('Configuration has parameters to bound but you haven\'t supplied any for '.$singleStatement->get('resolved_statement_name'));
+                        throw new BlueDotRuntimeException('Configuration has parameters to bound but you haven\'t supplied any for '.$singleStatement->get('resolved_statement_name'));
                     }
 
                     $this->convertSimpleParameters($singleStatement, $this->userParameters[$statementName]);
@@ -69,7 +69,7 @@ class ParameterConversion
     private function convertSimpleParameters(ArgumentBag $statement, $userParameters = array())
     {
         if (empty($userParameters)) {
-            throw new QueryException('Statement '.$statement->get('resolved_name').' has parameters in the configuration but none are provided');
+            throw new BlueDotRuntimeException('Statement '.$statement->get('resolved_name').' has parameters in the configuration but none are provided');
         }
 
         $configParameters = $statement->get('parameters');

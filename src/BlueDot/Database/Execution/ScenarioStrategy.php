@@ -9,8 +9,6 @@ use BlueDot\Database\Parameter\Parameter;
 use BlueDot\Entity\Entity;
 use BlueDot\Entity\EntityCollection;
 use BlueDot\Exception\BlueDotRuntimeException;
-use BlueDot\Exception\ConfigurationException;
-use BlueDot\Exception\QueryException;
 
 class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
 {
@@ -46,7 +44,7 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
         foreach ($this->statements as $statement) {
             if ($statement->has('multi_insert')) {
                 if ($statement->has('foreign_key') or $statement->has('use_option')) {
-                    throw new ConfigurationException('If you provide a statement with multiple parameters for a multi insert, then that statement cannot have \'use\' or \'foreign_key\' options. Statement: '.$statement->get('resolved_statement_name'));
+                    throw new BlueDotRuntimeException('If you provide a statement with multiple parameters for a multi insert, then that statement cannot have \'use\' or \'foreign_key\' options. Statement: '.$statement->get('resolved_statement_name'));
                 }
             }
 
@@ -71,7 +69,7 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
 
                 $this->realSingleStatementExecution($statement);
             } catch (\PDOException $e) {
-                throw new QueryException('A PDOException has been thrown for statement '.$statement->get('resolved_statement_name').' with message \''.$e->getMessage().'\'');
+                throw new BlueDotRuntimeException('A PDOException has been thrown for statement '.$statement->get('resolved_statement_name').' with message \''.$e->getMessage().'\'');
             }
         }
 
@@ -97,7 +95,7 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
                 $resultEntity = $this->resultReport->get($resolvedStatementName);
 
                 if (!$resultEntity instanceof $resultEntity) {
-                    throw new QueryException('Return result specified in \'return_entity\' has to be a select sql type for '.$resolvedStatementName);
+                    throw new BlueDotRuntimeException('Return result specified in \'return_entity\' has to be a select sql type for '.$resolvedStatementName);
                 }
 
                 if (!$returnEntity->hasColumnName()) {
@@ -201,11 +199,11 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
             $columnName = (array_key_exists(1, $exploded)) ? $exploded[1] : $exploded[0];
 
             if ($entity instanceof EntityCollection) {
-                throw new QueryException('Invalid entity selection for '.$statement->get('resolved_statement_name').'. You can only select a single result in a \'use\' option. Multiple results given');
+                throw new BlueDotRuntimeException('Invalid entity selection for '.$statement->get('resolved_statement_name').'. You can only select a single result in a \'use\' option. Multiple results given');
             }
 
             if (!$entity->has($columnName)) {
-                throw new QueryException('Selected entity for statement '.$optionStatementName.' does not contain a column \''.$columnName.'\'. If you specify a column in the return_entity configuration, then that column has to be fetched from the database');
+                throw new BlueDotRuntimeException('Selected entity for statement '.$optionStatementName.' does not contain a column \''.$columnName.'\'. If you specify a column in the return_entity configuration, then that column has to be fetched from the database');
             }
 
             $entityValue = $entity->get($columnName);
