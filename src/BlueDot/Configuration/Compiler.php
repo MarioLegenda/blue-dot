@@ -6,9 +6,7 @@ use BlueDot\Exception\CompileException;
 
 use BlueDot\Common\{ ArgumentBag, ArgumentValidator, ValidatorInterface};
 use BlueDot\Database\Parameter\{ Parameter, ParameterCollection };
-use BlueDot\Database\Scenario\{ UseOption, ForeginKey, ScenarioReturnEntity, Rules };
-
-use BlueDot\Database\Connection;
+use BlueDot\Database\Scenario\{ UseOption, ForeignKey, ScenarioReturnEntity, Rules };
 
 class Compiler
 {
@@ -186,7 +184,7 @@ class Compiler
 
                         $scenarioStatement->add(
                             'foreign_key',
-                            new ForeginKey($foreignKey['statement_name'], $foreignKey['bind_to'])
+                            new ForeignKey($foreignKey['statement_name'], $foreignKey['bind_to'])
                         );
                     }
 

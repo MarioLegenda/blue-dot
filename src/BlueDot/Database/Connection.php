@@ -39,11 +39,15 @@ class Connection
         $user = $this->dsn['user'];
         $password = $this->dsn['password'];
 
-        $this->connection = new \PDO('mysql:host='.$host.';dbname='.$dbName, $user, $password, array(
-            \PDO::ATTR_PERSISTENT => true,
-            \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-            \PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8',
-        ));
+        try {
+            $this->connection = new \PDO('mysql:host='.$host.';dbname='.$dbName, $user, $password, array(
+                \PDO::ATTR_PERSISTENT => true,
+                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+                \PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8',
+            ));
+        } catch (\PDOException $e) {
+            throw new ConnectionException('A PDOException has been thrown when connecting to the database with message \''.$e->getMessage().'\'');
+        }
 
         return $this;
     }

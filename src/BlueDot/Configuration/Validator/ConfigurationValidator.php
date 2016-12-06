@@ -3,7 +3,6 @@
 namespace BlueDot\Configuration\Validator;
 
 use BlueDot\Exception\ConfigurationException;
-use BlueDot\Configuration\Validator\ArrayNode;
 
 class ConfigurationValidator
 {

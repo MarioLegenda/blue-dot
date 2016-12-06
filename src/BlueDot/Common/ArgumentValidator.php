@@ -49,7 +49,6 @@ class ArgumentValidator implements ValidatorInterface
         return $this;
     }
     /**
-     * @param string $arguments
      * @return bool
      * @throws BlueDotRuntimeException
      */

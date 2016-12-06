@@ -2,7 +2,7 @@
 
 namespace BlueDot\Database\Scenario;
 
-class ForeginKey
+class ForeignKey
 {
     /**
      * @var string $statementName;

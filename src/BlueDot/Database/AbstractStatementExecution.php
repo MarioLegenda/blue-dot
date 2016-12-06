@@ -3,9 +3,6 @@
 namespace BlueDot\Database;
 
 use BlueDot\Common\StorageInterface;
-use BlueDot\Configuration\MainConfiguration;
-use BlueDot\Configuration\ConfigurationInterface;
-use BlueDot\Cache\Report;
 
 abstract class AbstractStatementExecution
 {

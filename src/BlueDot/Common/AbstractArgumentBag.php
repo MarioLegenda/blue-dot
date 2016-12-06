@@ -102,6 +102,7 @@ abstract class AbstractArgumentBag implements StorageInterface, \IteratorAggrega
     /**
      * @param string $name
      * @return mixed
+     * @throws BlueDotRuntimeException
      */
     public function get(string $name)
     {
@@ -128,7 +129,7 @@ abstract class AbstractArgumentBag implements StorageInterface, \IteratorAggrega
     /**
      * @param string $toRename
      * @param string $newName
-     * @return $this
+     * @return StorageInterface
      * @throws BlueDotRuntimeException
      */
     public function rename(string $toRename, string $newName) : StorageInterface

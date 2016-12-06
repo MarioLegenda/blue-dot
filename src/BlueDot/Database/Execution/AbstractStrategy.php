@@ -4,7 +4,6 @@ namespace BlueDot\Database\Execution;
 
 use BlueDot\Common\ArgumentBag;
 use BlueDot\Database\Connection;
-use BlueDot\Database\Parameter\ParameterCollection;
 
 abstract class AbstractStrategy
 {

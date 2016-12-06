@@ -3,18 +3,16 @@
 namespace BlueDot;
 
 use BlueDot\Common\{ ArgumentValidator, StatementValidator, StorageInterface };
-use BlueDot\Configuration\Compiler;
-use BlueDot\Configuration\ConfigurationBuilder;
 
-use BlueDot\Configuration\Validator\ConfigurationValidator;
-use BlueDot\Database\Connection;
+use BlueDot\Configuration\Compiler;
+
+use BlueDot\Database\{ Connection, ParameterConversion };
 
 use BlueDot\Database\Execution\{ CallableStrategy, ExecutionContext, StrategyInterface };
-use BlueDot\Database\ParameterConversion;
 
-use BlueDot\Exception\ConnectionException;
+use BlueDot\Exception\{ ConnectionException, ConfigurationException };
+
 use Symfony\Component\Yaml\Yaml;
-use BlueDot\Exception\ConfigurationException;
 
 class BlueDot implements BlueDotInterface
 {
@@ -34,10 +32,6 @@ class BlueDot implements BlueDotInterface
      * @var Connection $connection
      */
     private $connection;
-    /**
-     * @var array $configuration
-     */
-    private $configuration;
     /**
      * @param $configSource
      * @param Connection|null $connection
@@ -122,7 +116,7 @@ class BlueDot implements BlueDotInterface
     }
     /**
      * @param \PDO $connection
-     * @return $this
+     * @return BlueDotInterface
      */
     public function setExternalConnection(\PDO $connection) : BlueDotInterface
     {
