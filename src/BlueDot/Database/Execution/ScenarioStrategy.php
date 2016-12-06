@@ -8,7 +8,7 @@ use BlueDot\Database\Parameter\ParameterCollection;
 use BlueDot\Database\Parameter\Parameter;
 use BlueDot\Entity\Entity;
 use BlueDot\Entity\EntityCollection;
-use BlueDot\Exception\CommonInternalException;
+use BlueDot\Exception\BlueDotRuntimeException;
 use BlueDot\Exception\ConfigurationException;
 use BlueDot\Exception\QueryException;
 
@@ -189,7 +189,7 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
         $optionStatementName = $statement->get('scenario_name').'.'.$useOption->getName();
 
         if (!$this->resultReport->has($optionStatementName)) {
-            throw new CommonInternalException('\'use\' option '.$optionStatementName.' has not been executed but it should have been. This could be a bug so please, contact whitepostmail@gmail.com or post an issue on https://github.com/MarioLegenda/blue-dot');
+            throw new BlueDotRuntimeException('\'use\' option '.$optionStatementName.' has not been executed but it should have been. This could be a bug so please, contact whitepostmail@gmail.com or post an issue on https://github.com/MarioLegenda/blue-dot');
         }
 
         $entity = $this->resultReport->get($optionStatementName);
@@ -223,7 +223,7 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
         $foreignKeyStatementName = $statement->get('scenario_name').'.'.$foreignKey->getName();
 
         if (!$this->resultReport->has($foreignKeyStatementName)) {
-            throw new CommonInternalException('\'foreign_key\' option '.$foreignKeyStatementName.' has not been executed but it should have been. This could be a bug so please, contact whitepostmail@gmail.com or post an issue on https://github.com/MarioLegenda/blue-dot');
+            throw new BlueDotRuntimeException('\'foreign_key\' option '.$foreignKeyStatementName.' has not been executed but it should have been. This could be a bug so please, contact whitepostmail@gmail.com or post an issue on https://github.com/MarioLegenda/blue-dot');
         }
 
 

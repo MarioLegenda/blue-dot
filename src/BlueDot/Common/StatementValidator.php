@@ -2,89 +2,60 @@
 
 namespace BlueDot\Common;
 
-use BlueDot\Database\ParameterConversion;
-use BlueDot\Exception\CommonInternalException;
+use BlueDot\Exception\BlueDotRuntimeException;
+use BlueDot\Exception\CompileException;
 use BlueDot\Exception\ConfigurationException;
 use BlueDot\Exception\QueryException;
 
-class StatementValidator
+class StatementValidator implements ValidatorInterface
 {
-    /**
-     * @var StatementValidator $instance
-     */
-    private static $instance;
     /**
      * @var ArgumentBag $statement
      */
     private $statement;
     /**
-     * @var ArgumentValidator $argumentValidator
+     * @param ArgumentBag $statement
      */
-    private $argumentValidator;
-    /**
-     * @var array $configuration
-     */
-    private $configuration;
+    public function setValidationArgument($validationArgument) : ValidatorInterface
+    {
+        if (!$validationArgument instanceof ArgumentBag) {
+            throw new CompileException('Invalid argument in '.StatementValidator::class.'. This is probably a bug so please, contact whitepostmail@gmail.com or post an issue');
+        }
 
-    /**
-     * @param ArgumentValidator $validator
-     * @param array $configuration
-     * @return StatementValidator
-     */
-    public static function instance(ArgumentValidator $validator, array $configuration) : StatementValidator
-    {
-        return (self::$instance instanceof self) ? self::$instance : new self($validator, $configuration);
-    }
-    /**
-     * @param ArgumentValidator $validator
-     * @param array $configuration
-     */
-    private function __construct(ArgumentValidator $validator, array $configuration)
-    {
-        $this->argumentValidator = $validator;
-        $this->configuration = $configuration;
+        $this->statement = $validationArgument;
+
+        return $this;
     }
     /**
      * @return StatementValidator
-     * @throws CommonInternalException
+     * @throws BlueDotRuntimeException
      * @throws QueryException
      */
-    public function validate() : StatementValidator
+    public function validate() : ValidatorInterface
     {
-        $this->argumentValidator->validate();
+   /*     $this->argumentValidator->validate();
 
         $type = $this->argumentValidator->getType();
 
         if (!array_key_exists($type, $this->configuration)) {
-            throw new CommonInternalException('Invalid input. \''.$this->argumentValidator->getResolvedName().'\' does not exist');
+            throw new BlueDotRuntimeException('Invalid input. \''.$this->argumentValidator->getResolvedName().'\' does not exist');
         }
 
         $statementType = $this->configuration[$type];
 
         if (!$statementType->has($this->argumentValidator->getResolvedName())) {
-            throw new CommonInternalException('Invalid input. \''.$this->argumentValidator->getResolvedName().'\' does not exist');
+            throw new BlueDotRuntimeException('Invalid input. \''.$this->argumentValidator->getResolvedName().'\' does not exist');
         }
 
-        $statement = $this->configuration[$type]->get($this->argumentValidator->getResolvedName());
+        $statement = $this->configuration[$type]->get($this->argumentValidator->getResolvedName());*/
 
-        if ($statement->get('type') === 'scenario') {
-            $this->generalValidation($statement);
-            $this->validateUseOptions($statement->get('statements'));
-            $this->validateReturnData($statement);
+        if ($this->statement->get('type') === 'scenario') {
+            $this->generalValidation($this->statement);
+            $this->validateUseOptions($this->statement->get('statements'));
+            $this->validateReturnData($this->statement);
         }
-
-        //$this->parameterConversion->convert($statement->get('type'), $statement);
-
-        $this->statement = $statement;
 
         return $this;
-    }
-    /**
-     * @return ArgumentBag
-     */
-    public function getStatement() : ArgumentBag
-    {
-        return $this->statement;
     }
 
     private function generalValidation(ArgumentBag $mainStatement)
@@ -107,7 +78,7 @@ class StatementValidator
 
                 if ($minimalSelectStatement === true) {
                     if ($hasSelectStatement === false) {
-                        throw new CommonInternalException('A scenario should have at least one \'select\' sql query. Found none in '.$mainStatement->get('root_config')->get('scenario_name'));
+                        throw new ConfigurationException('A scenario should have at least one \'select\' sql query. Found none in '.$mainStatement->get('root_config')->get('scenario_name'));
                     }
                 }
             }

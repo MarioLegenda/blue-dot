@@ -8,7 +8,7 @@ use BlueDot\Database\Parameter\Parameter;
 use BlueDot\Database\Parameter\ParameterCollection;
 use BlueDot\Entity\Entity;
 use BlueDot\Entity\EntityCollection;
-use BlueDot\Exception\CommonInternalException;
+use BlueDot\Exception\BlueDotRuntimeException;
 
 class SimpleStrategy extends AbstractStrategy implements StrategyInterface
 {
@@ -18,7 +18,7 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
     private $entity;
     /**
      * @return StrategyInterface
-     * @throws CommonInternalException
+     * @throws BlueDotRuntimeException
      */
     public function execute() : StrategyInterface
     {
@@ -42,13 +42,13 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
 
             return $this;
         } catch (\PDOException $e) {
-            throw new CommonInternalException('A PDOException was thrown with message \''.$e->getMessage().'\'');
+            throw new BlueDotRuntimeException('A PDOException was thrown with message \''.$e->getMessage().'\'');
         }
     }
     /**
      * @param ArgumentBag|null $statement
      * @return StorageInterface|Entity|EntityCollection
-     * @throws \BlueDot\Exception\CommonInternalException
+     * @throws \BlueDot\Exception\BlueDotRuntimeException
      */
     public function getResult(ArgumentBag $statement = null) : StorageInterface
     {

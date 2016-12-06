@@ -4,7 +4,7 @@ namespace Test;
 
 use BlueDot\Common\ArgumentBag;
 use BlueDot\Common\StorageInterface;
-use BlueDot\Exception\CommonInternalException;
+use BlueDot\Exception\BlueDotRuntimeException;
 
 class StorageTest extends \PHPUnit_Framework_TestCase
 {
@@ -56,8 +56,8 @@ class StorageTest extends \PHPUnit_Framework_TestCase
 
         try {
             $storage->append('root', $appendingStorage);
-            $this->fail(CommonInternalException::class.' should have been thrown for StorageInterface::append() method');
-        } catch (CommonInternalException $e) {
+            $this->fail(BlueDotRuntimeException::class.' should have been thrown for StorageInterface::append() method');
+        } catch (BlueDotRuntimeException $e) {
 
         }
 
@@ -68,8 +68,8 @@ class StorageTest extends \PHPUnit_Framework_TestCase
 
         try {
             $storage->addTo('root', array('name', 'lastname', 'gender'));
-            $this->fail(CommonInternalException::class.' should have been thrown for StorageInterface::addTo() method');
-        } catch (CommonInternalException $e) {
+            $this->fail(BlueDotRuntimeException::class.' should have been thrown for StorageInterface::addTo() method');
+        } catch (BlueDotRuntimeException $e) {
 
         }
     }

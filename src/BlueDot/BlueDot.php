@@ -3,6 +3,7 @@
 namespace BlueDot;
 
 use BlueDot\Common\{ ArgumentValidator, StatementValidator, StorageInterface };
+use BlueDot\Configuration\Compiler;
 use BlueDot\Configuration\ConfigurationBuilder;
 
 use BlueDot\Configuration\Validator\ConfigurationValidator;
@@ -11,13 +12,16 @@ use BlueDot\Database\Connection;
 use BlueDot\Database\Execution\{ CallableStrategy, ExecutionContext, StrategyInterface };
 use BlueDot\Database\ParameterConversion;
 
-use BlueDot\Entity\Entity;
 use BlueDot\Exception\ConnectionException;
 use Symfony\Component\Yaml\Yaml;
 use BlueDot\Exception\ConfigurationException;
 
 class BlueDot implements BlueDotInterface
 {
+    /**
+     * @var Compiler $compiler
+     */
+    private $compiler;
     /**
      * @var BlueDot $singletonInstance
      */
@@ -49,9 +53,11 @@ class BlueDot implements BlueDotInterface
         return self::$singletonInstance;
     }
     /**
+     * BlueDot constructor.
      * @param $configSource
-     * @param mixed $connection
+     * @param Connection|null $connection
      * @throws ConfigurationException
+     * @throws ConnectionException
      */
     public function __construct($configSource, Connection $connection = null)
     {
@@ -66,15 +72,10 @@ class BlueDot implements BlueDotInterface
             $parsedConfiguration = Yaml::parse(file_get_contents($configSource));
         }
 
-        $configBuilder = new ConfigurationBuilder(new ConfigurationValidator($parsedConfiguration));
+        $this->compiler = new Compiler($parsedConfiguration['configuration'], new ArgumentValidator(), new StatementValidator());
 
-        $this->configuration =
-            $configBuilder
-                ->buildConfiguration()
-                ->getConfiguration();
-
-        if (array_key_exists('connection', $this->configuration)) {
-            $this->connection = $this->configuration['connection'];
+        if (array_key_exists('connection', $parsedConfiguration['configuration'])) {
+            $this->connection = new Connection($parsedConfiguration['configuration']['connection']);
         }
 
         if (!$this->connection instanceof Connection) {
@@ -92,11 +93,10 @@ class BlueDot implements BlueDotInterface
      */
     public function execute(string $name, $parameters = array()) : BlueDotInterface
     {
-        $statement = StatementValidator::instance(new ArgumentValidator($name), $this->configuration)->validate()->getStatement();
+        $statement = $this->compiler->compile($name);
 
         ParameterConversion::instance($parameters, $statement)->convert();
 
-        //$statement = $statementValidator->validate()->getStatement();
 
         if ($statement->get('type') === 'callable') {
             $callableStrategy = new CallableStrategy($statement, $this, $parameters);

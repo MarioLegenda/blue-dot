@@ -2,9 +2,8 @@
 
 namespace BlueDot\Database\Execution;
 
-use BlueDot\BlueDotInterface;
 use BlueDot\Common\ArgumentBag;
-use BlueDot\Exception\CommonInternalException;
+use BlueDot\Exception\BlueDotRuntimeException;
 
 class ExecutionContext
 {
@@ -21,7 +20,7 @@ class ExecutionContext
     }
     /**
      * @return StrategyInterface
-     * @throws \BlueDot\Exception\CommonInternalException
+     * @throws \BlueDot\Exception\BlueDotRuntimeException
      */
     public function getStrategy() : StrategyInterface
     {
@@ -35,6 +34,6 @@ class ExecutionContext
             case 'callable':
         }
 
-        throw new CommonInternalException('Internal error. Strategy \''.$type.'\' has not been found. Please, contact whitepostmail@gmail.com');
+        throw new BlueDotRuntimeException('Internal error. Strategy \''.$type.'\' has not been found. Please, contact whitepostmail@gmail.com');
     }
 }

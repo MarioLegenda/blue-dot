@@ -5,7 +5,7 @@ namespace BlueDot\Database\Execution;
 use BlueDot\BlueDotInterface;
 use BlueDot\Common\ArgumentBag;
 use BlueDot\Common\StorageInterface;
-use BlueDot\Exception\CommonInternalException;
+use BlueDot\Exception\BlueDotRuntimeException;
 use BlueDot\Common\CallableInterface;
 
 class CallableStrategy implements StrategyInterface
@@ -30,6 +30,7 @@ class CallableStrategy implements StrategyInterface
      * @param ArgumentBag $statement
      * @param BlueDotInterface $blueDot
      * @param array $parameters
+     * @throws BlueDotRuntimeException
      */
     public function __construct(ArgumentBag $statement, BlueDotInterface $blueDot, array $parameters)
     {
@@ -47,7 +48,7 @@ class CallableStrategy implements StrategyInterface
             $object = new $objectName($this->blueDot, $this->parameters);
 
             if (!$object instanceof CallableInterface) {
-                throw new CommonInternalException('Callable '.$this->statement->get('name').' has to implement '.CallableInterface::class);
+                throw new BlueDotRuntimeException('Callable '.$this->statement->get('name').' has to implement '.CallableInterface::class);
             }
 
             $this->result = $object->run();

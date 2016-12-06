@@ -2,7 +2,7 @@
 
 namespace BlueDot\Common;
 
-use BlueDot\Exception\CommonInternalException;
+use BlueDot\Exception\BlueDotRuntimeException;
 
 abstract class AbstractArgumentBag implements StorageInterface, \IteratorAggregate, \ArrayAccess, \Countable
 {
@@ -39,13 +39,13 @@ abstract class AbstractArgumentBag implements StorageInterface, \IteratorAggrega
      * @param string $name
      * @param mixed $value
      * @param bool $overwrite
-     * @throws CommonInternalException
+     * @throws BlueDotRuntimeException
      * @return StorageInterface
      */
     public function add(string $name, $value, bool $overwrite = false) : StorageInterface
     {
         if ($this->has($name) and $overwrite === false) {
-            throw new CommonInternalException(ArgumentBag::class.' already contains an argument with name '.$name);
+            throw new BlueDotRuntimeException(ArgumentBag::class.' already contains an argument with name '.$name);
         }
 
         $this->arguments[$name] = $value;
@@ -56,26 +56,26 @@ abstract class AbstractArgumentBag implements StorageInterface, \IteratorAggrega
      * @param string $name
      * @param mixed $values
      * @return $this
-     * @throws CommonInternalException
+     * @throws BlueDotRuntimeException
      */
     public function addTo(string $name, $values) : StorageInterface
     {
         if (empty($values)) {
-            throw new CommonInternalException('Invalid \''.$name.'\'. Cannot add empty array');
+            throw new BlueDotRuntimeException('Invalid \''.$name.'\'. Cannot add empty array');
         }
 
         if (!$this->has($name)) {
-            throw new CommonInternalException('\''.$name.'\' not found. Nothing to add to');
+            throw new BlueDotRuntimeException('\''.$name.'\' not found. Nothing to add to');
         }
 
         $entry = $this->get($name);
 
         if (!is_array($entry) and !$entry instanceof StorageInterface) {
-            throw new CommonInternalException('Cannot add values to storage for \''.$name.'\'. Storage does not contain an iterable data type');
+            throw new BlueDotRuntimeException('Cannot add values to storage for \''.$name.'\'. Storage does not contain an iterable data type');
         }
 
         if (is_array($entry)) {
-            throw new CommonInternalException('\''.$name.'\' cannot add values to it. Probably because you used StorageInterface::append() method with it and that cannot be done');
+            throw new BlueDotRuntimeException('\''.$name.'\' cannot add values to it. Probably because you used StorageInterface::append() method with it and that cannot be done');
         }
 
         if (is_array($values)) {
@@ -106,7 +106,7 @@ abstract class AbstractArgumentBag implements StorageInterface, \IteratorAggrega
     public function get(string $name)
     {
         if (!$this->has($name)) {
-            throw new CommonInternalException(ArgumentBag::class.' does not contain an argument with name '.$name);
+            throw new BlueDotRuntimeException(ArgumentBag::class.' does not contain an argument with name '.$name);
         }
 
         return $this->arguments[$name];
@@ -129,12 +129,12 @@ abstract class AbstractArgumentBag implements StorageInterface, \IteratorAggrega
      * @param string $toRename
      * @param string $newName
      * @return $this
-     * @throws CommonInternalException
+     * @throws BlueDotRuntimeException
      */
     public function rename(string $toRename, string $newName) : StorageInterface
     {
         if (!$this->has($toRename)) {
-            throw new CommonInternalException('Cannot rename argument. '.$toRename.' not found');
+            throw new BlueDotRuntimeException('Cannot rename argument. '.$toRename.' not found');
         }
 
         $temp = $this->get($toRename);
@@ -149,6 +149,7 @@ abstract class AbstractArgumentBag implements StorageInterface, \IteratorAggrega
      * @param string $name
      * @param StorageInterface $storage
      * @return StorageInterface
+     * @throws BlueDotRuntimeException
      */
     public function append(string $name, StorageInterface $storage) : StorageInterface
     {
@@ -156,7 +157,7 @@ abstract class AbstractArgumentBag implements StorageInterface, \IteratorAggrega
             $internalStorage = $this->get($name);
 
             if (!is_array($internalStorage) and !$internalStorage instanceof StorageInterface) {
-                throw new CommonInternalException('StorageInterface::append() only supports appending values on traversable data types');
+                throw new BlueDotRuntimeException('StorageInterface::append() only supports appending values on traversable data types');
             }
         }
 
@@ -195,13 +196,13 @@ abstract class AbstractArgumentBag implements StorageInterface, \IteratorAggrega
     }
     /**
      * @param string $name
-     * @throws CommonInternalException
+     * @throws BlueDotRuntimeException
      */
     public function createInternalStorage(string $name)
     {
         if ($this->has($name)) {
             if (!$this->get($name) instanceof StorageInterface) {
-                throw new CommonInternalException('Storage for \''.$name.'\' already exists');
+                throw new BlueDotRuntimeException('Storage for \''.$name.'\' already exists');
             }
         }
 

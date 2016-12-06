@@ -10,7 +10,7 @@ class ScenarioConfigurationCollection extends AbstractArgumentBag
      * @param string $scenarioConfigName
      * @param string $scenarioStatementName
      * @return bool
-     * @throws \BlueDot\Exception\CommonInternalException
+     * @throws \BlueDot\Exception\BlueDotRuntimeException
      */
     public function hasScenarioConfiguration(string $scenarioStatementName) : bool
     {
@@ -19,7 +19,7 @@ class ScenarioConfigurationCollection extends AbstractArgumentBag
     /**
      * @param string $scenarioStatementName
      * @return mixed|null
-     * @throws \BlueDot\Exception\CommonInternalException
+     * @throws \BlueDot\Exception\BlueDotRuntimeException
      */
     public function getScenarioConfiguration(string $scenarioStatementName) : ScenarioConfiguration
     {

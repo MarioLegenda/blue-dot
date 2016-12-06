@@ -2,9 +2,10 @@
 
 namespace BlueDot\Common;
 
+use BlueDot\Exception\CompileException;
 use BlueDot\Exception\QueryException;
 
-class ArgumentValidator
+class ArgumentValidator implements ValidatorInterface
 {
     /**
      * @var string $type
@@ -29,16 +30,30 @@ class ArgumentValidator
     /**
      * @param string $arguments
      */
-    public function __construct(string $arguments)
+    public function __construct(string $arguments = null)
     {
         $this->arguments = $arguments;
+    }
+    /**
+     * @param string $arguments
+     * @return ValidatorInterface
+     */
+    public function setValidationArgument($validationArgument) : ValidatorInterface
+    {
+        if (!is_string($validationArgument)) {
+            throw new CompileException('Invalid argument for validation in '.ArgumentValidator::class.'. This is probably a bug so please, contact whitepostmail@gmail.com or post an issue');
+        }
+
+        $this->arguments = $validationArgument;
+
+        return $this;
     }
     /**
      * @param string $arguments
      * @return bool
      * @throws QueryException
      */
-    public function validate() : bool
+    public function validate() : ValidatorInterface
     {
         $argc = explode('.', $this->arguments);
 
@@ -47,7 +62,7 @@ class ArgumentValidator
             $this->statementName = $argc[1];
             $this->resolvedName = $argc[0].'.'.$argc[1];
 
-            return true;
+            return $this;
         }
 
         if (count($argc) === 3) {
@@ -56,7 +71,7 @@ class ArgumentValidator
             $this->statementName = $argc[2];
             $this->resolvedName = $argc[0].'.'.$argc[1].'.'.$argc[2];
 
-            return true;
+            return $this;
         }
 
         throw new QueryException('Invalid execute statement name. Given '.$this->arguments);
