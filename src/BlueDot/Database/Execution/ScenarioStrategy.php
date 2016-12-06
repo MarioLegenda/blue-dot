@@ -9,6 +9,7 @@ use BlueDot\Database\Parameter\Parameter;
 use BlueDot\Entity\Entity;
 use BlueDot\Entity\EntityCollection;
 use BlueDot\Exception\CommonInternalException;
+use BlueDot\Exception\ConfigurationException;
 use BlueDot\Exception\QueryException;
 
 class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
@@ -43,6 +44,12 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
         $this->statements = $this->statement->get('statements');
 
         foreach ($this->statements as $statement) {
+            if ($statement->has('multi_insert')) {
+                if ($statement->has('foreign_key') or $statement->has('use_option')) {
+                    throw new ConfigurationException('If you provide a statement with multiple parameters for a multi insert, then that statement cannot have \'use\' or \'foreign_key\' options. Statement: '.$statement->get('resolved_statement_name'));
+                }
+            }
+
             try {
                 if ($statement->has('foreign_key')) {
                     $foreignKey = $statement->get('foreign_key');
@@ -129,12 +136,21 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
             $this->bindUseOptionParameters($statement);
         }
 
-        if ($statement->has('parameters')) {
-            $parameters = $statement->get('parameters');
-            $this->bindParameterCollection($parameters);
-        }
+        if (!$statement->has('multi_insert')) {
+            if ($statement->has('parameters')) {
+                $parameters = $statement->get('parameters');
+                $this->bindParameterCollection($parameters);
+            }
 
-        $this->pdoStatement->execute();
+            $this->pdoStatement->execute();
+        } else if ($statement->has('multi_insert')) {
+            $parameters = $statement->get('parameters');
+
+            foreach ($parameters as $parameterCollection) {
+                $this->bindParameterCollection($parameterCollection);
+                $this->pdoStatement->execute();
+            }
+        }
 
         if ($statement->get('sql_type') === 'select') {
             $this->saveResult($statement);
@@ -210,7 +226,10 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
             throw new CommonInternalException('\'foreign_key\' option '.$foreignKeyStatementName.' has not been executed but it should have been. This could be a bug so please, contact whitepostmail@gmail.com or post an issue on https://github.com/MarioLegenda/blue-dot');
         }
 
-        $statementLastInsertId = $this->resultReport->get($foreignKeyStatementName);
+
+        $insertStatements = $this->resultReport->get($foreignKeyStatementName);
+        $statementLastInsertId = $insertStatements[count($insertStatements) - 1];
+
         $parameterCollection = new ParameterCollection();
 
         $parameterCollection->addParameter(new Parameter($bindTo, (int) $statementLastInsertId->get('last_insert_id')));
@@ -234,19 +253,6 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
         );
     }
 
-    private function saveResult(StorageInterface $statement)
-    {
-        if (!$this->resultReport instanceof ArgumentBag) {
-            $this->resultReport = new ArgumentBag();
-        }
-
-        $result = $this->pdoStatement->fetchAll(\PDO::FETCH_ASSOC);
-
-        if (!$this->resultReport->has($statement->get('resolved_statement_name'))) {
-            $this->resultReport->add($statement->get('resolved_statement_name'), $this->createEntity($result));
-        }
-    }
-
     private function createEntity(array $result) : StorageInterface
     {
         $resultCount = count($result);
@@ -267,6 +273,19 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
         }
     }
 
+    private function saveResult(StorageInterface $statement)
+    {
+        if (!$this->resultReport instanceof ArgumentBag) {
+            $this->resultReport = new ArgumentBag();
+        }
+
+        $result = $this->pdoStatement->fetchAll(\PDO::FETCH_ASSOC);
+
+        if (!$this->resultReport->has($statement->get('resolved_statement_name'))) {
+            $this->resultReport->add($statement->get('resolved_statement_name'), $this->createEntity($result));
+        }
+    }
+
     private function saveLastInsertId(ArgumentBag $statement)
     {
         if (!$this->resultReport instanceof ArgumentBag) {
@@ -276,6 +295,6 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
         $lastInsertIdStorage = new ArgumentBag();
         $lastInsertIdStorage->add('last_insert_id', $this->connection->getConnection()->lastInsertId());
 
-        $this->resultReport->add($statement->get('resolved_statement_name'), $lastInsertIdStorage);
+        $this->resultReport->append($statement->get('resolved_statement_name'), $lastInsertIdStorage);
     }
 }

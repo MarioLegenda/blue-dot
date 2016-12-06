@@ -52,6 +52,11 @@ class UserInfoDatabaseTest extends \PHPUnit_Framework_TestCase
         ));
 
         $scenarioResult = $blueDot->execute('scenario.user_info_database', array(
+            'insert_multi_users' => array(
+                'name' => array('Miki', 'Miki', 'Miki'),
+                'lastname' => array('Milutinovic', 'Mirkovilovic', 'Mirzic'),
+                'occupation' => array('mason', 'pernar', 'reptile'),
+            ),
             'select_user' => array(
                 'id' => 1,
             ),

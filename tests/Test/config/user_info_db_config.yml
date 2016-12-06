@@ -87,7 +87,12 @@ configuration:
             atomic: true
             return_entity: [select_user.id, "select_user.name as user_name", "select_user.lastname  as user_lastname", get_address_by_id]
             statements:
+                insert_multi_users:
+                    sql_type: insert
+                    sql: "INSERT INTO user (name, lastname, occupation) VALUES (:name, :lastname, :occupation)"
+                    parameters: [name, lastname, occupation]
                 insert_user:
+                    # multiple inserts cannot have a 'use' or 'foreign_key' option on them
                     sql_type: insert
                     sql: "INSERT INTO user (name, lastname, occupation) VALUES (:name, :lastname, :occupation)"
                     use:
@@ -102,10 +107,11 @@ configuration:
                     sql_type: insert
                     sql: "INSERT INTO address (user_id, city, address) VALUES (:user_id, :city, :address)"
                     foreign_key:
-                        statement_name: insert_user
+                        statement_name: insert_multi_users
                         bind_to: user_id
                     parameters: [city, address]
                 get_address_by_id:
+                    # when using a foreign key statement, it has to take the last foreign_key if the insert statement was a multi_insert
                     sql_type: select
                     sql: "SELECT * FROM address WHERE id = :id"
                     foreign_key:

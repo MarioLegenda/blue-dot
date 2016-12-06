@@ -127,7 +127,7 @@ class ParameterCollection implements \IteratorAggregate, \ArrayAccess
     /**
      * @param array $parameters
      * @param bool $isMultiInsert
-     * @return array
+     * @return mixed
      */
     public function bindValues(array $parameters, bool $isMultiInsert = false)
     {

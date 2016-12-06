@@ -88,7 +88,7 @@ class BlueDot implements BlueDotInterface
     /**
      * @param string $name
      * @param array $parameters
-     * @return Entity
+     * @return BlueDotInterface
      */
     public function execute(string $name, $parameters = array()) : BlueDotInterface
     {
