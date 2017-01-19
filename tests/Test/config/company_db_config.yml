@@ -3,7 +3,7 @@ configuration:
         host: localhost
         database_name: ''
         user: root
-        password: ''
+        password: 'root'
 
     scenario:
         create_database:

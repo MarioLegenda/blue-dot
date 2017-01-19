@@ -2,7 +2,7 @@
 
 namespace Test;
 
-require __DIR__.'/../../vendor/autoload.php';
+require __DIR__ . '/../../vendor/autoload.php';
 
 use BlueDot\BlueDot;
 use BlueDot\Entity\Entity;
@@ -11,7 +11,7 @@ class UserInfoDatabaseTest extends \PHPUnit_Framework_TestCase
 {
     public function testWorldDatabase()
     {
-        $blueDot = BlueDot::instance(__DIR__.'/config/user_info_db_config.yml');
+        $blueDot = BlueDot::instance(__DIR__ . '/config/user_info_db_config.yml');
 
         $blueDot->execute('scenario.create_database');
         $blueDot->execute('scenario.clear_database');
