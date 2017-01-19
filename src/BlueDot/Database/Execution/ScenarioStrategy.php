@@ -43,12 +43,27 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
 
         foreach ($this->statements as $statement) {
             if ($statement->has('multi_insert')) {
-                if ($statement->has('foreign_key') or $statement->has('use_option')) {
-                    throw new BlueDotRuntimeException('If you provide a statement with multiple parameters for a multi insert, then that statement cannot have \'use\' or \'foreign_key\' options. Statement: '.$statement->get('resolved_statement_name'));
+                if ($statement->has('foreign_key')) {
+
                 }
+
+/*                if ($statement->has('foreign_key') or $statement->has('use_option')) {
+                    throw new BlueDotRuntimeException('If you provide a statement with multiple parameters for a multi insert, then that statement cannot have \'use\' or \'foreign_key\' options. Statement: '.$statement->get('resolved_statement_name'));
+                }*/
             }
 
             try {
+                if ($statement->has('multi_insert')) {
+                    if ($statement->has('foreign_key')) {
+                        $foreignKey = $statement->get('foreign_key');
+                        $foreignKeyStatement = $this->statements->get($statement->get('scenario_name').'.'.$foreignKey->getName());
+
+                        if (!$this->resultReport->has($foreignKeyStatement->get('resolved_statement_name'))) {
+                            $this->singleStatementRecursiveExecution($foreignKeyStatement);
+                        }
+                    }
+                }
+
                 if ($statement->has('foreign_key')) {
                     $foreignKey = $statement->get('foreign_key');
                     $foreignKeyStatement = $this->statements->get($statement->get('scenario_name').'.'.$foreignKey->getName());
