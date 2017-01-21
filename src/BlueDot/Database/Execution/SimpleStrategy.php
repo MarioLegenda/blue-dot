@@ -25,24 +25,30 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
         try {
             $this->connection->connect();
 
-            $multiValue = $this->statement->has('multi_insert');
+            $insertType = $this->statement->get('query_strategy');
 
             $this->connection->getConnection()->beginTransaction();
 
-            switch ($multiValue) {
-                case false:
-                    $this->singleStatementExecution();
+            switch ($insertType) {
+                case 'individual_strategy':
+                    $this->individualStatement();
                     break;
-                case true:
-                    $this->multiInsertStatementExecution();
+                case 'individual_multi_strategy':
+                    $this->individualMultiStatement();
                     break;
+                case 'multi_strategy':
+                    $this->multiStrategyStatement();
             }
 
             $this->connection->getConnection()->commit();
 
             return $this;
         } catch (\PDOException $e) {
-            throw new BlueDotRuntimeException('A PDOException was thrown with message \''.$e->getMessage().'\'');
+            $message = sprintf('A PDOException was thrown for statement %s with message \'%s\'', $this->statement->get('resolved_statement_name'), $e->getMessage());
+
+            $this->connection->getConnection()->rollBack();
+
+            throw new BlueDotRuntimeException($message);
         }
     }
     /**
@@ -50,114 +56,143 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
      * @return StorageInterface|Entity|EntityCollection
      * @throws \BlueDot\Exception\BlueDotRuntimeException
      */
-    public function getResult(ArgumentBag $statement = null) : StorageInterface
+    public function getResult(ArgumentBag $statement = null)
     {
-        if ($this->entity instanceof StorageInterface) {
-            return $this->entity;
+        $result = $this->resultReport->get($this->statement->get('resolved_statement_name'));
+        $statementType = $this->statement->get('statement_type');
+
+        if (is_null($result)) {
+            return null;
         }
 
-        if ($this->statement->get('statement_type') === 'select') {
-            $result = $this->pdoStatement->fetchAll(\PDO::FETCH_ASSOC);
-
-            return $this->createEntity($result);
-        }
-
-        if ($this->statement->get('statement_type') === 'insert') {
+        if ($statementType === 'insert') {
             $entity = new Entity();
 
-            return $entity->add('last_insert_id', $this->connection->getConnection()->lastInsertId());
-        }
+            foreach ($result as $key => $res) {
+                $entity->add($key, (int) $res);
+            }
 
-        return $this->createEntity(array());
-    }
+            return $entity;
+        } else if ($statementType === 'select') {
+            if (count($result) === 1) {
+                return new Entity($result[0][0]);
+            }
 
-    private function createEntity(array $result) : StorageInterface
-    {
-        $resultCount = count($result);
+            $temp = array();
 
-        switch ($resultCount) {
-            case 0:
-                $this->entity = new Entity();
+            foreach ($result as $rows) {
+                foreach ($rows as $key => $row) {
+                    $temp[] = $row;
+                }
+            }
 
-                return $this->entity;
-            case 1:
-                $this->entity = new Entity($result[0]);
-
-                return $this->entity;
-            default:
-                $this->entity = new EntityCollection($result);
-
-                return $this->entity;
+            return new Entity($temp);
+        } else if ($statementType === 'update' or $statementType === 'delete') {
+            return $result[0];
         }
     }
 
-    private function singleStatementExecution(ParameterCollection $parameters = null)
+    private function individualStatement()
     {
-        $this->pdoStatement = $this->connection->getConnection()->prepare($this->statement->get('sql'));
+        $pdoStatement = $this->connection->getConnection()->prepare($this->statement->get('sql'));
 
-        if (!$parameters instanceof ParameterCollection) {
-            if ($this->statement->has('parameters')) {
-                $parameters = $this->statement->get('parameters');
+        if ($this->statement->has('parameters')) {
+            $parameters = $this->statement->get('parameters');
+
+            foreach ($parameters as $key => $parameter) {
+                $this->bindSingleParameter(new Parameter($key, $parameter), $pdoStatement);
             }
         }
 
+        $pdoStatement->execute();
+
+        $this->saveResult($pdoStatement);
+    }
+
+    private function individualMultiStatement()
+    {
         if ($this->statement->has('parameters')) {
-            $this->bindParameterCollection($parameters);
-        }
+            $parameters = $this->statement->get('parameters');
 
-        $this->pdoStatement->execute();
+            $bindParameter = array_keys($parameters)[0];
+            $values = $parameters[$bindParameter];
+
+            foreach ($values as $value) {
+                $pdoStatement = $this->connection->getConnection()->prepare($this->statement->get('sql'));
+
+                $this->bindSingleParameter(new Parameter($bindParameter, $value), $pdoStatement);
+
+                $pdoStatement->execute();
+
+                $this->saveResult($pdoStatement);
+            }
+        }
     }
 
-    private function bindParameterCollection(ParameterCollection $parameters)
+    private function multiStrategyStatement()
     {
-        foreach ($parameters as $parameter) {
-            $this->bindSingleParameter($parameter);
+        if ($this->statement->has('parameters')) {
+            $parameters = $this->statement->get('parameters');
+
+            foreach ($parameters as $realParameters) {
+                $pdoStatement = $this->connection->getConnection()->prepare($this->statement->get('sql'));
+
+                foreach ($realParameters as $key => $value) {
+                    $this->bindSingleParameter(new Parameter($key, $value), $pdoStatement);
+                }
+
+                $pdoStatement->execute();
+
+                $this->saveResult($pdoStatement);
+            }
         }
     }
 
-    private function bindSingleParameter(Parameter $parameter)
+    private function bindSingleParameter(Parameter $parameter, \PDOStatement $pdoStatement)
     {
-        $this->pdoStatement->bindValue(
+        $pdoStatement->bindValue(
             $parameter->getKey(),
             $parameter->getValue(),
             $parameter->getType()
         );
     }
 
-    private function multiInsertStatementExecution()
+    private function saveResult(\PDOStatement $pdoStatement)
     {
-        $parameters = $this->statement->get('parameters');
+        $statementType = $this->statement->get('statement_type');
+        if ($statementType === 'select') {
+            $resolvedStatementName = $this->statement->get('resolved_statement_name');
+            $queryResult = $pdoStatement->fetchAll(\PDO::FETCH_ASSOC);
 
-        foreach ($parameters as $parameter) {
-            $this->singleStatementExecution($parameter);
-        }
-    }
-
-
-    private function resolveMultiInsertParameters() : array
-    {
-        $parameters = $this->statement->get('parameters');
-
-        $valueCount = count($parameters[0]->getValue());
-
-        $keys  = $parameters->getKeys();
-        $values = $parameters->getAllValues();
-
-        $parameters = array();
-        $i = 0;
-        while ($i < $valueCount) {
-            $parameterCollection = new ParameterCollection();
-
-            foreach ($keys as $key => $val) {
-                $parameter = new Parameter($val, $values[$key][$i]);
-                $parameterCollection->addParameter($parameter);
+            if (empty($queryResult)) {
+                $this->resultReport->add($resolvedStatementName, null);
+            } else {
+                $this->resultReport->appendValue($resolvedStatementName, $queryResult);
             }
+        } else if ($statementType === 'insert') {
+            $resolvedStatementName = $this->statement->get('resolved_statement_name');
+            $lastInsertId = $this->connection->getConnection()->lastInsertId();
 
-            $parameters[] = $parameterCollection;
+            if (empty($lastInsertId)) {
+                $this->resultReport->add($resolvedStatementName, null);
+            } else {
+                $this->resultReport->appendValue(
+                    $resolvedStatementName,
+                    $this->connection->getConnection()->lastInsertId()
+                );
+            }
+        } else if ($statementType === 'update' or $statementType === 'delete') {
+            $resolvedStatementName = $this->statement->get('resolved_statement_name');
+            $rowCount = $pdoStatement->rowCount();
 
-            $i++;
+            if (empty($rowCount)) {
+                $this->resultReport->add($resolvedStatementName, null);
+            } else {
+                $this->resultReport->appendValue(
+                    $resolvedStatementName,
+                    $pdoStatement->rowCount()
+                );
+            }
         }
-
-        return $parameters;
     }
 }

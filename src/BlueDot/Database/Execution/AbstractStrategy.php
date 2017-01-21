@@ -19,11 +19,16 @@ abstract class AbstractStrategy
      * @var \PDOStatement $pdoStatement
      */
     protected $pdoStatement;
+    /**
+     * @var ArgumentBag $resultReport
+     */
+    protected $resultReport;
 
     public function __construct(ArgumentBag $statement)
     {
         $this->connection = $statement->get('connection');
         $statement->remove('connection');
         $this->statement = $statement;
+        $this->resultReport = new ArgumentBag();
     }
 }

@@ -61,7 +61,13 @@ interface StorageInterface
      * @param StorageInterface $storage
      * @return StorageInterface
      */
-    public function append(string $name, StorageInterface $storage) : StorageInterface;
+    public function appendStorage(string $name, StorageInterface $storage) : StorageInterface;
+    /**
+     * @param string $name
+     * @param mixed $value
+     * @return StorageInterface
+     */
+    public function appendValue(string $name, $value) : StorageInterface;
     /**
      * @param string $name
      * @return StorageInterface

@@ -14,13 +14,27 @@ configuration:
             find_roles_by_user:
                 sql: "SELECT * FROM roles WHERE user_id = :user_id"
                 parameters: [user_id]
-            insert_account:
-                sql: "INSERT INTO account (type) VALUES (:type)"
-                parameters: [type]
+            find_users:
+                sql: "SELECT * FROM users WHERE id = :id"
+                parameters: [id]
         insert:
             insert_account:
                 sql: "INSERT INTO account (type) VALUES (:type)"
                 parameters: [type]
+            insert_user:
+                sql: "INSERT INTO users (username, password, account_id) VALUES (:username, :password, :account_id)"
+                parameters: [username, password, account_id]
+            insert_account:
+                sql: "INSERT INTO account (type) VALUES (:type)"
+                parameters: [type]
+        update:
+            update_user:
+                sql: "UPDATE users SET username = :username WHERE id = :id"
+                parameters: [username, id]
+        delete:
+            delete_user:
+                sql: "DELETE FROM users WHERE id = :id"
+                parameters: [id]
 
     scenario:
         database:
@@ -38,7 +52,7 @@ configuration:
                     sql: "DROP TABLE IF EXISTS user_roles"
                     sql_type: database
                 create_user_table:
-                    sql: "CREATE TABLE users (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, username VARCHAR(256) NOT NULL, password VARCHAR(256) NOT NULL, account_id INT(6), created_at DATETIME NOT NULL, updated_at DATETIME)"
+                    sql: "CREATE TABLE users (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, username VARCHAR(256) NOT NULL, password VARCHAR(256) NOT NULL, account_id INT(6))"
                     sql_type: database
                 create_account:
                     sql: "CREATE TABLE account (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, type VARCHAR(256) NOT NULL)"

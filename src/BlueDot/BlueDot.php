@@ -110,7 +110,7 @@ class BlueDot implements BlueDotInterface
     /**
      * @return StorageInterface
      */
-    public function getResult() : StorageInterface
+    public function getResult()
     {
         return $this->strategy->getResult();
     }

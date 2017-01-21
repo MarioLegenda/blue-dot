@@ -18,9 +18,21 @@ class UserInfoDatabaseTest extends \PHPUnit_Framework_TestCase
         $blueDot->execute('simple.insert.insert_city');
 
         $blueDot->execute('simple.insert.insert_user', array(
-            'name' => array('Mile', 'Mirko', 'Mirza'),
-            'lastname' => array('Milutinovic', 'Mirkovilovic', 'Mirzic'),
-            'occupation' => array('mason', 'pernar', 'reptile'),
+            array(
+                'name' => 'Mile',
+                'lastname' => 'Milutinović',
+                'occupation' => 'mason',
+            ),
+            array (
+                'name' => 'Mirko',
+                'lastname' => 'Mirkovilović',
+                'occupation' => 'pernar',
+            ),
+            array(
+                'name' => 'Mirza',
+                'lastname' => 'Mirzić',
+                'occupation' => 'reptile',
+            ),
         ))->getResult();
 
         $singleCity = $blueDot->execute('simple.select.single_city', array(

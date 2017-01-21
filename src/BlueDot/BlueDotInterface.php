@@ -15,7 +15,7 @@ interface BlueDotInterface
     /**
      * @return StorageInterface
      */
-    public function getResult() : StorageInterface;
+    public function getResult();
     /**
      * @param \PDO $connection
      * @return BlueDotInterface

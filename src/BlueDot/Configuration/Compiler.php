@@ -61,6 +61,10 @@ class Compiler
 
         $type = $this->argumentValidator->getType();
 
+        if ($this->builtConfiguration[$type]->has($name)) {
+            return $this->builtConfiguration[$type]->get($name);
+        }
+
         $method = 'compile'.ucfirst($type).'Statement';
 
         if (!method_exists($this, $method)) {
@@ -83,6 +87,7 @@ class Compiler
     private function compileSimpleStatement(string $name) : bool
     {
         $builtSimpleConfiguration = $this->builtConfiguration['simple'];
+
         $foundConfig = false;
 
         foreach ($this->configuration['simple'] as $type => $typeConfig) {
@@ -95,7 +100,8 @@ class Compiler
                         ->add('type', 'simple')
                         ->add('resolved_name', $resolvedName)
                         ->add('statement_type', $type)
-                        ->add('statement_name', $statementName);
+                        ->add('statement_name', $statementName)
+                        ->add('resolved_statement_name', 'simple.'.$resolvedName);
 
                     $workConfig = new ArgumentBag();
                     $workConfig->add('sql', $statementConfig['sql']);
@@ -103,7 +109,7 @@ class Compiler
                     if (array_key_exists('parameters', $statementConfig)) {
                         $parameters = $statementConfig['parameters'];
 
-                        $workConfig->add('parameters', $this->addSimpleParameters($parameters));
+                        $workConfig->add('config_parameters', $parameters);
                     }
 
                     $builtStatement->mergeStorage($workConfig);
@@ -167,7 +173,7 @@ class Compiler
                     if (array_key_exists('parameters', $statementConfig)) {
                         $parameters = $statementConfig['parameters'];
 
-                        $scenarioStatement->add('parameters', $this->addScenarioParameters($parameters));
+                        $scenarioStatement->add('config_parameters', $parameters);
                     }
 
                     if (array_key_exists('use', $statementConfig)) {

@@ -65,7 +65,7 @@ abstract class AbstractArgumentBag implements StorageInterface, \IteratorAggrega
         }
 
         if (!$this->has($name)) {
-            throw new BlueDotRuntimeException('\''.$name.'\' not found. Nothing to add to');
+            $this->createInternalStorage($name);
         }
 
         $entry = $this->get($name);
@@ -152,7 +152,7 @@ abstract class AbstractArgumentBag implements StorageInterface, \IteratorAggrega
      * @return StorageInterface
      * @throws BlueDotRuntimeException
      */
-    public function append(string $name, StorageInterface $storage) : StorageInterface
+    public function appendStorage(string $name, StorageInterface $storage) : StorageInterface
     {
         if ($this->has($name)) {
             $internalStorage = $this->get($name);
@@ -163,10 +163,34 @@ abstract class AbstractArgumentBag implements StorageInterface, \IteratorAggrega
         }
 
         if (!$this->has($name)) {
-            $this->arguments[$name] = $this->createInternalStorage($name);
+            $this->createInternalStorage($name);
         }
 
         $this->arguments[$name][] = $storage;
+
+        return $this;
+    }
+    /**
+     * @param string $name
+     * @param $value
+     * @return StorageInterface
+     * @throws BlueDotRuntimeException
+     */
+    public function appendValue(string $name, $value) : StorageInterface
+    {
+        if ($this->has($name)) {
+            $internalStorage = $this->get($name);
+
+            if (!is_array($internalStorage) and !$internalStorage instanceof StorageInterface) {
+                throw new BlueDotRuntimeException('StorageInterface::append() only supports appending values on traversable data types');
+            }
+        }
+
+        if (!$this->has($name)) {
+            $this->createInternalStorage($name);
+        }
+
+        $this->arguments[$name][] = $value;
 
         return $this;
     }
@@ -238,7 +262,11 @@ abstract class AbstractArgumentBag implements StorageInterface, \IteratorAggrega
      */
     public function offsetSet($offset, $value)
     {
-        $this->arguments[$offset] = $value;
+        if (is_null($offset)) {
+            $this->arguments[] = $value;
+        } else {
+            $this->arguments[$offset] = $value;
+        }
     }
     /**
      * @param mixed $offset

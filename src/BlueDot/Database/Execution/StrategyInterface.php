@@ -13,5 +13,5 @@ interface StrategyInterface
     /**
      * @return StorageInterface
      */
-    public function getResult() : StorageInterface;
+    public function getResult();
 }

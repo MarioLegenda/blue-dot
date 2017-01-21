@@ -17,10 +17,6 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
      */
     private $statements;
     /**
-     * @var ArgumentBag $resultReport
-     */
-    private $resultReport;
-    /**
      * @var StorageInterface $entity
      */
     private $entity;
@@ -29,8 +25,6 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
      */
     public function execute() : StrategyInterface
     {
-        $this->resultReport = new ArgumentBag();
-
         $this->connection->connect();
 
         $rootConfig = $this->statement->get('root_config');
