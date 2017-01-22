@@ -13,9 +13,9 @@ use BlueDot\Exception\BlueDotRuntimeException;
 class SimpleStrategy extends AbstractStrategy implements StrategyInterface
 {
     /**
-     * @var StorageInterface $entity
+     * @var \PDOStatement $pdoStatement
      */
-    private $entity;
+    protected $pdoStatement;
     /**
      * @return StrategyInterface
      * @throws BlueDotRuntimeException
@@ -27,7 +27,9 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
 
             $insertType = $this->statement->get('query_strategy');
 
-            $this->connection->getConnection()->beginTransaction();
+            if (!$this->connection->getConnection()->inTransaction()) {
+                $this->connection->getConnection()->beginTransaction();
+            }
 
             switch ($insertType) {
                 case 'individual_strategy':
@@ -40,13 +42,17 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
                     $this->multiStrategyStatement();
             }
 
-            $this->connection->getConnection()->commit();
+            if ($this->connection->getConnection()->inTransaction()) {
+                $this->connection->getConnection()->commit();
+            }
 
             return $this;
         } catch (\PDOException $e) {
             $message = sprintf('A PDOException was thrown for statement %s with message \'%s\'', $this->statement->get('resolved_statement_name'), $e->getMessage());
 
-            $this->connection->getConnection()->rollBack();
+            if ($this->connection->getConnection()->inTransaction()) {
+                $this->connection->getConnection()->rollBack();
+            }
 
             throw new BlueDotRuntimeException($message);
         }
@@ -59,6 +65,11 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
     public function getResult(ArgumentBag $statement = null)
     {
         $result = $this->resultReport->get($this->statement->get('resolved_statement_name'));
+
+        if ($result instanceof Entity) {
+            return $result;
+        }
+
         $statementType = $this->statement->get('statement_type');
 
         if (is_null($result)) {
@@ -92,21 +103,30 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
         }
     }
 
+    private function bindSingleParameter(Parameter $parameter, \PDOStatement $pdoStatement)
+    {
+        $pdoStatement->bindValue(
+            $parameter->getKey(),
+            $parameter->getValue(),
+            $parameter->getType()
+        );
+    }
+
     private function individualStatement()
     {
-        $pdoStatement = $this->connection->getConnection()->prepare($this->statement->get('sql'));
+        $this->pdoStatement = $this->connection->getConnection()->prepare($this->statement->get('sql'));
 
         if ($this->statement->has('parameters')) {
             $parameters = $this->statement->get('parameters');
 
             foreach ($parameters as $key => $parameter) {
-                $this->bindSingleParameter(new Parameter($key, $parameter), $pdoStatement);
+                $this->bindSingleParameter(new Parameter($key, $parameter), $this->pdoStatement);
             }
         }
 
-        $pdoStatement->execute();
+        $this->pdoStatement->execute();
 
-        $this->saveResult($pdoStatement);
+        $this->saveResult($this->pdoStatement);
     }
 
     private function individualMultiStatement()
@@ -118,13 +138,13 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
             $values = $parameters[$bindParameter];
 
             foreach ($values as $value) {
-                $pdoStatement = $this->connection->getConnection()->prepare($this->statement->get('sql'));
+                $this->pdoStatement = $this->connection->getConnection()->prepare($this->statement->get('sql'));
 
-                $this->bindSingleParameter(new Parameter($bindParameter, $value), $pdoStatement);
+                $this->bindSingleParameter(new Parameter($bindParameter, $value), $this->pdoStatement);
 
-                $pdoStatement->execute();
+                $this->pdoStatement->execute();
 
-                $this->saveResult($pdoStatement);
+                $this->saveResult($this->pdoStatement);
             }
         }
     }
@@ -135,26 +155,17 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
             $parameters = $this->statement->get('parameters');
 
             foreach ($parameters as $realParameters) {
-                $pdoStatement = $this->connection->getConnection()->prepare($this->statement->get('sql'));
+                $this->pdoStatement = $this->connection->getConnection()->prepare($this->statement->get('sql'));
 
                 foreach ($realParameters as $key => $value) {
-                    $this->bindSingleParameter(new Parameter($key, $value), $pdoStatement);
+                    $this->bindSingleParameter(new Parameter($key, $value), $this->pdoStatement);
                 }
 
-                $pdoStatement->execute();
+                $this->pdoStatement->execute();
 
-                $this->saveResult($pdoStatement);
+                $this->saveResult($this->pdoStatement);
             }
         }
-    }
-
-    private function bindSingleParameter(Parameter $parameter, \PDOStatement $pdoStatement)
-    {
-        $pdoStatement->bindValue(
-            $parameter->getKey(),
-            $parameter->getValue(),
-            $parameter->getType()
-        );
     }
 
     private function saveResult(\PDOStatement $pdoStatement)

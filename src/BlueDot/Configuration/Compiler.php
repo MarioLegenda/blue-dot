@@ -164,7 +164,7 @@ class Compiler
 
                     $scenarioStatement = new ArgumentBag();
                     $scenarioStatement
-                        ->add('sql_type', $statementConfig['sql_type'])
+                        ->add('statement_type', $statementConfig['sql_type'])
                         ->add('scenario_name', $resolvedScenarioName)
                         ->add('resolved_statement_name', $resolvedStatementName)
                         ->add('statement_name', $statementName)

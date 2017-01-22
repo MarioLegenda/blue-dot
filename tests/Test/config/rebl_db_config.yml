@@ -42,6 +42,15 @@ configuration:
             rules: { return_entity: false }
             return_entity: []
             statements:
+                drop_database:
+                    sql: "DROP DATABASE IF EXISTS rebl"
+                    sql_type: database
+                create_database:
+                    sql: "CREATE DATABASE rebl"
+                    sql_type: database
+                use_database:
+                    sql: "USE rebl"
+                    sql_type: database
                 drop_users:
                     sql: "DROP TABLE IF EXISTS users"
                     sql_type: database
@@ -62,12 +71,11 @@ configuration:
                     sql_type: database
         create_user:
             atomic: true
-            rules: { return_entity: false }
-            return_entity: []
+            return_entity: ['select_account.type as account_type']
             statements:
                 create_user:
                     sql_type: insert
-                    sql: "INSERT INTO users (username, password, account_id, created_at) VALUES (:username, :account_id, :password, NOW())"
+                    sql: "INSERT INTO users (username, password, account_id) VALUES (:username, :password, :account_id)"
                     parameters: [username, password]
                     use:
                         statement_name: select_account

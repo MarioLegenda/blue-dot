@@ -16,10 +16,6 @@ abstract class AbstractStrategy
      */
     protected $statement;
     /**
-     * @var \PDOStatement $pdoStatement
-     */
-    protected $pdoStatement;
-    /**
      * @var ArgumentBag $resultReport
      */
     protected $resultReport;

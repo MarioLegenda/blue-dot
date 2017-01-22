@@ -43,7 +43,7 @@ class StatementValidator implements ValidatorInterface
         $hasSelectStatement = false;
         $statements = $mainStatement->get('statements');
         foreach ($statements as $statement) {
-            $sqlType = $statement->get('sql_type');
+            $sqlType = $statement->get('statement_type');
 
             if ($sqlType === 'select') {
                 $hasSelectStatement = true;
@@ -102,12 +102,12 @@ class StatementValidator implements ValidatorInterface
                     throw new ConfigurationException('\''.$useOption->getName().'\' not found in '.$statement->get('resolved_statement_name'));
                 }
 
-                $sqlType = $statement->get('sql_type');
+                $sqlType = $statement->get('statement_type');
 
                 if ($sqlType === 'delete' or $sqlType === 'insert' or $sqlType === 'update') {
                     $useOptionStatement = $statements->get($useOptionStatementName);
 
-                    if ($useOptionStatement->get('sql_type') !== 'select') {
+                    if ($useOptionStatement->get('statement_type') !== 'select') {
                         throw new ConfigurationException('\'use\' option statement has to be a select \'sql_type\'');
                     }
                 }

@@ -4,11 +4,13 @@ namespace BlueDot\Database\Execution;
 
 use BlueDot\Common\ArgumentBag;
 use BlueDot\Common\StorageInterface;
+use BlueDot\Database\Execution\LowLevelStrategy\BasicStatementExecution;
 use BlueDot\Database\Parameter\ParameterCollection;
 use BlueDot\Database\Parameter\Parameter;
 use BlueDot\Entity\Entity;
 use BlueDot\Entity\EntityCollection;
 use BlueDot\Exception\BlueDotRuntimeException;
+use BlueDot\Database\Execution\LowLevelStrategy\RecursiveStatementExecution;
 
 class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
 {
@@ -36,32 +38,19 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
         $this->statements = $this->statement->get('statements');
 
         foreach ($this->statements as $statement) {
-            if ($statement->has('multi_insert')) {
-                if ($statement->has('foreign_key') or $statement->has('use_option')) {
-                    throw new BlueDotRuntimeException('If you provide a statement with multiple parameters for a multi insert, then that statement cannot have \'use\' or \'foreign_key\' options. Statement: '.$statement->get('resolved_statement_name'));
-                }
-            }
-
             try {
-                if ($statement->has('foreign_key')) {
-                    $foreignKey = $statement->get('foreign_key');
-                    $foreignKeyStatement = $this->statements->get($statement->get('scenario_name').'.'.$foreignKey->getName());
-
-                    if (!$this->resultReport->has($foreignKeyStatement->get('resolved_statement_name'))) {
-                        $this->singleStatementRecursiveExecution($foreignKeyStatement);
-                    }
+                if ($this->resultReport->has($statement->get('resolved_statement_name'))) {
+                    continue;
                 }
 
-                if ($statement->has('use_option')) {
-                    $useOption = $statement->get('use_option');
-                    $useStatement = $this->statements->get($statement->get('scenario_name').'.'.$useOption->getName());
+                $resursiveStatementExecution = new RecursiveStatementExecution(
+                    $statement,
+                    $this->resultReport,
+                    $this->connection
+                );
 
-                    if (!$this->resultReport->has($useStatement->get('resolved_statement_name'))) {
-                        $this->singleStatementRecursiveExecution($useStatement);
-                    }
-                }
+                $resursiveStatementExecution->execute($this->statements);
 
-                $this->realSingleStatementExecution($statement);
             } catch (\PDOException $e) {
                 throw new BlueDotRuntimeException('A PDOException has been thrown for statement '.$statement->get('resolved_statement_name').' with message \''.$e->getMessage().'\'');
             }

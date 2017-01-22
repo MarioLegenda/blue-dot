@@ -46,27 +46,27 @@ class ParameterConversion
         $type = $this->statement->get('type');
 
         if ($type === 'simple') {
-            $this->validateParameters($this->statement, $this->userParameters);
-
             if ($this->statement->has('config_parameters')) {
+                $this->validateParameters($this->statement, $this->userParameters);
+
                 $this->statement->add('parameters', $this->userParameters, true);
             }
         } else if ($type === 'scenario') {
-            $statements = $this->statement->get('statements');
+                $statements = $this->statement->get('statements');
 
-            foreach ($statements as $singleStatement) {
-                $this->validateParameters($singleStatement, $this->userParameters);
+                foreach ($statements as $singleStatement) {
+                    $singleStatement->add('query_strategy', 'individual_strategy', true);
 
-                if ($singleStatement->has('config_parameters')) {
-                    $statementName = $singleStatement->get('statement_name');
+                    if ($singleStatement->has('config_parameters')) {
+                        if (!array_key_exists($singleStatement->get('statement_name'), $this->userParameters)) {
+                            throw new BlueDotRuntimeException('Configuration has parameters to bound but you haven\'t supplied any for '.$singleStatement->get('resolved_statement_name'));
+                        }
 
-                    if (!array_key_exists($statementName, $this->userParameters)) {
-                        throw new BlueDotRuntimeException('Configuration has parameters to bound but you haven\'t supplied any for '.$singleStatement->get('resolved_statement_name'));
+                        $this->validateParameters($singleStatement, $this->userParameters[$singleStatement->get('statement_name')]);
+
+                        $singleStatement->add('parameters', $this->userParameters[$singleStatement->get('statement_name')], true);
                     }
-
-                    $singleStatement->add('parameters', $this->userParameters, true);
                 }
-            }
         }
     }
 

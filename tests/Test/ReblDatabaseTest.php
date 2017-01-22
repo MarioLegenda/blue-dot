@@ -27,7 +27,7 @@ class ReblDatabaseTest extends \PHPUnit_Framework_TestCase
 
         $insertedIds = $blueDot->execute('simple.insert.insert_user', array(
             array(
-                'username' => 'Mile',
+                'username' => 'Konj',
                 'password' => 'digital1986',
                 'account_id' => '2',
             ),
@@ -86,7 +86,7 @@ class ReblDatabaseTest extends \PHPUnit_Framework_TestCase
         ))->getResult();
 
         $this->assertEquals('1', $user->get('id'), 'Expected value 1 for id for statement simple.select.find_users');
-        $this->assertEquals('Mile', $user->get('username'), 'Expected value Mile for statement simple.select.find_users');
+        $this->assertEquals('Konj', $user->get('username'), 'Expected value Mile for statement simple.select.find_users');
         $this->assertEquals('digital1986', $user->get('password'), 'Expected value digital1986 for password for simple.select.find_users');
         $this->assertEquals('2', $user->get('account_id'), 'Expected value 2 for password for simple.select.find_users');
 
@@ -118,13 +118,14 @@ class ReblDatabaseTest extends \PHPUnit_Framework_TestCase
 
     public function testReblScenarioStatements()
     {
-        /*
-        $blueDot->execute('scenario.create_user', array(
+        $blueDot = new BlueDot(__DIR__ . '/config/rebl_db_config.yml');
+
+        $result = $blueDot->execute('scenario.create_user', array(
             'select_account' => array(
                 'type' => 'trial',
             ),
             'create_user' => array(
-                'username' => 'mile@gmail.com',
+                'username' => 'stoga@gmail.com',
                 'password' => 'budala',
             ),
             'create_role' => array(
@@ -133,6 +134,9 @@ class ReblDatabaseTest extends \PHPUnit_Framework_TestCase
                     'ROLE_PAID_USER',
                 ),
             )
-        ));*/
+        ))->getResult();
+
+        $this->assertTrue($result->has('account_type'), 'Result of scenario.create_user should have an account_type field');
+        $this->assertEquals($result->get('account_type'), 'trial', 'Result of scenario.create_user should have account_type field \'trial\' value');
     }
 }
