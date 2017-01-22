@@ -141,7 +141,7 @@ class ParameterConversion
                     if ($individualMultiInsert === true) {
                         if (count($userParameters) > 1) {
                             throw new BlueDotRuntimeException(sprintf(
-                                'If you choose to use multi insert parameters, you cannot switch to individual parameters for statement \'%s\'',
+                                'If you choose to use individual multi insert parameters, you cannot switch to individual parameters for statement \'%s\'',
                                 $statement->get('resolved_statement_name')
                             ));
                         }
