@@ -6,6 +6,7 @@ use BlueDot\Common\{ ArgumentValidator, StatementValidator, StorageInterface };
 
 use BlueDot\Configuration\Compiler;
 
+use BlueDot\Configuration\Validator\ConfigurationValidator;
 use BlueDot\Database\{ Connection, ParameterConversion };
 
 use BlueDot\Database\Execution\{ CallableStrategy, ExecutionContext, StrategyInterface };
@@ -66,7 +67,12 @@ class BlueDot implements BlueDotInterface
             $parsedConfiguration = Yaml::parse(file_get_contents($configSource));
         }
 
-        $this->compiler = new Compiler($parsedConfiguration['configuration'], new ArgumentValidator(), new StatementValidator());
+        $this->compiler = new Compiler(
+            $parsedConfiguration['configuration'],
+            new ArgumentValidator(),
+            new StatementValidator(),
+            new ConfigurationValidator($parsedConfiguration)
+        );
 
         if (array_key_exists('connection', $parsedConfiguration['configuration'])) {
             $this->connection = new Connection($parsedConfiguration['configuration']['connection']);

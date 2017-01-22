@@ -2,6 +2,7 @@
 
 namespace BlueDot\Configuration;
 
+use BlueDot\Configuration\Validator\ConfigurationValidator;
 use BlueDot\Exception\CompileException;
 
 use BlueDot\Common\{ ArgumentBag, ArgumentValidator, ValidatorInterface};
@@ -23,6 +24,10 @@ class Compiler
      */
     private $configuration;
     /**
+     * @var ConfigurationValidator $configurationValidator
+     */
+    private $configurationValidator;
+    /**
      * @var array $builtConfiguration
      */
     private $builtConfiguration = array();
@@ -31,12 +36,20 @@ class Compiler
      * @param array $configuration
      * @param ArgumentValidator $argumentValidator
      * @param StatementValidator $statementValidator
+     * @param ConfigurationValidator $configurationValidator
      */
-    public function __construct(array $configuration, ValidatorInterface $argumentValidator, ValidatorInterface $statementValidator)
+    public function __construct(
+        array $configuration,
+        ValidatorInterface
+        $argumentValidator,
+        ValidatorInterface $statementValidator,
+        ConfigurationValidator $configurationValidator
+    )
     {
         $this->configuration = $configuration;
         $this->argumentValidator = $argumentValidator;
         $this->statementValidator = $statementValidator;
+        $this->configurationValidator = $configurationValidator;
 
         if (array_key_exists('simple', $configuration)) {
             $this->builtConfiguration['simple'] = new ArgumentBag();
@@ -57,6 +70,8 @@ class Compiler
      */
     public function compile(string $name) : ArgumentBag
     {
+        $this->configurationValidator->validate();
+
         $this->argumentValidator->setValidationArgument($name)->validate();
 
         $type = $this->argumentValidator->getType();
