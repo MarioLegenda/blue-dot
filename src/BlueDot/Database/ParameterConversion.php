@@ -46,9 +46,9 @@ class ParameterConversion
         $type = $this->statement->get('type');
 
         if ($type === 'simple') {
-            if ($this->statement->has('config_parameters')) {
-                $this->validateParameters($this->statement, $this->userParameters);
+            $this->validateParameters($this->statement, $this->userParameters);
 
+            if ($this->statement->has('config_parameters')) {
                 $this->statement->add('parameters', $this->userParameters, true);
             }
         } else if ($type === 'scenario') {
