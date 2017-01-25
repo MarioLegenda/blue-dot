@@ -38,6 +38,8 @@ class ReblDatabaseTest extends \PHPUnit_Framework_TestCase
             )
         ))->getResult();
 
+
+
         $this->assertCount(2, $insertedIds, 'There should be 2 for inserts for statement simple.insert.insert_user');
 
         foreach ($insertedIds as $insertedId) {

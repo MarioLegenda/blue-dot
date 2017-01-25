@@ -1,0 +1,54 @@
+configuration:
+    connection:
+        host: 127.0.0.1
+        database_name: 'vocallo'
+        user: 'root'
+        password: 'root'
+
+    simple:
+        select:
+            find_user_by_username:
+                sql: "SELECT * FROM users WHERE username = :username"
+                parameters: [username]
+            find_language_by_user:
+                sql: "SELECT language FROM languages WHERE user_id = :user_id AND language = :language"
+                parameters: [user_id]
+            find_all_languages:
+                sql: "SELECT * FROM languages WHERE user_id = :user_id"
+                parameters: [user_id]
+
+        insert:
+            create_user:
+                sql: "INSERT INTO users (username, password, name, lastname, roles, created_at) VALUES (:username, :password, :name, :lastname, :roles, :created_at)"
+                parameters: [username, password, roles, name, lastname, created_at]
+            create_language:
+                sql: "INSERT INTO languages (language, user_id) VALUES (:language, :user_id)"
+                parameters: [language, user_id]
+
+    scenario:
+        database:
+            atomic: true
+            rules: { return_entity: false }
+            return_entity: []
+            statements:
+                drop_database:
+                    sql: "DROP DATABASE IF EXISTS vocallo"
+                    sql_type: database
+                create_database:
+                    sql: "CREATE DATABASE IF NOT EXISTS vocallo CHARACTER SET = 'utf8' COLLATE = 'utf8_general_ci'"
+                    sql_type: database
+                use_database:
+                    sql: "USE vocallo"
+                    sql_type: database
+
+        tables:
+            atomic: true
+            rules: { return_entity: false }
+            return_entity: []
+            statements:
+                create_user_table:
+                    sql: "CREATE TABLE users (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, username VARCHAR(256) NOT NULL, password VARCHAR(256) NOT NULL, roles TEXT NOT NULL, name VARCHAR(256) NOT NULL, lastname VARCHAR(256) NOT NULL, created_at DATETIME NOT NULL, updated_at DATETIME DEFAULT NULL)"
+                    sql_type: table
+                create_languages_table:
+                    sql: "CREATE TABLE languages (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, user_id INT(6), language VARCHAR(256) NOT NULL)"
+                    sql_type: table
