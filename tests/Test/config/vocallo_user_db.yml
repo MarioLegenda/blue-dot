@@ -12,7 +12,10 @@ configuration:
                 parameters: [username]
             find_language_by_user:
                 sql: "SELECT language FROM languages WHERE user_id = :user_id AND language = :language"
-                parameters: [user_id]
+                parameters: [user_id, language]
+            find_section_by_user:
+                sql: "SELECT section FROM sections WHERE user_id = :user_id AND section = :section"
+                parameters: [user_id, section]
             find_all_languages:
                 sql: "SELECT * FROM languages WHERE user_id = :user_id"
                 parameters: [user_id]
@@ -24,6 +27,9 @@ configuration:
             create_language:
                 sql: "INSERT INTO languages (language, user_id) VALUES (:language, :user_id)"
                 parameters: [language, user_id]
+            create_section:
+                sql: "INSERT INTO sections (section, user_id) VALUES (:section, :user_id)"
+                parameters: [section, user_id]
 
     scenario:
         database:
@@ -41,7 +47,31 @@ configuration:
                     sql: "USE vocallo"
                     sql_type: database
 
-        tables:
+        insert_word:
+            atomic: true
+            rules: { return_entity: false }
+            return_entity: []
+            statements:
+                insert_word:
+                    sql: "INSERT INTO words (user_id, language_id, word, type) VALUES (:user_id, :language_id, :word, :type)"
+                    sql_type: insert
+                    parameters: [user_id, language_id, word, type]
+                insert_translation:
+                    sql: "INSERT INTO translations (word_id, translation) VALUES(:word_id, :translation)"
+                    sql_type: insert
+                    parameters: [translation]
+                    foreign_key:
+                        statement_name: insert_word
+                        bind_to: word_id
+                insert_image:
+                    sql: "INSERT INTO word_images (word_id, absolute_path, relative_path, file_name) VALUES (:word_id, :absolute_path, :relative_path, :file_name)"
+                    sql_type: insert
+                    parameters: [absolute_path, relative_path, file_name]
+                    foreign_key:
+                        statement_name: insert_word
+                        bind_to: word_id
+
+        seed:
             atomic: true
             rules: { return_entity: false }
             return_entity: []
@@ -51,4 +81,19 @@ configuration:
                     sql_type: table
                 create_languages_table:
                     sql: "CREATE TABLE languages (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, user_id INT(6), language VARCHAR(256) NOT NULL)"
+                    sql_type: table
+                create_word_table:
+                    sql: "CREATE TABLE words (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, user_id INT(6) NOT NULL, language_id INT(6) NOT NULL, word VARCHAR(256) NOT NULL, type VARCHAR(256) DEFAULT NULL)"
+                    sql_type: table
+                create_translations_table:
+                    sql: "CREATE TABLE translations (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, word_id INT(6) NOT NULL, translation VARCHAR(256) NOT NULL)"
+                    sql_type: table
+                create_section_table:
+                    sql: "CREATE TABLE sections (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, user_id INT(6) UNSIGNED NOT NULL, section VARCHAR(256) NOT NULL)"
+                    sql_type: table
+                create_word_section_table:
+                    sql: "CREATE TABLE word_section (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, user_id INT(6) NOT NULL, word_id INT(6) NOT NULL, section_id INT(6) NOT NULL)"
+                    sql_type: table
+                create_word_images_table:
+                    sql: "CREATE TABLE word_images (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, word_id INT(6) UNSIGNED DEFAULT NULL, absolute_path TEXT NOT NULL, relative_path TEXT NOT NULL, file_name TEXT NOT NULL)"
                     sql_type: table

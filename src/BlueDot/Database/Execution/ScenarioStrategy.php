@@ -19,10 +19,6 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
      */
     private $statements;
     /**
-     * @var StorageInterface $entity
-     */
-    private $entity;
-    /**
      * @return StrategyInterface
      */
     public function execute() : StrategyInterface
@@ -39,17 +35,21 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
 
         foreach ($this->statements as $statement) {
             try {
+                if ($statement->has('has_to_execute')) {
+                    continue;
+                }
+
                 if ($this->resultReport->has($statement->get('resolved_statement_name'))) {
                     continue;
                 }
 
-                $resursiveStatementExecution = new RecursiveStatementExecution(
+                $recursiveStatementExecution = new RecursiveStatementExecution(
                     $statement,
                     $this->resultReport,
                     $this->connection
                 );
 
-                $resursiveStatementExecution->execute($this->statements);
+                $recursiveStatementExecution->execute($this->statements);
 
             } catch (\PDOException $e) {
                 throw new BlueDotRuntimeException('A PDOException has been thrown for statement '.$statement->get('resolved_statement_name').' with message \''.$e->getMessage().'\'');
@@ -105,177 +105,4 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
         return $entity;
     }
 
-    private function realSingleStatementExecution(ArgumentBag $statement)
-    {
-        $this->pdoStatement = $this->connection->getConnection()->prepare($statement->get('sql'));
-
-        if ($statement->has('foreign_key')) {
-            $this->bindForeignKeyParameters($statement);
-        }
-
-        if ($statement->has('use_option')) {
-            $this->bindUseOptionParameters($statement);
-        }
-
-        if (!$statement->has('multi_insert')) {
-            if ($statement->has('parameters')) {
-                $parameters = $statement->get('parameters');
-                $this->bindParameterCollection($parameters);
-            }
-
-            $this->pdoStatement->execute();
-        } else if ($statement->has('multi_insert')) {
-            $parameters = $statement->get('parameters');
-
-            foreach ($parameters as $parameterCollection) {
-                $this->bindParameterCollection($parameterCollection);
-                $this->pdoStatement->execute();
-            }
-        }
-
-        if ($statement->get('sql_type') === 'select') {
-            $this->saveResult($statement);
-        } else if ($statement->get('sql_type') === 'insert') {
-            $this->saveLastInsertId($statement);
-        }
-    }
-
-    private function singleStatementRecursiveExecution(ArgumentBag $statement)
-    {
-        if ($statement->has('foreign_key')) {
-            $foreignKey = $statement->get('foreign_key');
-            $foreignKeyStatement = $this->statements->get($statement->get('scenario_name').'.'.$foreignKey->getName());
-
-            if (!$this->resultReport->has($foreignKeyStatement->get('resolved_statement_name'))) {
-                $this->singleStatementRecursiveExecution($foreignKeyStatement);
-            }
-        }
-
-        if ($statement->has('use_option')) {
-            $useOption = $statement->get('use_option');
-            $useStatement = $this->statements->get($statement->get('statement_name').'.'.$useOption->getName());
-
-            if (!$this->resultReport->has($useStatement->get('resolved_statement_name'))) {
-                $this->singleStatementRecursiveExecution($useStatement);
-            }
-        }
-
-        $this->realSingleStatementExecution($statement);
-    }
-
-    private function bindUseOptionParameters(ArgumentBag $statement)
-    {
-        $useOption = $statement->get('use_option');
-        $useOptionValues = $useOption->getValues();
-        $optionStatementName = $statement->get('scenario_name').'.'.$useOption->getName();
-
-        if (!$this->resultReport->has($optionStatementName)) {
-            throw new BlueDotRuntimeException('\'use\' option '.$optionStatementName.' has not been executed but it should have been. This could be a bug so please, contact whitepostmail@gmail.com or post an issue on https://github.com/MarioLegenda/blue-dot');
-        }
-
-        $entity = $this->resultReport->get($optionStatementName);
-        $parameterCollection = new ParameterCollection();
-
-        foreach ($useOptionValues as $key => $value) {
-            $exploded = explode('.', $key);
-
-            $columnName = (array_key_exists(1, $exploded)) ? $exploded[1] : $exploded[0];
-
-            if ($entity instanceof EntityCollection) {
-                throw new BlueDotRuntimeException('Invalid entity selection for '.$statement->get('resolved_statement_name').'. You can only select a single result in a \'use\' option. Multiple results given');
-            }
-
-            if (!$entity->has($columnName)) {
-                throw new BlueDotRuntimeException('Selected entity for statement '.$optionStatementName.' does not contain a column \''.$columnName.'\'. If you specify a column in the return_entity configuration, then that column has to be fetched from the database');
-            }
-
-            $entityValue = $entity->get($columnName);
-
-            $parameterCollection->addParameter(new Parameter($value, $entityValue));
-        }
-
-        $this->bindParameterCollection($parameterCollection);
-    }
-
-    private function bindForeignKeyParameters(ArgumentBag $statement)
-    {
-        $foreignKey = $statement->get('foreign_key');
-        $bindTo = $foreignKey->getBindTo();
-        $foreignKeyStatementName = $statement->get('scenario_name').'.'.$foreignKey->getName();
-
-        if (!$this->resultReport->has($foreignKeyStatementName)) {
-            throw new BlueDotRuntimeException('\'foreign_key\' option '.$foreignKeyStatementName.' has not been executed but it should have been. This could be a bug so please, contact whitepostmail@gmail.com or post an issue on https://github.com/MarioLegenda/blue-dot');
-        }
-
-
-        $insertStatements = $this->resultReport->get($foreignKeyStatementName);
-        $statementLastInsertId = $insertStatements[count($insertStatements) - 1];
-
-        $parameterCollection = new ParameterCollection();
-
-        $parameterCollection->addParameter(new Parameter($bindTo, (int) $statementLastInsertId->get('last_insert_id')));
-
-        $this->bindParameterCollection($parameterCollection);
-    }
-
-    private function bindParameterCollection(ParameterCollection $parameters)
-    {
-        foreach ($parameters as $parameter) {
-            $this->bindSingleParameter($parameter);
-        }
-    }
-
-    private function bindSingleParameter(Parameter $parameter)
-    {
-        $this->pdoStatement->bindValue(
-            $parameter->getKey(),
-            $parameter->getValue(),
-            $parameter->getType()
-        );
-    }
-
-    private function createEntity(array $result) : StorageInterface
-    {
-        $resultCount = count($result);
-
-        switch ($resultCount) {
-            case 0:
-                $this->entity = new Entity();
-
-                return $this->entity;
-            case 1:
-                $this->entity = new Entity($result[0]);
-
-                return $this->entity;
-            default:
-                $this->entity = new EntityCollection($result);
-
-                return $this->entity;
-        }
-    }
-
-    private function saveResult(StorageInterface $statement)
-    {
-        if (!$this->resultReport instanceof ArgumentBag) {
-            $this->resultReport = new ArgumentBag();
-        }
-
-        $result = $this->pdoStatement->fetchAll(\PDO::FETCH_ASSOC);
-
-        if (!$this->resultReport->has($statement->get('resolved_statement_name'))) {
-            $this->resultReport->add($statement->get('resolved_statement_name'), $this->createEntity($result));
-        }
-    }
-
-    private function saveLastInsertId(ArgumentBag $statement)
-    {
-        if (!$this->resultReport instanceof ArgumentBag) {
-            $this->resultReport = new ArgumentBag();
-        }
-
-        $lastInsertIdStorage = new ArgumentBag();
-        $lastInsertIdStorage->add('last_insert_id', $this->connection->getConnection()->lastInsertId());
-
-        $this->resultReport->append($statement->get('resolved_statement_name'), $lastInsertIdStorage);
-    }
 }

@@ -205,7 +205,10 @@ class Compiler
 
                         $scenarioStatement->add(
                             'foreign_key',
-                            new ForeignKey($foreignKey['statement_name'], $foreignKey['bind_to'])
+                            new ForeignKey(
+                                $foreignKey['statement_name'],
+                                $foreignKey['bind_to']
+                            )
                         );
                     }
 

@@ -18,10 +18,6 @@ class RecursiveStatementExecution implements StrategyInterface
      */
     private $connection;
     /**
-     * @var \PDOStatement $pdoStatement
-     */
-    private $pdoStatement;
-    /**
      * @var ArgumentBag $statement
      */
     private $statement;
@@ -54,6 +50,7 @@ class RecursiveStatementExecution implements StrategyInterface
 
             return $this;
         }
+
 
         $result = $this->executeReal($statements)->getResult();
 
