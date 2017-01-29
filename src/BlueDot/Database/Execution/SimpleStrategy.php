@@ -86,21 +86,6 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
             return $entity;
         } else if ($statementType === 'select') {
             $temp = array();
-/*
-            if ($this->statement->get('resolved_statement_name') === 'simple.select.find_all_languages') {
-                var_dump($result);
-                die();
-            }*/
-
-            if (count($result) > 1) {
-                foreach ($result as $rows) {
-                    foreach ($rows as $key => $row) {
-                        $temp[] = $row;
-                    }
-                }
-
-                return new Entity($temp);
-            }
 
             if (count($result[0]) > 1) {
                 foreach ($result as $rows) {
@@ -113,7 +98,7 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
             }
 
             if (count($result[0]) === 1) {
-                return new Entity($result[0][0]);
+                return new Entity($result[0]);
             }
         } else if ($statementType === 'update' or $statementType === 'delete') {
             return $result[0];
