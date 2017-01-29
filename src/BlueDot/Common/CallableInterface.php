@@ -7,5 +7,5 @@ interface CallableInterface
     /**
      * @void
      */
-    public function run() : StorageInterface;
+    public function run();
 }
