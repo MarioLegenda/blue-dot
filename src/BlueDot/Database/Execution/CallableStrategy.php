@@ -56,7 +56,7 @@ class CallableStrategy implements StrategyInterface
         return $this;
     }
 
-    public function getResult() : StorageInterface
+    public function getResult()
     {
         return $this->result;
     }
