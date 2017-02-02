@@ -10,8 +10,8 @@ class VocalloTest extends \PHPUnit_Framework_TestCase
     {
         $blueDot = new BlueDot(__DIR__ . '/config/vocallo_user_db.yml');
 
-/*        $blueDot->execute('scenario.database');
-        $blueDot->execute('scenario.seed');*/
+        $blueDot->execute('scenario.database');
+        $blueDot->execute('scenario.seed');
 
         $blueDot->execute('scenario.insert_word', array(
             'insert_word' => array(
