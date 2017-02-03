@@ -185,6 +185,7 @@ class Compiler
                         ->add('statement_name', $statementName)
                         ->add('sql', $statementConfig['sql']);
 
+
                     if (array_key_exists('parameters', $statementConfig)) {
                         $parameters = $statementConfig['parameters'];
 
