@@ -55,21 +55,53 @@ class ParameterConversion
             $statements = $this->statement->get('statements');
 
             $foreignKeys = array();
+            $useStatements = array();
             foreach ($statements as $statement) {
                 if ($statement->has('foreign_key')) {
-                    $foreignKeys[$statement->get('foreign_key')->getName()] = $statement->get('resolved_statement_name');
+                    $foreignKeys[$statement->get('foreign_key')->getName()][] = $statement->get('resolved_statement_name');
+                }
+
+                if ($statement->has('use_option')) {
+                    $useStatements[$statement->get('use_option')->getName()] = $statement->get('resolved_statement_name');
                 }
             }
 
             foreach ($statements as $singleStatement) {
+                $canBeEmptyResult = $singleStatement->get('can_be_empty_result');
+
+                if ($canBeEmptyResult === true) {
+                    if (array_key_exists($singleStatement->get('statement_name'), $foreignKeys)) {
+                        throw new BlueDotRuntimeException(sprintf(
+                            'Invalid usage of \'%s\' option. \'%s\' option cannot be used in statements that are used as \'%s\' or \'%s\' options in other statements. Statement \'%s\' is used as \'foreign_key\' in \'%s\'',
+                            'can_be_empty_result',
+                            'can_be_empty_result',
+                            'use',
+                            'foreign_key',
+                            $singleStatement->get('resolved_statement_name'),
+                            implode(', ', $foreignKeys[$singleStatement->get('statement_name')])
+                        ));
+                    }
+
+                    if (array_key_exists($singleStatement->get('statement_name'), $useStatements)) {
+                        throw new BlueDotRuntimeException(sprintf(
+                            'Invalid usage of \'%s\' option. \'%s\' option cannot be used in statements that are used as \'%s\' or \'%s\' options in other statements. Statement \'%s\' is used as \'use\' in \'%s\'',
+                            'can_be_empty_result',
+                            'can_be_empty_result',
+                            'use',
+                            'foreign_key',
+                            $singleStatement->get('resolved_statement_name'),
+                            implode(', ', $foreignKeys[$singleStatement->get('statement_name')])
+                        ));
+                    }
+                }
+
                 if (array_key_exists($singleStatement->get('statement_name'), $this->userParameters)) {
                     if ($this->userParameters[$singleStatement->get('statement_name')] === null) {
-
                         if (array_key_exists($singleStatement->get('statement_name'), $foreignKeys)) {
                             throw new BlueDotRuntimeException(sprintf(
-                                'Invalid statement. Statement \'%s\' has to be executed because it exists as a \'foreign_key\' in statement \'%s\'',
+                                'Invalid statement. Statement \'%s\' has to be executed because it exists as a \'foreign_key\' in statement(s) \'%s\'',
                                 $singleStatement->get('resolved_statement_name'),
-                                $foreignKeys[$singleStatement->get('statement_name')]
+                                implode(', ', $foreignKeys[$singleStatement->get('statement_name')])
                             ));
                         }
 

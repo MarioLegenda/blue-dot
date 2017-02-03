@@ -186,6 +186,12 @@ class Compiler
                         ->add('sql', $statementConfig['sql']);
 
 
+                    if (array_key_exists('can_be_empty_result', $statementConfig)) {
+                        $scenarioStatement->add('can_be_empty_result', $statementConfig['can_be_empty_result']);
+                    } else {
+                        $scenarioStatement->add('can_be_empty_result', false);
+                    }
+
                     if (array_key_exists('parameters', $statementConfig)) {
                         $parameters = $statementConfig['parameters'];
 

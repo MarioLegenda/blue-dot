@@ -23,11 +23,21 @@ class VocalloTest extends \PHPUnit_Framework_TestCase
             'insert_translation' => array(
                 'translation' => array('translation 1', 'translation 2'),
             ),
-            'insert_image' => array(
-                'absolute_path' => 'sdlkfaslfd',
-                'relative_path' => 'sdkfsalkdf',
-                'file_name' => ' sdlkfsklflsjdf'
-            )
+            'insert_word_section' => null,
         ));
+
+        $blueDot->execute('scenario.remove_word', array(
+            'remove_translations' => array(
+                'word_id' => 1,
+            ),
+            'remove_word' => array(
+                'word_id' => 1,
+                'user_id' => 1
+            ),
+            'remove_word_section' => array(
+                'word_id' => 1,
+                'user_id' => 1,
+            ),
+        ))->getResult();
     }
 }

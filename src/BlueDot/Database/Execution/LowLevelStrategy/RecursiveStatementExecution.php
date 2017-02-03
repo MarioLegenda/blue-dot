@@ -67,12 +67,17 @@ class RecursiveStatementExecution implements StrategyInterface
     {
         $result = $this->resultReport->get($this->statement->get('resolved_statement_name'));
 
-        if (is_null($result)) {
-            throw new BlueDotRuntimeException(sprintf(
-                'Empty result returned for statement \'%s\'. Scenario statements have to have a result and cannot be empty',
-                $this->statement->get('resolved_statement_name')
-            ));
+        $canBeEmptyResult = $this->statement->get('can_be_empty_result');
+
+        if ($canBeEmptyResult === false) {
+            if (is_null($result)) {
+                throw new BlueDotRuntimeException(sprintf(
+                    'Empty result returned for statement \'%s\'. Scenario statements have to have a result and cannot be empty',
+                    $this->statement->get('resolved_statement_name')
+                ));
+            }
         }
+
         if ($result instanceof Entity) {
             return $result;
         }

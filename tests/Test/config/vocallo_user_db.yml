@@ -14,11 +14,31 @@ configuration:
                 sql: "SELECT language FROM languages WHERE user_id = :user_id AND language = :language"
                 parameters: [user_id, language]
             find_section_by_user:
-                sql: "SELECT section FROM sections WHERE user_id = :user_id AND section = :section"
-                parameters: [user_id, section]
+                sql: "SELECT section FROM sections WHERE user_id = :user_id AND section = :section AND language_id = :language_id"
+                parameters: [user_id, section, language_id]
             find_all_languages:
                 sql: "SELECT * FROM languages WHERE user_id = :user_id"
                 parameters: [user_id]
+            find_all_sections:
+                sql: "SELECT * FROM sections WHERE user_id = :user_id"
+                parameters: [user_id]
+
+            find_single_word_translation:
+                sql: "SELECT w.id, w.word, w.type, t.translation AS translations FROM words AS w INNER JOIN translations AS t WHERE language_id = :language_id AND user_id = :user_id AND word = :search_word AND w.id = t.word_id"
+                parameters: [language_id, user_id, search_word]
+            find_word_pattern_translation:
+                sql: "SELECT w.id, w.word, w.type, t.translation AS translations FROM words AS w INNER JOIN translations AS t WHERE language_id = :language_id AND user_id = :user_id AND word LIKE :search_word AND w.id = t.word_id"
+                parameters: [language_id, user_id, search_word]
+            find_last_words:
+
+                sql: "SELECT id, language_id, type, word FROM words AS w WHERE language_id = :language_id AND user_id = :user_id ORDER BY id DESC LIMIT 12"
+                parameters: [language_id, user_id]
+            find_section_by_word:
+                sql: "SELECT s.section FROM sections AS s INNER JOIN word_section AS ws WHERE s.id = ws.section_id AND ws.word_id = :word_id"
+                parameters: [word_id]
+            find_translation_by_word:
+                sql: "SELECT * FROM translations WHERE word_id = :word_id"
+                parameters: [word_id]
 
         insert:
             create_user:
@@ -28,8 +48,19 @@ configuration:
                 sql: "INSERT INTO languages (language, user_id) VALUES (:language, :user_id)"
                 parameters: [language, user_id]
             create_section:
-                sql: "INSERT INTO sections (section, user_id) VALUES (:section, :user_id)"
-                parameters: [section, user_id]
+                sql: "INSERT INTO sections (section, user_id, language_id) VALUES (:section, :user_id, :language_id)"
+                parameters: [section, user_id, language_id]
+            create_sentence:
+                sql: "INSERT INTO sentence (user_id, language_id, sentence, translation) VALUES (:user_id, :language_id, :sentence, :translation)"
+                parameters: [user_id, language_id, sentence, translation]
+
+        update:
+            update_working_language:
+                sql: "UPDATE languages SET working_language = :working_language WHERE user_id = :user_id AND id = :language_id"
+                parameters: [working_language, user_id, language_id]
+            remove_working_language:
+                sql: "UPDATE languages SET working_language = 0 WHERE user_id = :user_id AND working_language = 1"
+                parameters: [user_id]
 
     scenario:
         database:
@@ -63,37 +94,60 @@ configuration:
                     foreign_key:
                         statement_name: insert_word
                         bind_to: word_id
-                insert_image:
-                    sql: "INSERT INTO word_images (word_id, absolute_path, relative_path, file_name) VALUES (:word_id, :absolute_path, :relative_path, :file_name)"
+                insert_word_section:
+                    sql: "INSERT INTO word_section (user_id, word_id, section_id) VALUES (:user_id, :word_id, :section_id)"
                     sql_type: insert
-                    parameters: [absolute_path, relative_path, file_name]
+                    parameters: [user_id, section_id]
                     foreign_key:
                         statement_name: insert_word
                         bind_to: word_id
+        remove_word:
+            atomic: true
+            rules: { return_entity: false }
+            return_entity: []
+            statements:
+                remove_translations:
+                    sql: "DELETE FROM translations WHERE word_id = :word_id"
+                    sql_type: delete
+                    parameters: [word_id]
+                remove_word_section:
+                    sql: "DELETE FROM word_section WHERE word_id = :word_id AND user_id = :user_id"
+                    can_be_empty_result: true
+                    sql_type: delete
+                    parameters: [word_id, user_id]
+                remove_word:
+                    sql: "DELETE FROM words WHERE id = :word_id AND user_id = :user_id"
+                    sql_type: delete
+                    parameters: [word_id, user_id]
 
         seed:
             atomic: true
             rules: { return_entity: false }
             return_entity: []
             statements:
-                create_user_table:
-                    sql: "CREATE TABLE users (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, username VARCHAR(256) NOT NULL, password VARCHAR(256) NOT NULL, roles TEXT NOT NULL, name VARCHAR(256) NOT NULL, lastname VARCHAR(256) NOT NULL, created_at DATETIME NOT NULL, updated_at DATETIME DEFAULT NULL)"
-                    sql_type: table
                 create_languages_table:
-                    sql: "CREATE TABLE languages (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, user_id INT(6), language VARCHAR(256) NOT NULL)"
+                    sql: "CREATE TABLE languages (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, user_id INT(6), working_language TINYINT DEFAULT 0, language VARCHAR(256) NOT NULL)"
                     sql_type: table
                 create_word_table:
-                    sql: "CREATE TABLE words (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, user_id INT(6) NOT NULL, language_id INT(6) NOT NULL, word VARCHAR(256) NOT NULL, type VARCHAR(256) DEFAULT NULL)"
+                    sql: "CREATE TABLE words (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, user_id INT(6) NOT NULL, language_id INT(6) NOT NULL, word VARCHAR(256) NOT NULL, type VARCHAR(256) DEFAULT NULL)"
                     sql_type: table
                 create_translations_table:
-                    sql: "CREATE TABLE translations (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, word_id INT(6) NOT NULL, translation VARCHAR(256) NOT NULL)"
+                    sql: "CREATE TABLE translations (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, word_id INT(6) NOT NULL, translation VARCHAR(256) NOT NULL)"
                     sql_type: table
                 create_section_table:
-                    sql: "CREATE TABLE sections (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, user_id INT(6) UNSIGNED NOT NULL, section VARCHAR(256) NOT NULL)"
+                    sql: "CREATE TABLE sections (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, user_id INT(6) UNSIGNED NOT NULL, language_id INT(6) NOT NULL, section VARCHAR(256) NOT NULL)"
                     sql_type: table
                 create_word_section_table:
                     sql: "CREATE TABLE word_section (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, user_id INT(6) NOT NULL, word_id INT(6) NOT NULL, section_id INT(6) NOT NULL)"
                     sql_type: table
-                create_word_images_table:
-                    sql: "CREATE TABLE word_images (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, word_id INT(6) UNSIGNED DEFAULT NULL, absolute_path TEXT NOT NULL, relative_path TEXT NOT NULL, file_name TEXT NOT NULL)"
+                create_sentence_table:
+                    sql: "CREATE TABLE sentence (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, user_id INT(6) NOT NULL, language_id INT(6) NOT NULL, sentence TEXT NOT NULL, translation TEXT NOT NULL)"
                     sql_type: table
+
+    callable:
+        last_words:
+            type: object
+            name: AppBundle\BlueDotCallable\LastWordsCallable
+        search_callable:
+            type: object
+            name: AppBundle\BlueDotCallable\SearchCallable
