@@ -13,43 +13,40 @@ configuration:
             find_language_by_user:
                 sql: "SELECT language FROM languages WHERE user_id = :user_id AND language = :language"
                 parameters: [user_id, language]
-            find_section_by_user:
-                sql: "SELECT section FROM sections WHERE user_id = :user_id AND section = :section AND language_id = :language_id"
-                parameters: [user_id, section, language_id]
+            find_category_by_user:
+                sql: "SELECT category FROM categories WHERE user_id = :user_id AND category = :category AND language_id = :language_id"
+                parameters: [user_id, category, language_id]
             find_all_languages:
                 sql: "SELECT * FROM languages WHERE user_id = :user_id"
                 parameters: [user_id]
-            find_all_sections:
-                sql: "SELECT * FROM sections WHERE user_id = :user_id"
-                parameters: [user_id]
+            find_all_categories:
+                sql: "SELECT * FROM categories WHERE user_id = :user_id AND language_id = :language_id"
+                parameters: [user_id, language_id]
 
             find_single_word_translation:
-                sql: "SELECT w.id, w.word, w.type, t.translation AS translations FROM words AS w INNER JOIN translations AS t WHERE language_id = :language_id AND user_id = :user_id AND word = :search_word AND w.id = t.word_id"
+                sql: "SELECT w.id, w.word, w.type FROM words AS w WHERE language_id = :language_id AND user_id = :user_id AND word = :search_word ORDER BY id ASC LIMIT 12"
                 parameters: [language_id, user_id, search_word]
-            find_word_pattern_translation:
-                sql: "SELECT w.id, w.word, w.type, t.translation AS translations FROM words AS w INNER JOIN translations AS t WHERE language_id = :language_id AND user_id = :user_id AND word LIKE :search_word AND w.id = t.word_id"
+            find_word_by_pattern:
+                sql: "SELECT w.id, w.word, w.type FROM words AS w WHERE language_id = :language_id AND user_id = :user_id AND word LIKE :search_word ORDER BY w.id ASC LIMIT 12"
                 parameters: [language_id, user_id, search_word]
-            find_last_words:
+            find_translations_by_word:
+                sql: "SELECT translation FROM translations WHERE word_id = :word_id"
+                parameters: [word_id]
 
+            find_last_words:
                 sql: "SELECT id, language_id, type, word FROM words AS w WHERE language_id = :language_id AND user_id = :user_id ORDER BY id DESC LIMIT 12"
                 parameters: [language_id, user_id]
-            find_section_by_word:
-                sql: "SELECT s.section FROM sections AS s INNER JOIN word_section AS ws WHERE s.id = ws.section_id AND ws.word_id = :word_id"
-                parameters: [word_id]
-            find_translation_by_word:
-                sql: "SELECT * FROM translations WHERE word_id = :word_id"
+            find_category_by_word:
+                sql: "SELECT s.category FROM categories AS s INNER JOIN word_category AS ws WHERE s.id = ws.category_id AND ws.word_id = :word_id"
                 parameters: [word_id]
 
         insert:
-            create_user:
-                sql: "INSERT INTO users (username, password, name, lastname, roles, created_at) VALUES (:username, :password, :name, :lastname, :roles, :created_at)"
-                parameters: [username, password, roles, name, lastname, created_at]
             create_language:
                 sql: "INSERT INTO languages (language, user_id) VALUES (:language, :user_id)"
                 parameters: [language, user_id]
-            create_section:
-                sql: "INSERT INTO sections (section, user_id, language_id) VALUES (:section, :user_id, :language_id)"
-                parameters: [section, user_id, language_id]
+            create_category:
+                sql: "INSERT INTO categories (category, user_id, language_id) VALUES (:category, :user_id, :language_id)"
+                parameters: [category, user_id, language_id]
             create_sentence:
                 sql: "INSERT INTO sentence (user_id, language_id, sentence, translation) VALUES (:user_id, :language_id, :sentence, :translation)"
                 parameters: [user_id, language_id, sentence, translation]
@@ -94,10 +91,10 @@ configuration:
                     foreign_key:
                         statement_name: insert_word
                         bind_to: word_id
-                insert_word_section:
-                    sql: "INSERT INTO word_section (user_id, word_id, section_id) VALUES (:user_id, :word_id, :section_id)"
+                insert_word_category:
+                    sql: "INSERT INTO word_category (user_id, word_id, category_id) VALUES (:user_id, :word_id, :category_id)"
                     sql_type: insert
-                    parameters: [user_id, section_id]
+                    parameters: [user_id, category_id]
                     foreign_key:
                         statement_name: insert_word
                         bind_to: word_id
@@ -110,8 +107,8 @@ configuration:
                     sql: "DELETE FROM translations WHERE word_id = :word_id"
                     sql_type: delete
                     parameters: [word_id]
-                remove_word_section:
-                    sql: "DELETE FROM word_section WHERE word_id = :word_id AND user_id = :user_id"
+                remove_word_category:
+                    sql: "DELETE FROM word_category WHERE word_id = :word_id AND user_id = :user_id"
                     can_be_empty_result: true
                     sql_type: delete
                     parameters: [word_id, user_id]
@@ -134,11 +131,11 @@ configuration:
                 create_translations_table:
                     sql: "CREATE TABLE translations (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, word_id INT(6) NOT NULL, translation VARCHAR(256) NOT NULL)"
                     sql_type: table
-                create_section_table:
-                    sql: "CREATE TABLE sections (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, user_id INT(6) UNSIGNED NOT NULL, language_id INT(6) NOT NULL, section VARCHAR(256) NOT NULL)"
+                create_category_table:
+                    sql: "CREATE TABLE categories (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, user_id INT(6) UNSIGNED NOT NULL, language_id INT(6) NOT NULL, category VARCHAR(256) NOT NULL)"
                     sql_type: table
-                create_word_section_table:
-                    sql: "CREATE TABLE word_section (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, user_id INT(6) NOT NULL, word_id INT(6) NOT NULL, section_id INT(6) NOT NULL)"
+                create_word_category_table:
+                    sql: "CREATE TABLE word_category (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, user_id INT(6) NOT NULL, word_id INT(6) NOT NULL, category_id INT(6) NOT NULL)"
                     sql_type: table
                 create_sentence_table:
                     sql: "CREATE TABLE sentence (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, user_id INT(6) NOT NULL, language_id INT(6) NOT NULL, sentence TEXT NOT NULL, translation TEXT NOT NULL)"

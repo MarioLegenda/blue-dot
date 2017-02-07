@@ -46,6 +46,19 @@ class ParameterConversion
         $type = $this->statement->get('type');
 
         if ($type === 'simple') {
+            if (array_key_exists('injected_sql', $this->userParameters)) {
+                if (!is_string($this->userParameters['injected_sql'])) {
+                    throw new BlueDotRuntimeException(sprintf(
+                        'Invalid \'injected_sql\' parameter. \'injected_sql\' runtime option has to be a string, %s given',
+                        gettype($this->userParameters['injected_sql'])
+                    ));
+                }
+
+                $this->statement->add('sql', $this->userParameters['injected_sql'], true);
+
+                unset($this->userParameters['injected_sql']);
+            }
+
             $this->validateParameters($this->statement, $this->userParameters);
 
             if ($this->statement->has('config_parameters')) {

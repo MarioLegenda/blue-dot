@@ -23,9 +23,9 @@ class VocalloTest extends \PHPUnit_Framework_TestCase
             'insert_translation' => array(
                 'translation' => array('translation 1', 'translation 2'),
             ),
-            'insert_word_section' => null,
+            'insert_word_category' => null,
         ));
-
+/*
         $blueDot->execute('scenario.remove_word', array(
             'remove_translations' => array(
                 'word_id' => 1,
@@ -34,10 +34,16 @@ class VocalloTest extends \PHPUnit_Framework_TestCase
                 'word_id' => 1,
                 'user_id' => 1
             ),
-            'remove_word_section' => array(
+            'remove_word_category' => array(
                 'word_id' => 1,
-                'user_id' => 1,
+                'user_id' => 1
             ),
+        ))->getResult();*/
+
+        $result = $blueDot->execute('simple.select.find_last_words', array(
+            'language_id' => 1,
+            'user_id' => 1,
+            'injected_sql' => "SELECT id, language_id, type, word FROM words AS w WHERE language_id = :language_id AND user_id = :user_id ORDER BY id DESC LIMIT 12",
         ))->getResult();
     }
 }
