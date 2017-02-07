@@ -9,9 +9,9 @@ class VocalloTest extends \PHPUnit_Framework_TestCase
     public function testDatabase()
     {
         $blueDot = new BlueDot(__DIR__ . '/config/vocallo_user_db.yml');
-
+/*
         $blueDot->execute('scenario.database');
-        $blueDot->execute('scenario.seed');
+        $blueDot->execute('scenario.seed');*/
 
         $blueDot->execute('scenario.insert_word', array(
             'insert_word' => array(
@@ -43,7 +43,12 @@ class VocalloTest extends \PHPUnit_Framework_TestCase
         $result = $blueDot->execute('simple.select.find_last_words', array(
             'language_id' => 1,
             'user_id' => 1,
-            'injected_sql' => "SELECT id, language_id, type, word FROM words AS w WHERE language_id = :language_id AND user_id = :user_id ORDER BY id DESC LIMIT 12",
+            'injected_sql' => "SELECT id, language_id, type, word FROM words AS w WHERE language_id = :language_id AND user_id = :user_id ORDER BY id",
         ))->getResult();
+
+        $result = $result->extract('id');
+
+        var_dump($result);
+        die();
     }
 }
