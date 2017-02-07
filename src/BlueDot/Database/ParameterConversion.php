@@ -46,6 +46,9 @@ class ParameterConversion
         $type = $this->statement->get('type');
 
         if ($type === 'simple') {
+
+            $this->statement->add('query_strategy', 'individual_strategy', true);
+
             if (array_key_exists('injected_sql', $this->userParameters)) {
                 if (!is_string($this->userParameters['injected_sql'])) {
                     throw new BlueDotRuntimeException(sprintf(
@@ -70,6 +73,8 @@ class ParameterConversion
             $foreignKeys = array();
             $useStatements = array();
             foreach ($statements as $statement) {
+                $statement->add('query_strategy', 'individual_strategy', true);
+
                 if ($statement->has('foreign_key')) {
                     $foreignKeys[$statement->get('foreign_key')->getName()][] = $statement->get('resolved_statement_name');
                 }
