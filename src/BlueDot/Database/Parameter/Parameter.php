@@ -68,7 +68,20 @@ class Parameter
      */
     public function getValue()
     {
-        return $this->value;
+        $type = $this->getType();
+
+        switch($type) {
+            case \PDO::PARAM_STR:
+                return (string) $this->value;
+            case \PDO::PARAM_BOOL:
+                return (bool) $this->value;
+            case \PDO::PARAM_NULL:
+                return null;
+            case \PDO::PARAM_INT:
+                return (int) $this->value;
+            default:
+                return $this->value;
+        }
     }
     /**
      * @param $value
