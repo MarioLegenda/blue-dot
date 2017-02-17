@@ -34,7 +34,7 @@ configuration:
                 parameters: [word_id]
 
             find_last_words:
-                sql: "SELECT id, language_id, type, word FROM words AS w WHERE language_id = :language_id AND user_id = :user_id ORDER BY id ASC LIMIT 12 OFFSET :offset"
+                sql: "SELECT id, language_id, type, word FROM words AS w WHERE language_id = :language_id AND user_id = :user_id ORDER BY id DESC LIMIT 12 OFFSET :offset"
                 parameters: [language_id, user_id, offset]
             find_category_by_word:
                 sql: "SELECT s.category FROM categories AS s INNER JOIN word_category AS ws WHERE s.id = ws.category_id AND ws.word_id = :word_id"

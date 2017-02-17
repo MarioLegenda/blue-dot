@@ -123,7 +123,7 @@ class ParameterConversion
                             ));
                         }
 
-                        $singleStatement->add('has_to_execute', false);
+                        $singleStatement->add('has_to_execute', false, true);
 
                         continue;
                     }

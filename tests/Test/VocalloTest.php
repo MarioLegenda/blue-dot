@@ -43,7 +43,7 @@ class VocalloTest extends \PHPUnit_Framework_TestCase
         $result = $blueDot->execute('simple.select.find_last_words', array(
             'language_id' => 1,
             'user_id' => 1,
-            'offset' => 24,
+            'offset' => '24',
         ))->getResult();
 
         $result = $result->extract('id');
