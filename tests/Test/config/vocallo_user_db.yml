@@ -10,54 +10,127 @@ configuration:
             find_user_by_username:
                 sql: "SELECT * FROM users WHERE username = :username"
                 parameters: [username]
-            find_language_by_user:
-                sql: "SELECT language FROM languages WHERE user_id = :user_id AND language = :language"
-                parameters: [user_id, language]
-            find_category_by_user:
-                sql: "SELECT category FROM categories WHERE user_id = :user_id AND category = :category AND language_id = :language_id"
-                parameters: [user_id, category, language_id]
+
+            # languages
+            find_language:
+                sql: "SELECT language FROM languages WHERE language = :language"
+                parameters: [language]
             find_all_languages:
-                sql: "SELECT * FROM languages WHERE user_id = :user_id"
-                parameters: [user_id]
+                sql: "SELECT * FROM languages"
+
+            # category
+            find_category:
+                sql: "SELECT category FROM categories WHERE category = :category AND language_id = :language_id"
+                parameters: [category, language_id]
             find_all_categories:
-                sql: "SELECT * FROM categories WHERE user_id = :user_id AND language_id = :language_id"
-                parameters: [user_id, language_id]
-
-            find_single_word_translation:
-                sql: "SELECT w.id, w.word, w.type FROM words AS w WHERE language_id = :language_id AND user_id = :user_id AND word = :search_word ORDER BY id ASC LIMIT 12"
-                parameters: [language_id, user_id, search_word]
-            find_word_by_pattern:
-                sql: "SELECT w.id, w.word, w.type FROM words AS w WHERE language_id = :language_id AND user_id = :user_id AND word LIKE :search_word ORDER BY w.id ASC LIMIT 12"
-                parameters: [language_id, user_id, search_word]
-            find_translations_by_word:
-                sql: "SELECT translation FROM translations WHERE word_id = :word_id"
-                parameters: [word_id]
-
-            find_last_words:
-                sql: "SELECT id, language_id, type, word FROM words AS w WHERE language_id = :language_id AND user_id = :user_id ORDER BY id DESC LIMIT 12 OFFSET :offset"
-                parameters: [language_id, user_id, offset]
+                sql: "SELECT id, category FROM categories WHERE language_id = :language_id"
+                parameters: [language_id]
             find_category_by_word:
                 sql: "SELECT s.category FROM categories AS s INNER JOIN word_category AS ws WHERE s.id = ws.category_id AND ws.word_id = :word_id"
                 parameters: [word_id]
 
+            # words
+            find_single_word_translation:
+                sql: "SELECT w.id, w.word, w.type FROM words AS w WHERE language_id = :language_id AND word = :search_word ORDER BY id ASC LIMIT 12 OFFSET :offset"
+                parameters: [language_id, search_word, offset]
+            find_word_by_pattern:
+                sql: "SELECT w.id, w.word, w.type FROM words AS w WHERE language_id = :language_id AND word LIKE :search_word ORDER BY w.id ASC LIMIT 12 OFFSET :offset"
+                parameters: [language_id, search_word, offset]
+            find_translations_by_word:
+                sql: "SELECT translation FROM translations WHERE word_id = :word_id"
+                parameters: [word_id]
+            find_last_words:
+                sql: "SELECT id, language_id, type, word FROM words AS w WHERE language_id = :language_id AND schedule_removal = 0 ORDER BY word LIMIT 12 OFFSET :offset"
+                parameters: [language_id, offset]
+            find_translation_by_word:
+                sql: "SELECT * FROM translations WHERE word_id = :word_id"
+                parameters: [word_id]
+            find_translations_by_word_id:
+                sql: "This sql is injected"
+            find_word_by_word:
+                sql: "SELECT * FROM words WHERE word = :word"
+                parameters: [word]
+            find_word_by_id:
+                sql: "SELECT * FROM words WHERE id = :word_id"
+                parameters: [word_id]
+
+            testing_joins:
+                sql: "SELECT w.id, w.word, t.translation FROM words AS w INNER JOIN translations AS t ON t.word_id = w.id WHERE w.id = 1"
+
+
+            #images
+            find_image_by_word:
+                sql: "SELECT * FROM word_images WHERE word_id = :word_id"
+                parameters: [word_id]
+
+
+            #course
+            find_course_by_name:
+                sql: "SELECT * FROM courses WHERE name = :name"
+                parameters: [name]
+            find_course_by_id:
+                sql: "SELECT * FROM courses WHERE id = :course_id"
+                parameters: [course_id]
+            find_all_courses:
+                sql: "SELECT id, name FROM courses"
+            initial_course_info:
+                sql: "SELECT * FROM courses WHERE id = :id"
+                parameters: [id]
+
+            #class
+            find_class:
+                sql: "SELECT * FROM classes WHERE course_id = :course_id AND name = :name"
+                parameters: [course_id, name]
+            find_classes_by_course:
+                sql: "SELECT * FROM classes WHERE course_id = :course_id"
+                parameters: [course_id]
+
+            #lesson
+            find_lesson:
+                sql: "SELECT * FROM lessons WHERE class_id = :class_id AND name = :name"
+                parameters: [class_id, name]
+            find_all_lessons_by_class:
+                sql: "SELECT * FROM lessons WHERE class_id = :class_id"
+                parameters: [class_id]
+            find_lesson_by_id:
+                sql: "SELECT * FROM lessons WHERE id = :lesson_id"
+                parameters: [lesson_id]
+
+            #image
+            find_word_image_by_filename:
+                sql: "SELECT id FROM word_images WHERE file_name = :file_name"
+                parameters: [file_name]
+
         insert:
             create_language:
-                sql: "INSERT INTO languages (language, user_id) VALUES (:language, :user_id)"
-                parameters: [language, user_id]
+                sql: "INSERT INTO languages (language) VALUES (:language)"
+                parameters: [language]
+
             create_category:
-                sql: "INSERT INTO categories (category, user_id, language_id) VALUES (:category, :user_id, :language_id)"
-                parameters: [category, user_id, language_id]
+                sql: "INSERT INTO categories (category, language_id) VALUES (:category, :language_id)"
+                parameters: [category, language_id]
+
             create_sentence:
                 sql: "INSERT INTO sentence (user_id, language_id, sentence, translation) VALUES (:user_id, :language_id, :sentence, :translation)"
                 parameters: [user_id, language_id, sentence, translation]
 
+            create_class:
+                sql: "INSERT INTO classes (course_id, name) VALUES (:course_id, :name)"
+                parameters: [course_id, name]
+
+            create_lesson:
+                sql: "INSERT INTO lessons (class_id, name) VALUES (:class_id, :name)"
+                parameters: [class_id, name]
+
         update:
             update_working_language:
-                sql: "UPDATE languages SET working_language = :working_language WHERE user_id = :user_id AND id = :language_id"
-                parameters: [working_language, user_id, language_id]
+                sql: "UPDATE languages SET working_language = :working_language AND id = :language_id"
+                parameters: [working_language, language_id]
             remove_working_language:
-                sql: "UPDATE languages SET working_language = 0 WHERE user_id = :user_id AND working_language = 1"
-                parameters: [user_id]
+                sql: "UPDATE languages SET working_language = 0 WHERE working_language = 1"
+            schedule_word_removal:
+                sql: "UPDATE words SET schedule_removal = 1 WHERE id = :word_id"
+                parameters: [word_id]
 
     scenario:
         database:
@@ -65,9 +138,9 @@ configuration:
             rules: { return_entity: false }
             return_entity: []
             statements:
-                drop_database:
-                    sql: "DROP DATABASE IF EXISTS vocallo"
-                    sql_type: database
+#                drop_database:
+#                    sql: "DROP DATABASE IF NOT EXISTS vocallo"
+#                    sql_type: database
                 create_database:
                     sql: "CREATE DATABASE IF NOT EXISTS vocallo CHARACTER SET = 'utf8' COLLATE = 'utf8_general_ci'"
                     sql_type: database
@@ -75,15 +148,32 @@ configuration:
                     sql: "USE vocallo"
                     sql_type: database
 
+        create_course:
+            atomic: true
+            rules: { return_entity: false}
+            return_entity: []
+            statements:
+                create_course:
+                    sql: "INSERT INTO courses (language_id, name) VALUES (:language_id, :name)"
+                    sql_type: insert
+                    parameters: [name]
+                    use:
+                        statement_name: get_working_language_id
+                        values: { get_working_language.id : language_id }
+                get_working_language_id:
+                    sql: "SELECT id FROM languages WHERE working_language = 1"
+                    sql_type: select
+
+
         insert_word:
             atomic: true
             rules: { return_entity: false }
             return_entity: []
             statements:
                 insert_word:
-                    sql: "INSERT INTO words (user_id, language_id, word, type) VALUES (:user_id, :language_id, :word, :type)"
+                    sql: "INSERT INTO words (language_id, word, type) VALUES (:language_id, :word, :type)"
                     sql_type: insert
-                    parameters: [user_id, language_id, word, type]
+                    parameters: [language_id, word, type]
                 insert_translation:
                     sql: "INSERT INTO translations (word_id, translation) VALUES(:word_id, :translation)"
                     sql_type: insert
@@ -92,9 +182,16 @@ configuration:
                         statement_name: insert_word
                         bind_to: word_id
                 insert_word_category:
-                    sql: "INSERT INTO word_category (user_id, word_id, category_id) VALUES (:user_id, :word_id, :category_id)"
+                    sql: "INSERT INTO word_category (word_id, category_id) VALUES (:word_id, :category_id)"
                     sql_type: insert
-                    parameters: [user_id, category_id]
+                    parameters: [category_id]
+                    foreign_key:
+                        statement_name: insert_word
+                        bind_to: word_id
+                insert_word_image:
+                    sql: "INSERT INTO word_images (word_id, relative_path, absolute_path, file_name, absolute_full_path, relative_full_path) VALUES (:word_id, :relative_path, :absolute_path, :file_name, :absolute_full_path, :relative_full_path)"
+                    parameters: [:relative_path, :absolute_path, :file_name, :absolute_full_path, :relative_full_path]
+                    sql_type: insert
                     foreign_key:
                         statement_name: insert_word
                         bind_to: word_id
@@ -104,18 +201,23 @@ configuration:
             return_entity: []
             statements:
                 remove_translations:
-                    sql: "DELETE FROM translations WHERE word_id = :word_id"
+                    sql: "DELETE t FROM translations AS t INNER JOIN words AS w WHERE t.word_id = :word_id AND t.word_id = w.id AND w.schedule_removal = 1"
                     sql_type: delete
                     parameters: [word_id]
                 remove_word_category:
-                    sql: "DELETE FROM word_category WHERE word_id = :word_id AND user_id = :user_id"
+                    sql: "DELETE wc FROM word_category AS wc INNER JOIN words AS w WHERE wc.word_id = :word_id AND w.id = wc.word_id AND w.schedule_removal = 1"
                     can_be_empty_result: true
                     sql_type: delete
-                    parameters: [word_id, user_id]
-                remove_word:
-                    sql: "DELETE FROM words WHERE id = :word_id AND user_id = :user_id"
+                    parameters: [word_id]
+                remove_word_image:
+                    sql: "DELETE wi FROM word_images AS wi INNER JOIN words AS w WHERE wi.word_id = :word_id AND w.id = wi.word_id AND w.schedule_removal = 1"
                     sql_type: delete
-                    parameters: [word_id, user_id]
+                    can_be_empty_result: true
+                    parameters: [word_id]
+                remove_word:
+                    sql: "DELETE FROM words WHERE id = :word_id AND schedule_removal = 1"
+                    sql_type: delete
+                    parameters: [word_id]
 
         seed:
             atomic: true
@@ -123,22 +225,31 @@ configuration:
             return_entity: []
             statements:
                 create_languages_table:
-                    sql: "CREATE TABLE languages (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, user_id INT(6), working_language TINYINT DEFAULT 0, language VARCHAR(256) NOT NULL)"
+                    sql: "CREATE TABLE languages (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, developer_id INT(6) NOT NULL, working_language TINYINT DEFAULT 0, language VARCHAR(256) NOT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"
                     sql_type: table
                 create_word_table:
-                    sql: "CREATE TABLE words (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, user_id INT(6) NOT NULL, language_id INT(6) NOT NULL, word VARCHAR(256) NOT NULL, type VARCHAR(256) DEFAULT NULL)"
+                    sql: "CREATE TABLE words (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, language_id INT(6) NOT NULL, image_id INT(6) DEFAULT NULL, word VARCHAR(256) NOT NULL, type VARCHAR(256) DEFAULT NULL, schedule_removal TINYINT DEFAULT 0) CHARACTER SET utf8 COLLATE utf8_general_ci"
                     sql_type: table
                 create_translations_table:
-                    sql: "CREATE TABLE translations (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, word_id INT(6) NOT NULL, translation VARCHAR(256) NOT NULL)"
+                    sql: "CREATE TABLE translations (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, word_id INT(6) NOT NULL, translation VARCHAR(256) NOT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"
                     sql_type: table
                 create_category_table:
-                    sql: "CREATE TABLE categories (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, user_id INT(6) UNSIGNED NOT NULL, language_id INT(6) NOT NULL, category VARCHAR(256) NOT NULL)"
+                    sql: "CREATE TABLE categories (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, language_id INT(6) NOT NULL, category VARCHAR(256) NOT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"
                     sql_type: table
                 create_word_category_table:
-                    sql: "CREATE TABLE word_category (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, user_id INT(6) NOT NULL, word_id INT(6) NOT NULL, category_id INT(6) NOT NULL)"
+                    sql: "CREATE TABLE word_category (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, word_id INT(6) NOT NULL, category_id INT(6) NOT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"
                     sql_type: table
-                create_sentence_table:
-                    sql: "CREATE TABLE sentence (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, user_id INT(6) NOT NULL, language_id INT(6) NOT NULL, sentence TEXT NOT NULL, translation TEXT NOT NULL)"
+                create_course_table:
+                    sql: "CREATE TABLE courses (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, language_id INT(6) NOT NULL, name VARCHAR(255) NOT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"
+                    sql_type: table
+                create_class_table:
+                    sql: "CREATE TABLE classes (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, course_id INT(6) NOT NULL, name VARCHAR(255) NOT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"
+                    sql_type: table
+                create_lesson_table:
+                    sql: "CREATE TABLE lessons (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, class_id INT(6) NOT NULL, name VARCHAR(255) NOT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"
+                    sql_type: table
+                create_images_table:
+                    sql: "CREATE TABLE word_images (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, word_id INT(6) NOT NULL, relative_path VARCHAR(255) DEFAULT NULL, absolute_path VARCHAR(255) DEFAULT NULL, file_name VARCHAR(255) DEFAULT NULL, absolute_full_path VARCHAR(255) DEFAULT NULL, relative_full_path VARCHAR(255) DEFAULT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"
                     sql_type: table
 
     callable:
