@@ -40,11 +40,16 @@ class VocalloTest extends \PHPUnit_Framework_TestCase
             ),
         ))->getResult();*/
 
-        $result = $blueDot->execute('simple.select.testing_joins')->getResult();
+        $translations = $blueDot->execute('simple.select.generic_injectable_sql', array(
+            'injected_sql' => sprintf('SELECT word_id, translation FROM translations WHERE word_id IN (1, 60, 150, 78, 345)'),
+        ))->getResult();
 
-        var_dump($result->arrangeMultiples(array(
-            'translation',
-        )));
+        $id = '60';
+        $result = $translations->extract('translation', function($row) use ($id) {
+            return $row['word_id'] === $id;
+        });
+
+        var_dump($result);
         die();
     }
 }

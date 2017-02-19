@@ -54,13 +54,23 @@ class Entity extends AbstractArgumentBag
     }
     /**
      * @param string $column
-     * @return array|null
+     * @param \Closure $evaluation
+     * @return Entity|null
      */
-    public function extract(string $column)
+    public function extract(string $column, \Closure $evaluation = null)
     {
         $columns = array();
         foreach ($this->arguments as $argument) {
             if (array_key_exists($column, $argument)) {
+                if ($evaluation instanceof \Closure) {
+                    if ($evaluation->__invoke($argument) === true) {
+                        var_dump($argument);
+                        $columns[$column][] = $argument[$column];
+                    }
+
+                    continue;
+                }
+
                 $columns[$column][] = $argument[$column];
             }
         }
@@ -69,13 +79,14 @@ class Entity extends AbstractArgumentBag
             return null;
         }
 
-        return $columns;
+        return new Entity($columns);
     }
     /**
      * @param array $arrangeColumns
+     * @param \Closure|null $evaluation
      * @return $this|Entity
      */
-    public function arrangeMultiples(array $arrangeColumns)
+    public function arrangeMultiples(array $arrangeColumns, \Closure $evaluation = null)
     {
         if (empty($arrangeColumns)) {
             return $this;
@@ -86,6 +97,14 @@ class Entity extends AbstractArgumentBag
         foreach ($this->arguments as $argument) {
             foreach ($arrangeColumns as $column) {
                 if (array_key_exists($column, $argument)) {
+                    if ($evaluation instanceof \Closure) {
+                        if ($evaluation->invoke($argument) === true) {
+                            $temp[$column][] = $argument[$column];
+                        }
+
+                        continue;
+                    }
+
                     $temp[$column][] = $argument[$column];
                 }
             }

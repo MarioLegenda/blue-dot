@@ -7,6 +7,8 @@ configuration:
 
     simple:
         select:
+            generic_injectable_sql:
+                sql: 'injectable sql'
             find_user_by_username:
                 sql: "SELECT * FROM users WHERE username = :username"
                 parameters: [username]
