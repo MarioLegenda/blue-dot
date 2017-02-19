@@ -64,7 +64,6 @@ class Entity extends AbstractArgumentBag
             if (array_key_exists($column, $argument)) {
                 if ($evaluation instanceof \Closure) {
                     if ($evaluation->__invoke($argument) === true) {
-                        var_dump($argument);
                         $columns[$column][] = $argument[$column];
                     }
 
