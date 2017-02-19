@@ -46,7 +46,7 @@ class Entity extends AbstractArgumentBag
             $column => $value,
         ));
 
-        if (count($result) > 1) {
+        if (count($result) > 1 or is_null($result)) {
             throw new EntityException(sprintf('Invalid return value. Entity::find() can only return one result. %d results found', count($result)));
         }
 
@@ -100,24 +100,6 @@ class Entity extends AbstractArgumentBag
         $temp = array();
         $arranged = false;
         foreach ($this->arguments as $argument) {
-            foreach ($arrangeColumns as $column) {
-                if (array_key_exists($column, $argument)) {
-                    if ($evaluation instanceof \Closure) {
-                        if ($evaluation->invoke($argument) === true) {
-                            if (is_string($alias)) {
-                                $columns[$alias][] = $argument[$column];
-                            } else {
-                                $columns[$column][] = $argument[$column];
-                            }
-                        }
-
-                        continue;
-                    }
-
-                    $temp[$column][] = $argument[$column];
-                }
-            }
-
             $argumentKeys = array_keys($argument);
 
             if (!$arranged) {
@@ -129,6 +111,28 @@ class Entity extends AbstractArgumentBag
 
                 $arranged = true;
             }
+
+            foreach ($arrangeColumns as $column) {
+                if (array_key_exists($column, $argument)) {
+                    if ($evaluation instanceof \Closure) {
+                        if ($evaluation->invoke($argument) === true) {
+                            if (is_string($alias)) {
+                                $temp[$alias][] = $argument[$column];
+                            } else {
+                                $temp[$column][] = $argument[$column];
+                            }
+                        }
+
+                        continue;
+                    }
+
+                    $temp[$column][] = $argument[$column];
+                }
+            }
+        }
+
+        if (empty($temp)) {
+            return null;
         }
 
         return new Entity($temp);
