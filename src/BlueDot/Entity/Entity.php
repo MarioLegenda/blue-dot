@@ -54,17 +54,22 @@ class Entity extends AbstractArgumentBag
     }
     /**
      * @param string $column
-     * @param \Closure $evaluation
+     * @param \Closure|null $evaluation
+     * @param string|null $alias
      * @return Entity|null
      */
-    public function extract(string $column, \Closure $evaluation = null)
+    public function extract(string $column, \Closure $evaluation = null, string $alias = null)
     {
         $columns = array();
         foreach ($this->arguments as $argument) {
             if (array_key_exists($column, $argument)) {
                 if ($evaluation instanceof \Closure) {
                     if ($evaluation->__invoke($argument) === true) {
-                        $columns[$column][] = $argument[$column];
+                        if (is_string($alias)) {
+                            $columns[$alias][] = $argument[$column];
+                        } else {
+                            $columns[$column][] = $argument[$column];
+                        }
                     }
 
                     continue;
@@ -83,9 +88,10 @@ class Entity extends AbstractArgumentBag
     /**
      * @param array $arrangeColumns
      * @param \Closure|null $evaluation
+     * @param string|null $alias
      * @return $this|Entity
      */
-    public function arrangeMultiples(array $arrangeColumns, \Closure $evaluation = null)
+    public function arrangeMultiples(array $arrangeColumns, \Closure $evaluation = null, string $alias = null)
     {
         if (empty($arrangeColumns)) {
             return $this;
@@ -98,7 +104,11 @@ class Entity extends AbstractArgumentBag
                 if (array_key_exists($column, $argument)) {
                     if ($evaluation instanceof \Closure) {
                         if ($evaluation->invoke($argument) === true) {
-                            $temp[$column][] = $argument[$column];
+                            if (is_string($alias)) {
+                                $columns[$alias][] = $argument[$column];
+                            } else {
+                                $columns[$column][] = $argument[$column];
+                            }
                         }
 
                         continue;
