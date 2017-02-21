@@ -199,7 +199,7 @@ class Compiler
 
                     $sqlType = trim(strtolower($matches[1]));
 
-                    if ($sqlType === 'create') {
+                    if ($sqlType === 'create' or $sqlType === 'use') {
                         $sqlType = 'table';
                     }
 

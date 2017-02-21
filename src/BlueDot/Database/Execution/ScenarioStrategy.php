@@ -73,17 +73,13 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
 
         if (empty($returnEntities)) {
             if (!$this->resultReport->isEmpty()) {
-                var_dump($this->resultReport);
                 foreach ($this->resultReport as $scenarioName => $report) {
                     $name = explode('.', $scenarioName)[2];
 
-                    if (!$report->isEmpty()) {
+                    if (!$report->isEmpty() and $report->has('last_insert_id')) {
                         $info = new ArgumentBag();
 
-                        if ($report->has('last_insert_id')) {
-                            $info->add('last_insert_id', $report->get('last_insert_id'));
-                        }
-
+                        $info->add('last_insert_id', $report->get('last_insert_id'));
                         $info->add('row_count', $report->get('row_count'));
 
                         $entity->add($name, $info);

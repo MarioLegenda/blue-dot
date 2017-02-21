@@ -42,6 +42,14 @@ class VocalloTest extends \PHPUnit_Framework_TestCase
             )
         ))->getResult();
 
+        $blueDot->execute('scenario.create_course', array(
+            'create_course' => array(
+                'name' => 'Some name',
+            ),
+        ))->getResult();
+
+
+
         $translations = $blueDot->execute('simple.select.generic_injectable_sql', array(
             'injected_sql' => sprintf('SELECT word_id, translation FROM translations WHERE word_id IN (1, 60, 150, 78, 345)'),
         ))->getResult();
