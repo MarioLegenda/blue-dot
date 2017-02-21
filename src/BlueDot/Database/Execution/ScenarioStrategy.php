@@ -57,6 +57,7 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
         }
 
         if ($rootConfig->get('atomic') === true) {
+            // make inTransaction() check here
             $this->connection->getConnection()->commit();
         }
 
@@ -69,6 +70,29 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
         $scenarioName = $this->statement->get('root_config')->get('scenario_name');
 
         $entity = new Entity();
+
+        if (empty($returnEntities)) {
+            if (!$this->resultReport->isEmpty()) {
+                var_dump($this->resultReport);
+                foreach ($this->resultReport as $scenarioName => $report) {
+                    $name = explode('.', $scenarioName)[2];
+
+                    if (!$report->isEmpty()) {
+                        $info = new ArgumentBag();
+
+                        if ($report->has('last_insert_id')) {
+                            $info->add('last_insert_id', $report->get('last_insert_id'));
+                        }
+
+                        $info->add('row_count', $report->get('row_count'));
+
+                        $entity->add($name, $info);
+                    }
+                }
+
+                return $entity;
+            }
+        }
 
         foreach ($returnEntities as $returnEntity) {
             $statementName = $returnEntity->getStatementName();

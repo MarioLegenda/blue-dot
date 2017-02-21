@@ -7,18 +7,28 @@ use BlueDot\Exception\BlueDotRuntimeException;
 abstract class AbstractArgumentBag implements StorageInterface, \IteratorAggregate, \ArrayAccess, \Countable
 {
     /**
+     * @var string $name
+     */
+    private $name;
+    /**
      * @var array $arguments
      */
     protected $arguments = array();
     /**
-     * @param StorageInterface $storage
+     * AbstractArgumentBag constructor.
+     * @param null $storage
+     * @param null $name
      */
-    public function __construct($storage = null)
+    public function __construct($storage = null, $name = null)
     {
         if ($storage !== null) {
             foreach ($storage as $key => $item) {
                 $this->add($key, $item);
             }
+        }
+
+        if (is_string($name)) {
+            $this->name = $name;
         }
     }
     /**

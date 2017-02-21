@@ -51,7 +51,6 @@ class RecursiveStatementExecution implements StrategyInterface
             return $this;
         }
 
-
         $result = $this->executeReal($statements)->getResult();
 
         $this->resultReport->add($this->statement->get('resolved_statement_name'), $result, true);
@@ -87,13 +86,8 @@ class RecursiveStatementExecution implements StrategyInterface
         if ($statementType === 'insert') {
             $entity = new Entity();
 
-            $rowsReturned = 0;
-            foreach ($result as $key => $res) {
-                $entity->add($key, (int) $res);
-                $rowsReturned++;
-            }
-
-            $entity->add('rows_returned', $rowsReturned);
+            $entity->add('last_insert_id', $result->get('last_insert_id'));
+            $entity->add('row_count', $result->get('rows_affected'));
 
             return $entity;
         } else if ($statementType === 'select') {
@@ -120,7 +114,13 @@ class RecursiveStatementExecution implements StrategyInterface
 
             return $entity;
         } else if ($statementType === 'update' or $statementType === 'delete') {
-            return $result[0];
+            $entity = new Entity();
+
+            if ($result !== null) {
+                $entity->add('row_count', $result->get('row_count'));
+            }
+
+            return $entity;
         }
     }
 
@@ -250,14 +250,23 @@ class RecursiveStatementExecution implements StrategyInterface
         } else if ($statementType === 'insert') {
             $resolvedStatementName = $this->statement->get('resolved_statement_name');
             $lastInsertId = $this->connection->getConnection()->lastInsertId();
+            $rowCount = $pdoStatement->rowCount();
 
             if (empty($lastInsertId)) {
                 $this->resultReport->add($resolvedStatementName, null);
             } else {
-                $this->resultReport->appendValue(
-                    $resolvedStatementName,
-                    $this->connection->getConnection()->lastInsertId()
-                );
+                $report = new ArgumentBag();
+
+                $report->add('statement_type', $statementType);
+                $report->add('resolved_statement_name', $resolvedStatementName);
+                $report->add('last_insert_id', $lastInsertId);
+                $report->add('rows_affected', $rowCount);
+
+                if ($this->resultReport->has($resolvedStatementName)) {
+                    $this->resultReport->add($resolvedStatementName, $report, true);
+                } else {
+                    $this->resultReport->add($resolvedStatementName, $report);
+                }
             }
         } else if ($statementType === 'update' or $statementType === 'delete') {
             $resolvedStatementName = $this->statement->get('resolved_statement_name');
@@ -266,10 +275,17 @@ class RecursiveStatementExecution implements StrategyInterface
             if (empty($rowCount)) {
                 $this->resultReport->add($resolvedStatementName, null);
             } else {
-                $this->resultReport->appendValue(
-                    $resolvedStatementName,
-                    $pdoStatement->rowCount()
-                );
+                $report = new ArgumentBag();
+
+                $report->add('statement_type', $statementType);
+                $report->add('resolved_statement_name', $resolvedStatementName);
+                $report->add('row_count', $pdoStatement->rowCount());
+
+                if ($this->resultReport->has($resolvedStatementName)) {
+                    $this->resultReport->add($resolvedStatementName, $report, true);
+                } else {
+                    $this->resultReport->add($resolvedStatementName, $report);
+                }
             }
         }
     }
@@ -338,9 +354,7 @@ class RecursiveStatementExecution implements StrategyInterface
                 ));
             }
 
-            $foreignKey = $foreignKeyResult[0];
-
-            $this->bindSingleParameter(new Parameter($foreignKeyOption->getBindTo(), $foreignKey), $pdoStatement);
+            $this->bindSingleParameter(new Parameter($foreignKeyOption->getBindTo(), $foreignKeyResult->get('last_insert_id')), $pdoStatement);
         }
     }
 }

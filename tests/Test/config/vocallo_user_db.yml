@@ -8,10 +8,7 @@ configuration:
     simple:
         select:
             generic_injectable_sql:
-                sql: 'injectable sql'
-            find_user_by_username:
-                sql: "SELECT * FROM users WHERE username = :username"
-                parameters: [username]
+                sql: "injectable sql"
 
             # languages
             find_language:
@@ -56,10 +53,6 @@ configuration:
                 sql: "SELECT * FROM words WHERE id = :word_id"
                 parameters: [word_id]
 
-            testing_joins:
-                sql: "SELECT w.id, w.word, t.translation FROM words AS w INNER JOIN translations AS t ON t.word_id = w.id WHERE w.id = 1"
-
-
             #images
             find_image_by_word:
                 sql: "SELECT * FROM word_images WHERE word_id = :word_id"
@@ -80,12 +73,15 @@ configuration:
                 parameters: [id]
 
             #class
-            find_class:
+            find_class_by_name:
                 sql: "SELECT * FROM classes WHERE course_id = :course_id AND name = :name"
                 parameters: [course_id, name]
             find_classes_by_course:
                 sql: "SELECT * FROM classes WHERE course_id = :course_id"
                 parameters: [course_id]
+            find_class_by_id:
+                sql: "SELECT * FROM classes WHERE id = :class_id"
+                parameters: [class_id]
 
             #lesson
             find_lesson:
@@ -133,6 +129,12 @@ configuration:
             schedule_word_removal:
                 sql: "UPDATE words SET schedule_removal = 1 WHERE id = :word_id"
                 parameters: [word_id]
+            rename_class:
+                sql: "UPDATE classes SET name = :name WHERE id = :class_id"
+                parameters: [class_id, name]
+            rename_lesson:
+                sql: "UPDATE lessons SET name = :name WHERE id = :lesson_id"
+                parameters: [lesson_id, name]
 
     scenario:
         database:
@@ -145,10 +147,8 @@ configuration:
 #                    sql_type: database
                 create_database:
                     sql: "CREATE DATABASE IF NOT EXISTS vocallo CHARACTER SET = 'utf8' COLLATE = 'utf8_general_ci'"
-                    sql_type: database
                 use_database:
                     sql: "USE vocallo"
-                    sql_type: database
 
         create_course:
             atomic: true
@@ -157,14 +157,12 @@ configuration:
             statements:
                 create_course:
                     sql: "INSERT INTO courses (language_id, name) VALUES (:language_id, :name)"
-                    sql_type: insert
                     parameters: [name]
                     use:
                         statement_name: get_working_language_id
                         values: { get_working_language.id : language_id }
                 get_working_language_id:
                     sql: "SELECT id FROM languages WHERE working_language = 1"
-                    sql_type: select
 
 
         insert_word:
@@ -174,18 +172,15 @@ configuration:
             statements:
                 insert_word:
                     sql: "INSERT INTO words (language_id, word, type) VALUES (:language_id, :word, :type)"
-                    sql_type: insert
                     parameters: [language_id, word, type]
                 insert_translation:
                     sql: "INSERT INTO translations (word_id, translation) VALUES(:word_id, :translation)"
-                    sql_type: insert
                     parameters: [translation]
                     foreign_key:
                         statement_name: insert_word
                         bind_to: word_id
                 insert_word_category:
                     sql: "INSERT INTO word_category (word_id, category_id) VALUES (:word_id, :category_id)"
-                    sql_type: insert
                     parameters: [category_id]
                     foreign_key:
                         statement_name: insert_word
@@ -193,7 +188,6 @@ configuration:
                 insert_word_image:
                     sql: "INSERT INTO word_images (word_id, relative_path, absolute_path, file_name, absolute_full_path, relative_full_path) VALUES (:word_id, :relative_path, :absolute_path, :file_name, :absolute_full_path, :relative_full_path)"
                     parameters: [:relative_path, :absolute_path, :file_name, :absolute_full_path, :relative_full_path]
-                    sql_type: insert
                     foreign_key:
                         statement_name: insert_word
                         bind_to: word_id
@@ -204,21 +198,17 @@ configuration:
             statements:
                 remove_translations:
                     sql: "DELETE t FROM translations AS t INNER JOIN words AS w WHERE t.word_id = :word_id AND t.word_id = w.id AND w.schedule_removal = 1"
-                    sql_type: delete
                     parameters: [word_id]
                 remove_word_category:
                     sql: "DELETE wc FROM word_category AS wc INNER JOIN words AS w WHERE wc.word_id = :word_id AND w.id = wc.word_id AND w.schedule_removal = 1"
                     can_be_empty_result: true
-                    sql_type: delete
                     parameters: [word_id]
                 remove_word_image:
                     sql: "DELETE wi FROM word_images AS wi INNER JOIN words AS w WHERE wi.word_id = :word_id AND w.id = wi.word_id AND w.schedule_removal = 1"
-                    sql_type: delete
                     can_be_empty_result: true
                     parameters: [word_id]
                 remove_word:
                     sql: "DELETE FROM words WHERE id = :word_id AND schedule_removal = 1"
-                    sql_type: delete
                     parameters: [word_id]
 
         seed:

@@ -125,9 +125,6 @@ class ConfigurationValidator
                             $nodeValue
                                 ->cannotBeEmpty('sql')
                                 ->isString('sql')
-                                ->cannotBeEmpty('sql_type')
-                                ->isString('sql_type')
-                                ->hasToBeOneOf('sql_type', array('select', 'insert', 'update', 'delete', 'database', 'table'))
                                 ->isArrayIfExists('parameters')
                                 ->isBooleanIfExists('can_be_empty_result')
                                 ->cannotBeEmptyIfExists('use')

@@ -179,11 +179,31 @@ class Compiler
 
                     $scenarioStatement = new ArgumentBag();
                     $scenarioStatement
-                        ->add('statement_type', $statementConfig['sql_type'])
+                        //->add('statement_type', $statementConfig['sql_type'])
                         ->add('scenario_name', $resolvedScenarioName)
                         ->add('resolved_statement_name', $resolvedStatementName)
                         ->add('statement_name', $statementName)
                         ->add('sql', $statementConfig['sql']);
+
+                    $sql = $scenarioStatement->get('sql');
+
+                    preg_match('#(\w+\s)#i', $sql, $matches);
+
+                    if (empty($matches)) {
+                        throw new CompileException(sprintf(
+                            'Sql syntax could not be determined for statement %s. Sql: %s',
+                            $resolvedStatementName,
+                            $sql
+                        ));
+                    }
+
+                    $sqlType = trim(strtolower($matches[1]));
+
+                    if ($sqlType === 'create') {
+                        $sqlType = 'table';
+                    }
+
+                    $scenarioStatement->add('statement_type', $sqlType);
 
                     $scenarioStatement->add('can_be_empty_result', false);
 

@@ -25,6 +25,6 @@ abstract class AbstractStrategy
         $this->connection = $statement->get('connection');
         $statement->remove('connection');
         $this->statement = $statement;
-        $this->resultReport = new ArgumentBag();
+        $this->resultReport = new ArgumentBag(null, 'result-report');
     }
 }
