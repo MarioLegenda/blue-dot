@@ -66,6 +66,7 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
 
     public function getResult() : StorageInterface
     {
+
         $returnEntities = $this->statement->get('root_config')->get('return_entity')->getAllReturnData();
         $scenarioName = $this->statement->get('root_config')->get('scenario_name');
 

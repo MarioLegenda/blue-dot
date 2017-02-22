@@ -8,6 +8,7 @@ use BlueDot\Database\Parameter\Parameter;
 use BlueDot\Database\Parameter\ParameterCollection;
 use BlueDot\Entity\Entity;
 use BlueDot\Entity\EntityCollection;
+use BlueDot\Entity\ModelConverter;
 use BlueDot\Exception\BlueDotRuntimeException;
 
 class SimpleStrategy extends AbstractStrategy implements StrategyInterface
@@ -85,6 +86,12 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
 
             return $entity;
         } else if ($statementType === 'select') {
+            if ($this->statement->has('model')) {
+                $modelConverter = new ModelConverter($this->statement->get('model'), $result->toArray()[0]);
+
+                return $modelConverter->convert();
+            }
+
             $temp = array();
 
             if (count($result[0]) > 1) {

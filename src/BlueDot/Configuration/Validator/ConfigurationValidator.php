@@ -94,7 +94,12 @@ class ConfigurationValidator
                         $nodeValue
                             ->cannotBeEmpty('sql')
                             ->isString('sql')
-                            ->isArrayIfExists('parameters');
+                            ->isArrayIfExists('parameters')
+                            ->isArrayIfExists('model')
+                            ->cannotBeEmptyIfExists('model')
+                            ->stepIntoIfExists('model')
+                                ->isString('object')
+                                ->isArrayIfExists('properties');
                     }
                 })
             ->stepOut();

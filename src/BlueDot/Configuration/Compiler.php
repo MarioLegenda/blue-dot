@@ -3,6 +3,7 @@
 namespace BlueDot\Configuration;
 
 use BlueDot\Configuration\Validator\ConfigurationValidator;
+use BlueDot\Entity\Model;
 use BlueDot\Exception\CompileException;
 
 use BlueDot\Common\{ ArgumentBag, ArgumentValidator, ValidatorInterface};
@@ -125,6 +126,25 @@ class Compiler
                         $parameters = $statementConfig['parameters'];
 
                         $workConfig->add('config_parameters', $parameters);
+                    }
+
+                    if (array_key_exists('model', $statementConfig)) {
+                        $object = $statementConfig['model']['object'];
+                        $properties = (array_key_exists('properties', $statementConfig['model'])) ? $statementConfig['model']['properties'] : array();
+
+                        if (!class_exists($object)) {
+                            throw new CompileException(sprintf('Invalid model options. Object \'%s\' does not exist', $object));
+                        }
+
+                        if (!empty($properties)) {
+                            foreach ($properties as $key => $value) {
+                                if (!is_string($key)) {
+                                    throw new CompileException('Invalid model options. \'properties\' should be a associative array. %s given for value %s', $key, $value);
+                                }
+                            }
+                        }
+
+                        $workConfig->add('model', new Model($object, $properties));
                     }
 
                     $builtStatement->mergeStorage($workConfig);

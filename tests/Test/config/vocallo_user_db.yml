@@ -16,6 +16,9 @@ configuration:
                 parameters: [language]
             find_all_languages:
                 sql: "SELECT * FROM languages"
+                model:
+                    object: 'Test\Model\Language'
+                    properties: { developer_id: developer }
 
             # category
             find_category:
