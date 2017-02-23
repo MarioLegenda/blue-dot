@@ -28,10 +28,6 @@ class BlueDot implements BlueDotInterface
      */
     private static $singletonInstance;
     /**
-     * @var StrategyInterface $strategy
-     */
-    private $strategy;
-    /**
      * @var Connection $connection
      */
     private $connection;
