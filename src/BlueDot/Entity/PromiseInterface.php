@@ -12,10 +12,10 @@ interface PromiseInterface
      * @param \Closure $callback
      * @return PromiseInterface
      */
-    public function success(\Closure $callback) : PromiseInterface;
+    public function success(\Closure $callback);
     /**
      * @param \Closure $callback
      * @return PromiseInterface
      */
-    public function failure(\Closure $callback) : PromiseInterface;
+    public function failure(\Closure $callback);
 }

@@ -31,26 +31,22 @@ class Promise implements PromiseInterface
      * @param \Closure $callback
      * @return PromiseInterface
      */
-    public function success(\Closure $callback) : PromiseInterface
+    public function success(\Closure $callback)
     {
         if (is_null($this->getResult())) {
             return $this;
         }
 
-        $callback->__invoke($this);
-
-        return $this;
+        return $callback->__invoke($this);
     }
     /**
      * @param \Closure $callback
      * @return PromiseInterface
      */
-    public function failure(\Closure $callback) : PromiseInterface
+    public function failure(\Closure $callback)
     {
         if (!is_null($this->getResult())) {
-            $callback->__invoke($this);
-
-            return $this;
+            return $callback->__invoke($this);
         }
 
         return $this;
