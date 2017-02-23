@@ -25,6 +25,28 @@ class Entity extends AbstractArgumentBag
         }
 
         foreach ($this->arguments as $argument) {
+            if (is_object($argument)) {
+                $resolvedArgument = array();
+
+                foreach ($findBy as $property => $value) {
+                    $method = 'get'.ucfirst($property);
+
+                    if (!method_exists($argument, $method)) {
+                        throw new EntityException(
+                            sprintf('Possible invalid model method. If you choose to return a specific model from a query, that model has to gave a \'get\' method for the property(s) which you specified in the findBy() method. For example, if you which to find by an id, the the model should have a getId() method')
+                        );
+                    }
+
+                    $resolvedArgument[$property] = $argument->{$method}();
+                }
+
+                $result = array_intersect_assoc($findBy, $resolvedArgument);
+
+                if (!empty($result) and count($findBy) === count($result)) {
+                    return $argument;
+                }
+            }
+
             $result = array_intersect_assoc($findBy, $argument);
 
             if (!empty($result) and count($findBy) === count($result)) {
@@ -57,18 +79,47 @@ class Entity extends AbstractArgumentBag
      * @param \Closure|null $evaluation
      * @param string|null $alias
      * @return Entity|null
+     * @throws EntityException
      */
     public function extract(string $column, \Closure $evaluation = null, string $alias = null)
     {
         $columns = array();
         foreach ($this->arguments as $argument) {
+            if (is_object($argument)) {
+                $method = 'get'.ucfirst($column);
+
+                if (!method_exists($argument, $method)) {
+                    throw new EntityException(
+                        sprintf('Possible invalid model method. If you choose to extract values from a specific model from a query, that model has to gave a \'get\' method for the property(s) which you specified in the findBy() method. For example, if you which to find by an id, the the model should have a getId() method')
+                    );
+                }
+
+                $columns[$column][] = $argument->{$method}();
+
+                continue;
+            }
+
             if (array_key_exists($column, $argument)) {
                 if ($evaluation instanceof \Closure) {
                     if ($evaluation->__invoke($argument) === true) {
+                        $value = $argument[$column];
+
+                        if (is_object($argument)) {
+                            $method = 'get'.ucfirst($column);
+
+                            if (!method_exists($argument, $method)) {
+                                throw new EntityException(
+                                    sprintf('Possible invalid model method. If you choose to extract values from a specific model from a query, that model has to gave a \'get\' method for the property(s) which you specified in the findBy() method. For example, if you which to find by an id, the the model should have a getId() method')
+                                );
+                            }
+
+                            $value = $argument->{$method}();
+                        }
+
                         if (is_string($alias)) {
-                            $columns[$alias][] = $argument[$column];
+                            $columns[$alias][] = $value;
                         } else {
-                            $columns[$column][] = $argument[$column];
+                            $columns[$column][] = $value;
                         }
                     }
 
@@ -90,6 +141,7 @@ class Entity extends AbstractArgumentBag
      * @param \Closure|null $evaluation
      * @param string|null $alias
      * @return $this|Entity
+     * @throws EntityException
      */
     public function arrangeMultiples(array $arrangeColumns, \Closure $evaluation = null, string $alias = null)
     {

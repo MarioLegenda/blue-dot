@@ -74,7 +74,7 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
         $statementType = $this->statement->get('statement_type');
 
         if (is_null($result)) {
-            return null;
+            return new Entity();
         }
 
         if ($statementType === 'insert') {
@@ -89,7 +89,13 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
             if ($this->statement->has('model')) {
                 $modelConverter = new ModelConverter($this->statement->get('model'), $result->toArray()[0]);
 
-                return $modelConverter->convert();
+                $converted = $modelConverter->convert();
+
+                if (is_array($converted)) {
+                    return new Entity($converted);
+                }
+
+                return $converted;
             }
 
             $temp = array();
@@ -108,7 +114,13 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
                 return new Entity($result[0]);
             }
         } else if ($statementType === 'update' or $statementType === 'delete') {
-            return $result[0];
+            $rowsAffected = $result[0];
+
+            $entity = new Entity();
+
+            $entity->add('rows_affected', $rowsAffected);
+
+            return $entity;
         }
     }
 

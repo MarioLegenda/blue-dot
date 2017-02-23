@@ -59,6 +59,6 @@ class VocalloTest extends \PHPUnit_Framework_TestCase
             return $row['word_id'] === $id;
         });
 
-        $result = $blueDot->execute('simple.select.find_all_languages')->getResult();
+        $promise = $blueDot->execute('simple.select.find_all_languages');
     }
 }

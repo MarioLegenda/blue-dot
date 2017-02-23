@@ -3,19 +3,16 @@
 namespace BlueDot;
 
 use BlueDot\Common\StorageInterface;
+use BlueDot\Entity\PromiseInterface;
 
 interface BlueDotInterface
 {
     /**
      * @param string $name
      * @param array $parameters
-     * @return BlueDotInterface
+     * @return PromiseInterface
      */
-    public function execute(string $name, $parameters = array()) : BlueDotInterface;
-    /**
-     * @return StorageInterface
-     */
-    public function getResult();
+    public function execute(string $name, $parameters = array()) : PromiseInterface;
     /**
      * @param \PDO $connection
      * @return BlueDotInterface

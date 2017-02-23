@@ -11,6 +11,8 @@ use BlueDot\Database\{ Connection, ParameterConversion };
 
 use BlueDot\Database\Execution\{ CallableStrategy, ExecutionContext, StrategyInterface };
 
+use BlueDot\Entity\Promise;
+use BlueDot\Entity\PromiseInterface;
 use BlueDot\Exception\{ ConnectionException, ConfigurationException };
 
 use Symfony\Component\Yaml\Yaml;
@@ -89,9 +91,9 @@ class BlueDot implements BlueDotInterface
     /**
      * @param string $name
      * @param array $parameters
-     * @return BlueDotInterface
+     * @return PromiseInterface
      */
-    public function execute(string $name, $parameters = array()) : BlueDotInterface
+    public function execute(string $name, $parameters = array()) : PromiseInterface
     {
         $statement = $this->compiler->compile($name);
 
@@ -100,25 +102,16 @@ class BlueDot implements BlueDotInterface
         if ($statement->get('type') === 'callable') {
             $callableStrategy = new CallableStrategy($statement, $this, $parameters);
 
-            $this->strategy = $callableStrategy->execute();
+            $strategy = $callableStrategy->execute();
 
-            return $this;
+            return new Promise($strategy->getResult());
         }
 
         $statement->add('connection', $this->connection);
 
         $strategy = (new ExecutionContext($statement))->getStrategy();
 
-        $this->strategy = $strategy->execute();
-
-        return $this;
-    }
-    /**
-     * @return StorageInterface
-     */
-    public function getResult()
-    {
-        return $this->strategy->getResult();
+        return new Promise($strategy->execute()->getResult());
     }
     /**
      * @param \PDO $connection

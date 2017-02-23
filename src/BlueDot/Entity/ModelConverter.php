@@ -36,7 +36,7 @@ class ModelConverter
             $modelCollection[] = $this->arrayToModel($result);
         }
 
-        return $modelCollection;
+        return new Entity($modelCollection);
     }
 
     private function arrayToModel(array $result)
