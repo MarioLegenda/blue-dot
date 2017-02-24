@@ -189,4 +189,15 @@ class Entity extends AbstractArgumentBag
 
         return new Entity($temp);
     }
+    /**
+     * @return Entity
+     */
+    public function normalizeIfOneExists() : Entity
+    {
+        if (count($this->arguments) === 1) {
+            $this->arguments = $this->arguments[0];
+        }
+
+        return $this;
+    }
 }
