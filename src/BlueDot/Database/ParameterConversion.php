@@ -182,10 +182,11 @@ class ParameterConversion
         $multiInsert = false;
         foreach ($configParameters as $configParameter) {
             foreach ($userParameters as $key => $userParameter) {
-                if (!is_int($userParameter) and !is_array($userParameter) and !is_string($userParameter) and !is_null($userParameter)) {
+                if (!is_int($userParameter) and !is_array($userParameter) and !is_string($userParameter) and !is_null($userParameter) and !is_bool($userParameter)) {
                     throw new BlueDotRuntimeException(sprintf(
-                        'No user parameters but config parameters were given. Config parameters are: \'%s\' for statement \'%s\'',
-                        implode(', ', $configParameters),
+                        'Invalid user parameter type given for parameter \'%s\'. User parameters can integers, arrays, string, nulls and bool. \'%s\' given for statement \'%s\'',
+                        $key,
+                        gettype($userParameter),
                         $statement->get('resolved_statement_name')
                     ));
                 }
