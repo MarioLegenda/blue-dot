@@ -3,6 +3,7 @@
 namespace Test;
 
 use BlueDot\BlueDot;
+use BlueDot\Entity\PromiseInterface;
 
 class VocalloTest extends \PHPUnit_Framework_TestCase
 {
@@ -61,11 +62,16 @@ class VocalloTest extends \PHPUnit_Framework_TestCase
 
         $promise = $blueDot->execute('simple.select.find_all_languages');*/
 
-        $promise = $blueDot->execute('simple.insert.create_language', array(
-            'language' => 'budala',
-        ));
+        $result = $blueDot->execute('simple.select.find_lesson', array(
+            'class_id' => 1,
+            'name' => 'kreten',
+        ))->success(function(PromiseInterface $promise) {
+            return 'success';
+        })->failure(function(PromiseInterface $promise) {
+            return 'failure';
+        })->getResult();
 
-        var_dump($promise->getResult());
+        var_dump($result);
         die();
     }
 }

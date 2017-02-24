@@ -9,6 +9,14 @@ class Promise implements PromiseInterface
      */
     private $entity;
     /**
+     * @var bool $callbackCalled
+     */
+    private $callbackCalled = false;
+    /**
+     * @var mixed $result
+     */
+    private $result = null;
+    /**
      * Promise constructor.
      * @param Entity|object|null $entity
      */
@@ -21,6 +29,10 @@ class Promise implements PromiseInterface
      */
     public function getResult()
     {
+        if ($this->callbackCalled === true) {
+            return $this->result;
+        }
+
         if ($this->entity instanceof Entity) {
             return ($this->entity->isEmpty()) ? null : $this->entity;
         }
@@ -28,25 +40,38 @@ class Promise implements PromiseInterface
         return $this->entity;
     }
     /**
-     * @param \Closure $callback
-     * @return PromiseInterface
+     * @return Entity|null|object
      */
-    public function success(\Closure $callback)
+    public function getOriginalEntity()
     {
-        if (is_null($this->getResult())) {
-            return $this;
-        }
-
-        return $callback->__invoke($this);
+        return $this->entity;
     }
     /**
      * @param \Closure $callback
      * @return PromiseInterface
      */
-    public function failure(\Closure $callback)
+    public function success(\Closure $callback) : PromiseInterface
     {
-        if (!is_null($this->getResult())) {
-            return $callback->__invoke($this);
+        if (is_null($this->getResult())) {
+            return $this;
+        }
+
+        $this->result = $callback->__invoke($this);
+
+        $this->callbackCalled = true;
+
+        return $this;
+    }
+    /**
+     * @param \Closure $callback
+     * @return PromiseInterface
+     */
+    public function failure(\Closure $callback) : PromiseInterface
+    {
+        if (is_null($this->getResult())) {
+            $this->result = $callback->__invoke($this);
+
+            $this->callbackCalled = true;
         }
 
         return $this;
