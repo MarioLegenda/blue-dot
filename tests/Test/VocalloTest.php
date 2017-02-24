@@ -9,7 +9,7 @@ class VocalloTest extends \PHPUnit_Framework_TestCase
     public function testDatabase()
     {
         $blueDot = new BlueDot(__DIR__ . '/config/vocallo_user_db.yml');
-
+/*
         $info = $blueDot->execute('scenario.insert_word', array(
             'insert_word' => array(
                 'language_id' => 1,
@@ -59,6 +59,13 @@ class VocalloTest extends \PHPUnit_Framework_TestCase
             return $row['word_id'] === $id;
         });
 
-        $promise = $blueDot->execute('simple.select.find_all_languages');
+        $promise = $blueDot->execute('simple.select.find_all_languages');*/
+
+        $promise = $blueDot->execute('simple.insert.create_language', array(
+            'language' => 'budala',
+        ));
+
+        var_dump($promise->getResult());
+        die();
     }
 }
