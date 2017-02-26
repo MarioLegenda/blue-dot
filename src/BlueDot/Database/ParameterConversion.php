@@ -48,7 +48,7 @@ class ParameterConversion
         if ($type === 'simple') {
 
             $this->statement->add('query_strategy', 'individual_strategy', true);
-
+/*
             if (array_key_exists('injected_sql', $this->userParameters)) {
                 if (!is_string($this->userParameters['injected_sql'])) {
                     throw new BlueDotRuntimeException(sprintf(
@@ -60,7 +60,7 @@ class ParameterConversion
                 $this->statement->add('sql', $this->userParameters['injected_sql'], true);
 
                 unset($this->userParameters['injected_sql']);
-            }
+            }*/
 
             $this->validateParameters($this->statement, $this->userParameters);
 
