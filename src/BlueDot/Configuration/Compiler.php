@@ -35,8 +35,8 @@ class Compiler
     /**
      * Compiler constructor.
      * @param array $configuration
-     * @param ArgumentValidator $argumentValidator
-     * @param StatementValidator $statementValidator
+     * @param ValidatorInterface $argumentValidator
+     * @param ValidatorInterface $statementValidator
      * @param ConfigurationValidator $configurationValidator
      */
     public function __construct(

@@ -33,6 +33,7 @@ class ConfigurationValidator
                     ->keyExists('database_name')->isString('database_name')
                     ->keyExists('user')->isString('user')
                     ->keyExists('password')->isString('password')
+                    ->isBooleanIfExists('persistent')
                 ->stepOut();
 
         $scenarioConfiguration =

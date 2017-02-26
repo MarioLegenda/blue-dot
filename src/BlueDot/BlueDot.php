@@ -2,6 +2,7 @@
 
 namespace BlueDot;
 
+use BlueDot\Command\CreateDatabaseCommand;
 use BlueDot\Common\{ ArgumentValidator, StatementValidator, StorageInterface };
 
 use BlueDot\Configuration\Compiler;
@@ -9,7 +10,7 @@ use BlueDot\Configuration\Compiler;
 use BlueDot\Configuration\Validator\ConfigurationValidator;
 use BlueDot\Database\{ Connection, ParameterConversion };
 
-use BlueDot\Database\Execution\{ CallableStrategy, ExecutionContext, StrategyInterface };
+use BlueDot\Database\Execution\{ CallableStrategy, ExecutionContext };
 
 use BlueDot\Entity\Promise;
 use BlueDot\Entity\PromiseInterface;

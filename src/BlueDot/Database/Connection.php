@@ -19,6 +19,8 @@ class Connection
      */
     public function __construct(array $dsn = array())
     {
+        $this->validateDsn($dsn);
+
         $this->dsn = $dsn;
     }
     /**
@@ -41,11 +43,18 @@ class Connection
         $password = $this->dsn['password'];
 
         try {
-            $this->connection = new \PDO('mysql:host='.$host.';dbname='.$dbName, $user, $password, array(
-                \PDO::ATTR_PERSISTENT => true,
+            $options = array(
                 \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
                 \PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8',
-            ));
+            );
+
+            $options[\PDO::ATTR_PERSISTENT] = true;
+
+            if (array_key_exists('persistent', $this->dsn)) {
+                $options[\PDO::ATTR_PERSISTENT] = $this->dsn['persistent'];
+            }
+
+            $this->connection = new \PDO('mysql:host='.$host.';dbname='.$dbName, $user, $password, $options);
         } catch (\PDOException $e) {
             throw new ConnectionException('A PDOException has been thrown when connecting to the database with message \''.$e->getMessage().'\'');
         }
@@ -74,5 +83,32 @@ class Connection
     public function getConnection() : \PDO
     {
         return $this->connection;
+    }
+
+    private function validateDsn(array $dsn)
+    {
+        $valids = array('host', 'database_name', 'user', 'password');
+
+        foreach ($valids as $entry) {
+            if (array_key_exists($entry, $dsn) === false) {
+                throw new ConnectionException(
+                    sprintf('Invalid connection. Missing \'%s\' dsn entry', $key)
+                );
+            }
+
+            $dsnEntry = $dsn[$entry];
+
+            if (!is_string($dsnEntry)) {
+                throw new ConnectionException(
+                    sprintf('Invalid connection. \'%s\' dns entry has to be a string', $key)
+                );
+            }
+        }
+
+        if (array_key_exists('persistent', $dsn)) {
+            if (!is_bool($dsn['persistent'])) {
+                throw new ConnectionException('Invalid connection. \'persistent\' dsn option has to be a boolean');
+            }
+        }
     }
 }

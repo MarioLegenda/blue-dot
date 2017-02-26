@@ -4,6 +4,7 @@ configuration:
         database_name: 'vocallo'
         user: 'root'
         password: 'root'
+        persistent: false
 
     simple:
         select:
@@ -192,8 +193,6 @@ configuration:
 #                    sql_type: database
                 create_database:
                     sql: "CREATE DATABASE IF NOT EXISTS vocallo CHARACTER SET = 'utf8' COLLATE = 'utf8_general_ci'"
-                use_database:
-                    sql: "USE vocallo"
 
         create_course:
             atomic: true
