@@ -50,7 +50,7 @@ class ArgumentValidator implements ValidatorInterface
         return $this;
     }
     /**
-     * @return bool
+     * @return ValidatorInterface
      * @throws BlueDotRuntimeException
      */
     public function validate() : ValidatorInterface
