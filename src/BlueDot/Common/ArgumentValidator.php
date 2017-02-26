@@ -35,8 +35,9 @@ class ArgumentValidator implements ValidatorInterface
         $this->arguments = $arguments;
     }
     /**
-     * @param string $arguments
+     * @param string $validationArgument
      * @return ValidatorInterface
+     * @throws CompileException
      */
     public function setValidationArgument($validationArgument) : ValidatorInterface
     {

@@ -18,6 +18,7 @@ use BlueDot\Exception\{
     BlueDotRuntimeException, ConnectionException, ConfigurationException
 };
 
+use BlueDot\StatementBuilder\StatementBuilder;
 use Symfony\Component\Yaml\Yaml;
 
 class BlueDot implements BlueDotInterface
@@ -121,6 +122,23 @@ class BlueDot implements BlueDotInterface
     public function getConnection() : Connection
     {
         return $this->connection;
+    }
+    /**
+     * @param Connection|null $connection
+     * @return StatementBuilder
+     * @throws ConnectionException
+     */
+    public function createStatementBuilder(Connection $connection = null) : StatementBuilder
+    {
+        if ($connection instanceof Connection) {
+            return new StatementBuilder($connection);
+        }
+
+        if (!$this->connection instanceof Connection) {
+            throw new ConnectionException('Statement builder connection not established. Either you have to provide a connection with configuration, inject connection with BlueDot::setExternalConnection or pass the '.Connection::class.' object to BlueDot::createStatementBuilder()');
+        }
+
+        return new StatementBuilder($this->connection);
     }
 
     private function initBlueDot($configSource = null, Connection $connection = null)

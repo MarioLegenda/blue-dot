@@ -12,7 +12,9 @@ class StatementValidator implements ValidatorInterface
      */
     private $statement;
     /**
-     * @param ArgumentBag $statement
+     * @param mixed $validationArgument
+     * @throws CompileException
+     * @return ValidatorInterface
      */
     public function setValidationArgument($validationArgument) : ValidatorInterface
     {
@@ -25,7 +27,7 @@ class StatementValidator implements ValidatorInterface
         return $this;
     }
     /**
-     * @return StatementValidator
+     * @return ValidatorInterface
      */
     public function validate() : ValidatorInterface
     {

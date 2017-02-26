@@ -71,16 +71,14 @@ class VocalloTest extends \PHPUnit_Framework_TestCase
             return 'failure';
         })->getResult();*/
 
-        $promise = $blueDot->execute('simple.update.update_theory_deck', array(
-            'deck_id' => 7,
-            'internal_name' => 'kreten',
-            'internal_description' => 'internal descrption',
-            'deck_data' => null,
-            'show_on_page' => false,
-            'ordering' => null,
-        ));
+        $promise = $blueDot->createStatementBuilder()
+            ->addSql('SELECT w.id, w.word, w.type FROM words AS w WHERE language_id = :language_id AND word LIKE :search_word ORDER BY w.id ASC LIMIT 12 OFFSET :offset')
+            ->addParameter('language_id', 1)
+            ->addParameter('search_word', 'occ')
+            ->addParameter('offset', 0)
+            ->execute();
 
-        var_dump($promise->isSuccess());
+        var_dump($promise);
 
         die();
     }
