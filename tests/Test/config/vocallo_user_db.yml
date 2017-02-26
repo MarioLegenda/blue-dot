@@ -16,9 +16,6 @@ configuration:
                 parameters: [language]
             find_all_languages:
                 sql: "SELECT * FROM languages"
-                model:
-                    object: 'Test\Model\Language'
-                    properties: { developer_id: developer }
 
             # category
             find_category:
@@ -55,6 +52,8 @@ configuration:
             find_word_by_id:
                 sql: "SELECT * FROM words WHERE id = :word_id"
                 parameters: [word_id]
+                model:
+                    object: AppBundle\Entity\Word
 
             #images
             find_image_by_word:
@@ -69,8 +68,9 @@ configuration:
             find_course_by_id:
                 sql: "SELECT * FROM courses WHERE id = :course_id"
                 parameters: [course_id]
-            find_all_courses:
-                sql: "SELECT id, name FROM courses"
+            find_all_courses_by_language:
+                sql: "SELECT id, name FROM courses WHERE language_id = :language_id"
+                parameters: [language_id]
             initial_course_info:
                 sql: "SELECT * FROM courses WHERE id = :id"
                 parameters: [id]
@@ -96,13 +96,41 @@ configuration:
             find_lesson_by_id:
                 sql: "SELECT * FROM lessons WHERE id = :lesson_id"
                 parameters: [lesson_id]
+            find_lesson_complete:
+                sql: "SELECT * FROM lessons WHERE id = :lesson_id AND name = :name AND class_id = :class_id"
+                parameters: [lesson_id, name, class_id]
 
             #image
             find_word_image_by_filename:
                 sql: "SELECT id FROM word_images WHERE file_name = :file_name"
                 parameters: [file_name]
 
+            #theory
+            find_theory_by_name:
+                sql: "SELECT id FROM theories WHERE name = :name AND lesson_id = :lesson_id"
+                parameters: [name, lesson_id]
+                model:
+                    object: AppBundle\Entity\Theory
+            find_all_theories_by_lesson:
+                sql: "SELECT * FROM theories WHERE lesson_id = :lesson_id"
+                parameters: [lesson_id]
+            find_by_theory_id:
+                sql: "SELECT * FROM theories WHERE id = :theory_id"
+                parameters: [theory_id]
+            find_decks_by_theory:
+                sql: "SELECT id, internal_name FROM theory_decks WHERE theory_id = :theory_id"
+                parameters: [theory_id]
+            find_deck_by_internal_name:
+                sql: "SELECT * FROM theory_decks WHERE theory_id = :theory_id AND internal_name = :internal_name"
+                parameters: [theory_id, internal_name]
+                model:
+                    object: AppBundle\Entity\TheoryDeck
+
         insert:
+            generic_insert:
+                sql: 'some insert'
+
+
             create_language:
                 sql: "INSERT INTO languages (language) VALUES (:language)"
                 parameters: [language]
@@ -123,6 +151,14 @@ configuration:
                 sql: "INSERT INTO lessons (class_id, name) VALUES (:class_id, :name)"
                 parameters: [class_id, name]
 
+            create_theory:
+                sql: "INSERT INTO theories (name, lesson_id) VALUE (:name, :lesson_id)"
+                parameters: [name, lesson_id]
+
+            create_theory_deck:
+                sql: "INSERT INTO theory_decks (theory_id, internal_name, deck_data, internal_description, show_on_page, ordering) VALUES (:theory_id, :internal_name, :deck_data, :internal_description, :show_on_page, :ordering)"
+                parameters: [theory_id, internal_name, deck_data, internal_description, show_on_page, ordering]
+
         update:
             update_working_language:
                 sql: "UPDATE languages SET working_language = :working_language AND id = :language_id"
@@ -138,6 +174,12 @@ configuration:
             rename_lesson:
                 sql: "UPDATE lessons SET name = :name WHERE id = :lesson_id"
                 parameters: [lesson_id, name]
+            rename_theory:
+                sql: "UPDATE theories SET name = :name WHERE id = :theory_id"
+                parameters: [name, theory_id]
+            update_theory_deck:
+                sql: "UPDATE theory_decks SET internal_name = :internal_name, deck_data = :deck_data, internal_description = :internal_description, show_on_page = :show_on_page, ordering = :ordering WHERE id = :deck_id"
+                parameters: [deck_id, internal_name, deck_data, internal_description, show_on_page, ordering]
 
     scenario:
         database:
@@ -166,7 +208,6 @@ configuration:
                         values: { get_working_language.id : language_id }
                 get_working_language_id:
                     sql: "SELECT id FROM languages WHERE working_language = 1"
-
 
         insert_word:
             atomic: true
@@ -220,32 +261,27 @@ configuration:
             return_entity: []
             statements:
                 create_languages_table:
-                    sql: "CREATE TABLE languages (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, developer_id INT(6) NOT NULL, working_language TINYINT DEFAULT 0, language VARCHAR(256) NOT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"
-                    sql_type: table
+                    sql: "CREATE TABLE languages (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, working_language TINYINT DEFAULT 0, language VARCHAR(256) NOT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"
                 create_word_table:
                     sql: "CREATE TABLE words (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, language_id INT(6) NOT NULL, image_id INT(6) DEFAULT NULL, word VARCHAR(256) NOT NULL, type VARCHAR(256) DEFAULT NULL, schedule_removal TINYINT DEFAULT 0) CHARACTER SET utf8 COLLATE utf8_general_ci"
-                    sql_type: table
                 create_translations_table:
                     sql: "CREATE TABLE translations (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, word_id INT(6) NOT NULL, translation VARCHAR(256) NOT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"
-                    sql_type: table
                 create_category_table:
                     sql: "CREATE TABLE categories (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, language_id INT(6) NOT NULL, category VARCHAR(256) NOT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"
-                    sql_type: table
                 create_word_category_table:
                     sql: "CREATE TABLE word_category (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, word_id INT(6) NOT NULL, category_id INT(6) NOT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"
-                    sql_type: table
                 create_course_table:
                     sql: "CREATE TABLE courses (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, language_id INT(6) NOT NULL, name VARCHAR(255) NOT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"
-                    sql_type: table
                 create_class_table:
                     sql: "CREATE TABLE classes (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, course_id INT(6) NOT NULL, name VARCHAR(255) NOT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"
-                    sql_type: table
                 create_lesson_table:
                     sql: "CREATE TABLE lessons (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, class_id INT(6) NOT NULL, name VARCHAR(255) NOT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"
-                    sql_type: table
                 create_images_table:
                     sql: "CREATE TABLE word_images (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, word_id INT(6) NOT NULL, relative_path VARCHAR(255) DEFAULT NULL, absolute_path VARCHAR(255) DEFAULT NULL, file_name VARCHAR(255) DEFAULT NULL, absolute_full_path VARCHAR(255) DEFAULT NULL, relative_full_path VARCHAR(255) DEFAULT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"
-                    sql_type: table
+                create_theory_table:
+                    sql: "CREATE TABLE theories (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, lesson_id INT(6) NOT NULL, name VARCHAR(255) NOT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"
+                create_theory_deck:
+                    sql: "CREATE TABLE theory_decks (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, theory_id INT(6) NOT NULL, internal_name VARCHAR(255) NOT NULL, internal_description TEXT DEFAULT NULL, deck_data TEXT DEFAULT NULL, show_on_page TINYINT DEFAULT 0, ordering INT(6) DEFAULT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"
 
     callable:
         last_words:

@@ -22,4 +22,12 @@ interface PromiseInterface
      * @return mixed
      */
     public function getOriginalEntity();
+    /**
+     * @return bool
+     */
+    public function isSuccess() : bool;
+    /**
+     * @return bool
+     */
+    public function isFailure() : bool;
 }

@@ -52,6 +52,10 @@ class Promise implements PromiseInterface
      */
     public function success(\Closure $callback) : PromiseInterface
     {
+        if ($this->callbackCalled === true) {
+            return $this;
+        }
+
         if (is_null($this->getResult())) {
             return $this;
         }
@@ -68,6 +72,10 @@ class Promise implements PromiseInterface
      */
     public function failure(\Closure $callback) : PromiseInterface
     {
+        if ($this->callbackCalled === true) {
+            return $this;
+        }
+
         if (is_null($this->getResult())) {
             $this->result = $callback->__invoke($this);
 
@@ -75,5 +83,19 @@ class Promise implements PromiseInterface
         }
 
         return $this;
+    }
+    /**
+     * @return bool
+     */
+    public function isSuccess() : bool
+    {
+        return !is_null($this->getResult());
+    }
+    /**
+     * @return bool
+     */
+    public function isFailure() : bool
+    {
+        return is_null($this->getResult());
     }
 }

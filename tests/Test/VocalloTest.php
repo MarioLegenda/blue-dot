@@ -61,7 +61,7 @@ class VocalloTest extends \PHPUnit_Framework_TestCase
         });
 
         $promise = $blueDot->execute('simple.select.find_all_languages');*/
-
+/*
         $result = $blueDot->execute('simple.select.find_lesson', array(
             'class_id' => 1,
             'name' => 'kreten',
@@ -69,9 +69,19 @@ class VocalloTest extends \PHPUnit_Framework_TestCase
             return 'success';
         })->failure(function(PromiseInterface $promise) {
             return 'failure';
-        })->getResult();
+        })->getResult();*/
 
-        var_dump($result);
+        $promise = $blueDot->execute('simple.update.update_theory_deck', array(
+            'deck_id' => 7,
+            'internal_name' => 'kreten',
+            'internal_description' => 'internal descrption',
+            'deck_data' => null,
+            'show_on_page' => false,
+            'ordering' => null,
+        ));
+
+        var_dump($promise->isSuccess());
+
         die();
     }
 }
