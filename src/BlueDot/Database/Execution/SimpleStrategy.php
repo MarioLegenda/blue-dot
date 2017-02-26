@@ -60,7 +60,7 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
     }
     /**
      * @param ArgumentBag|null $statement
-     * @return StorageInterface|Entity|EntityCollection
+     * @returns Entity
      * @throws \BlueDot\Exception\BlueDotRuntimeException
      */
     public function getResult(ArgumentBag $statement = null)

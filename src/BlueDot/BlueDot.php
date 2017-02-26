@@ -13,7 +13,9 @@ use BlueDot\Database\Execution\{ CallableStrategy, ExecutionContext, StrategyInt
 
 use BlueDot\Entity\Promise;
 use BlueDot\Entity\PromiseInterface;
-use BlueDot\Exception\{ ConnectionException, ConfigurationException };
+use BlueDot\Exception\{
+    BlueDotRuntimeException, ConnectionException, ConfigurationException
+};
 
 use Symfony\Component\Yaml\Yaml;
 
@@ -36,7 +38,7 @@ class BlueDot implements BlueDotInterface
      * @param Connection|null $connection
      * @return BlueDot
      */
-    public static function instance($configSource, Connection $connection = null)
+    public static function instance($configSource = null, Connection $connection = null)
     {
         self::$singletonInstance =
             (self::$singletonInstance instanceof self) ?
@@ -52,45 +54,31 @@ class BlueDot implements BlueDotInterface
      * @throws ConfigurationException
      * @throws ConnectionException
      */
-    public function __construct($configSource, Connection $connection = null)
+    public function __construct($configSource = null, Connection $connection = null)
     {
-        $parsedConfiguration = array();
-        if (is_array($configSource)) {
-            $parsedConfiguration = $configSource;
-        } else if (is_string($configSource)) {
-            if (!file_exists($configSource)) {
-                throw new ConfigurationException('Configuration file'.$configSource.'does not exist');
-            }
-
-            $parsedConfiguration = Yaml::parse(file_get_contents($configSource));
+        if (is_null($configSource)) {
+            return $this;
         }
 
-        $this->compiler = new Compiler(
-            $parsedConfiguration['configuration'],
-            new ArgumentValidator(),
-            new StatementValidator(),
-            new ConfigurationValidator($parsedConfiguration)
-        );
-
-        if (array_key_exists('connection', $parsedConfiguration['configuration'])) {
-            $this->connection = new Connection($parsedConfiguration['configuration']['connection']);
-        }
-
-        if (!$this->connection instanceof Connection) {
-            if (!$connection instanceof Connection) {
-                throw new ConnectionException('Connection is missing. You can provide connection parameters in the configuration or as a '.Connection::class.' object in the constructor');
-            }
-
-            $this->connection = $connection;
-        }
+        $this->initBlueDot($configSource, $connection);
     }
     /**
      * @param string $name
      * @param array $parameters
      * @return PromiseInterface
+     * @throws BlueDotRuntimeException
+     * @throws ConnectionException
      */
     public function execute(string $name, $parameters = array()) : PromiseInterface
     {
+        if (!$this->connection instanceof Connection) {
+            throw new ConnectionException('No connection present. If you constructed BlueDot without configuration, then you have to provide a Connection object');
+        }
+
+        if (!$this->compiler instanceof Compiler) {
+            throw new BlueDotRuntimeException('Configuration does not exist. You have not constructed BlueDot with a configuration file. Only statement builder can be used');
+        }
+
         $statement = $this->compiler->compile($name);
 
         ParameterConversion::instance($parameters, $statement)->convert();
@@ -132,5 +120,62 @@ class BlueDot implements BlueDotInterface
     public function getConnection() : Connection
     {
         return $this->connection;
+    }
+
+    private function initBlueDot($configSource = null, Connection $connection = null)
+    {
+        $parsedConfiguration = $this->resolveConfiguration($configSource);
+
+        $this->compiler = $this->createCompiler($parsedConfiguration);
+        $this->connection = $this->createConnection($parsedConfiguration, $connection);
+    }
+
+    private function resolveConfiguration($configSource)
+    {
+        if (!is_string($configSource) and !is_array($configSource)) {
+            throw new ConfigurationException('Invalid configuration. Configuration can be a configuration array or a .yml file source');
+        }
+
+        $parsedConfiguration = array();
+        if (is_array($configSource)) {
+            $parsedConfiguration = $configSource;
+        } else if (is_string($configSource)) {
+            if (!file_exists($configSource)) {
+                throw new ConfigurationException('Configuration file'.$configSource.'does not exist');
+            }
+
+            $parsedConfiguration = Yaml::parse(file_get_contents($configSource));
+        }
+
+        if (empty($parsedConfiguration)) {
+            throw new ConfigurationException('Invalid configuration. Configuration could not be parsed');
+        }
+
+        return $parsedConfiguration;
+    }
+
+    private function createCompiler(array $parsedConfiguration) : Compiler
+    {
+        return new Compiler(
+            $parsedConfiguration['configuration'],
+            new ArgumentValidator(),
+            new StatementValidator(),
+            new ConfigurationValidator($parsedConfiguration)
+        );
+    }
+
+    private function createConnection(array $parsedConfiguration, Connection $connection = null) : Connection
+    {
+        if (array_key_exists('connection', $parsedConfiguration['configuration'])) {
+            return new Connection($parsedConfiguration['configuration']['connection']);
+        }
+
+        if (!$this->connection instanceof Connection) {
+            if (!$connection instanceof Connection) {
+                throw new ConnectionException('Connection is missing. You can provide connection parameters in the configuration or as a '.Connection::class.' object in the constructor');
+            }
+
+            return $connection;
+        }
     }
 }

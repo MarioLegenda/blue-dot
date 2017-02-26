@@ -22,7 +22,8 @@ class Connection
         $this->dsn = $dsn;
     }
     /**
-     * @return $this
+     * @return Connection
+     * @throws ConnectionException
      */
     public function connect() : Connection
     {
@@ -48,6 +49,15 @@ class Connection
         } catch (\PDOException $e) {
             throw new ConnectionException('A PDOException has been thrown when connecting to the database with message \''.$e->getMessage().'\'');
         }
+
+        return $this;
+    }
+    /**
+     * @return Connection
+     */
+    public function close() : Connection
+    {
+        $this->connection = null;
 
         return $this;
     }
