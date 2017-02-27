@@ -281,19 +281,20 @@ configuration:
                 create_theory_deck:
                     sql: "INSERT INTO theory_decks (theory_id, internal_name, deck_data, internal_description, show_on_page, ordering) VALUES (:theory_id, :internal_name, :deck_data, :internal_description, :show_on_page, :ordering)"
                     parameters: [theory_id, internal_name, deck_data, internal_description, show_on_page, ordering]
-                select_inserted_deck:
-                    sql: "SELECT id, theory_id FROM theory_decks WHERE id = :deck_id"
-                    foreign_key:
-                        statement_name: create_theory_deck
-                        bind_to: deck_id
                 create_deck_sound:
                     sql: "INSERT INTO theory_sounds (sound_id, theory_id, deck_id) VALUES (:sound_id, :theory_id, :deck_id)"
+                    if_exists: create_sound
                     foreign_key:
                         statement_name: create_sound
                         bind_to: sound_id
                     use:
                         statement_name: select_inserted_deck
                         values: {select_inserted_deck.id: deck_id, select_inserted_deck.theory_id: theory_id }
+                select_inserted_deck:
+                    sql: "SELECT id, theory_id FROM theory_decks WHERE id = :deck_id"
+                    foreign_key:
+                        statement_name: create_theory_deck
+                        bind_to: deck_id
 
 
 

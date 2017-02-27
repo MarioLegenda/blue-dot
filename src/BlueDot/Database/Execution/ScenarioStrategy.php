@@ -35,6 +35,24 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
 
         foreach ($this->statements as $statement) {
             try {
+                if ($statement->has('if_exists')) {
+                    $ifExistsStatement = $this->statements->get($statement->get('scenario_name').'.'.$statement->get('if_exists'));
+
+                    if ($ifExistsStatement->has('has_to_execute')) {
+                        continue;
+                    }
+
+                    if (!$this->resultReport->has($ifExistsStatement->get('resolved_statement_name'))) {
+                        $recursiveStatementExecution = new RecursiveStatementExecution(
+                            $statement,
+                            $this->resultReport,
+                            $this->connection
+                        );
+
+                        $recursiveStatementExecution->execute($this->statements);
+                    }
+                }
+
                 if ($statement->has('has_to_execute')) {
                     continue;
                 }

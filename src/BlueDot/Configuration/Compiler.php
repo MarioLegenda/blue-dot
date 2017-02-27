@@ -226,10 +226,8 @@ class Compiler
 
                     $scenarioStatement->add('can_be_empty_result', false);
 
-                    $scenarioStatement->add('has_to_be_present', true);
-
-                    if (array_key_exists('has_to_be_present', $statementConfig)) {
-                        $scenarioStatement->add('has_to_be_present', $statementConfig['has_to_be_present']);
+                    if (array_key_exists('if_exists', $statementConfig)) {
+                        $scenarioStatement->add('if_exists', $statementConfig['if_exists']);
                     }
 
                     if (array_key_exists('can_be_empty_result', $statementConfig)) {

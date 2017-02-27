@@ -48,19 +48,6 @@ class ParameterConversion
         if ($type === 'simple') {
 
             $this->statement->add('query_strategy', 'individual_strategy', true);
-/*
-            if (array_key_exists('injected_sql', $this->userParameters)) {
-                if (!is_string($this->userParameters['injected_sql'])) {
-                    throw new BlueDotRuntimeException(sprintf(
-                        'Invalid \'injected_sql\' parameter. \'injected_sql\' runtime option has to be a string, %s given',
-                        gettype($this->userParameters['injected_sql'])
-                    ));
-                }
-
-                $this->statement->add('sql', $this->userParameters['injected_sql'], true);
-
-                unset($this->userParameters['injected_sql']);
-            }*/
 
             $this->validateParameters($this->statement, $this->userParameters);
 
@@ -114,13 +101,22 @@ class ParameterConversion
                 }
 
                 if (array_key_exists($singleStatement->get('statement_name'), $this->userParameters)) {
-                    if ($this->userParameters[$singleStatement->get('statement_name')] === null) {
+                  if ($this->userParameters[$singleStatement->get('statement_name')] === null) {
                         if (array_key_exists($singleStatement->get('statement_name'), $foreignKeys)) {
-                            throw new BlueDotRuntimeException(sprintf(
-                                'Invalid statement. Statement \'%s\' has to be executed because it exists as a \'foreign_key\' in statement(s) \'%s\'',
-                                $singleStatement->get('resolved_statement_name'),
-                                implode(', ', $foreignKeys[$singleStatement->get('statement_name')])
-                            ));
+                            $statementName = $singleStatement->get('statement_name');
+                            $holderResolvedStatements = $foreignKeys[$statementName];
+
+                            foreach ($holderResolvedStatements as $holderResolvedStatement) {
+                                $ifExistsStatement = $statements->get($holderResolvedStatement);
+
+                                if (!$ifExistsStatement->has('if_exists')) {
+                                    throw new BlueDotRuntimeException(sprintf(
+                                        'Invalid statement. Statement \'%s\' has to be executed because it exists as a \'foreign_key\' in statement(s) \'%s\'',
+                                        $singleStatement->get('resolved_statement_name'),
+                                        implode(', ', $foreignKeys[$singleStatement->get('statement_name')])
+                                    ));
+                                }
+                            }
                         }
 
                         $singleStatement->add('has_to_execute', false, true);
