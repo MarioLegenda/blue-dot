@@ -71,15 +71,25 @@ class VocalloTest extends \PHPUnit_Framework_TestCase
             return 'failure';
         })->getResult();*/
 
-        $promise = $blueDot->createStatementBuilder()
-            ->addSql('SELECT w.id, w.word, w.type FROM words AS w WHERE language_id = :language_id AND word LIKE :search_word ORDER BY w.id ASC LIMIT 12 OFFSET :offset')
-            ->addParameter('language_id', 1)
-            ->addParameter('search_word', 'occ')
-            ->addParameter('offset', 0)
-            ->execute();
 
-        var_dump($promise);
+        $blueDot->execute('scenario.create_theory_deck', array(
+            'create_sound' => array(
+                'relative_path' => 'budala',
+                'absolute_path' => 'budala',
+                'file_name' => 'kreten',
+                'relative_full_path' => 'idiot',
+                'absolute_full_path' => 'kreten',
+            ),
+            'create_theory_deck' => array(
+                'theory_id' => 1,
+                'internal_name' => 'dkfjdlsk',
+                'deck_data' => 'dfasdfas',
+                'internal_description' => 'člsjdkfklsdf',
+                'show_on_page' => true,
+                'ordering' => 6
+            )
+        ));
 
-        die();
+        die("budala");
     }
 }

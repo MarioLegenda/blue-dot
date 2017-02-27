@@ -175,11 +175,11 @@ class RecursiveStatementExecution implements StrategyInterface
     {
         $pdoStatement = $this->connection->getConnection()->prepare($this->statement->get('sql'));
 
+        $this->handleUseOption($statements, $pdoStatement);
+        $this->handleForeignKey($statements, $pdoStatement);
+
         if ($this->statement->has('parameters')) {
             $parameters = $this->statement->get('parameters');
-
-            $this->handleUseOption($statements, $pdoStatement);
-            $this->handleForeignKey($statements, $pdoStatement);
 
             foreach ($parameters as $key => $parameter) {
                 $this->bindSingleParameter(new Parameter($key, $parameter), $pdoStatement);

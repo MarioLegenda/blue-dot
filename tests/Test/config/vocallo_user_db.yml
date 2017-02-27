@@ -4,7 +4,6 @@ configuration:
         database_name: 'vocallo'
         user: 'root'
         password: 'root'
-        persistent: false
 
     simple:
         select:
@@ -126,6 +125,14 @@ configuration:
                 parameters: [theory_id, internal_name]
                 model:
                     object: AppBundle\Entity\TheoryDeck
+            find_deck_by_id:
+                sql: "SELECT * FROM theory_decks WHERE id = :deck_id"
+                parameters: [deck_id]
+
+            #sound
+            find_sound_by_filename:
+                sql: "SELECT * FROM sounds WHERE file_name = :file_name"
+                parameters: [file_name]
 
         insert:
             generic_insert:
@@ -160,6 +167,14 @@ configuration:
                 sql: "INSERT INTO theory_decks (theory_id, internal_name, deck_data, internal_description, show_on_page, ordering) VALUES (:theory_id, :internal_name, :deck_data, :internal_description, :show_on_page, :ordering)"
                 parameters: [theory_id, internal_name, deck_data, internal_description, show_on_page, ordering]
 
+            create_sound:
+                sql: "INSERT INTO sounds (relative_path, absolute_path, file_name, absolute_full_path, relative_full_path) VALUES (:relative_path, :absolute_path, :file_name, :absolute_full_path, :relative_full_path)"
+                parameters: [relative_path, absolute_path, file_name, absolute_full_path, relative_full_path]
+
+            create_deck_sound:
+                sql: "INSERT INTO theory_sounds (sound_id, theory_id, deck_id) VALUES (:sound_id, :theory_id, :deck_id)"
+                parameters: [sound_id, theory_id, deck_id]
+
         update:
             update_working_language:
                 sql: "UPDATE languages SET working_language = :working_language AND id = :language_id"
@@ -193,6 +208,8 @@ configuration:
 #                    sql_type: database
                 create_database:
                     sql: "CREATE DATABASE IF NOT EXISTS vocallo CHARACTER SET = 'utf8' COLLATE = 'utf8_general_ci'"
+                use_database:
+                    sql: "USE vocallo"
 
         create_course:
             atomic: true
@@ -253,6 +270,33 @@ configuration:
                 remove_word:
                     sql: "DELETE FROM words WHERE id = :word_id AND schedule_removal = 1"
                     parameters: [word_id]
+        create_theory_deck:
+            atomic: true
+            rules: { return_entity: false }
+            return_entity: []
+            statements:
+                create_sound:
+                    sql: "INSERT INTO sounds (relative_path, absolute_path, file_name, absolute_full_path, relative_full_path) VALUES (:relative_path, :absolute_path, :file_name, :absolute_full_path, :relative_full_path)"
+                    parameters: [relative_path, absolute_path, file_name, absolute_full_path, relative_full_path]
+                create_theory_deck:
+                    sql: "INSERT INTO theory_decks (theory_id, internal_name, deck_data, internal_description, show_on_page, ordering) VALUES (:theory_id, :internal_name, :deck_data, :internal_description, :show_on_page, :ordering)"
+                    parameters: [theory_id, internal_name, deck_data, internal_description, show_on_page, ordering]
+                select_inserted_deck:
+                    sql: "SELECT id, theory_id FROM theory_decks WHERE id = :deck_id"
+                    foreign_key:
+                        statement_name: create_theory_deck
+                        bind_to: deck_id
+                create_deck_sound:
+                    sql: "INSERT INTO theory_sounds (sound_id, theory_id, deck_id) VALUES (:sound_id, :theory_id, :deck_id)"
+                    foreign_key:
+                        statement_name: create_sound
+                        bind_to: sound_id
+                    use:
+                        statement_name: select_inserted_deck
+                        values: {select_inserted_deck.id: deck_id, select_inserted_deck.theory_id: theory_id }
+
+
+
 
         seed:
             atomic: true
@@ -281,6 +325,10 @@ configuration:
                     sql: "CREATE TABLE theories (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, lesson_id INT(6) NOT NULL, name VARCHAR(255) NOT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"
                 create_theory_deck:
                     sql: "CREATE TABLE theory_decks (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, theory_id INT(6) NOT NULL, internal_name VARCHAR(255) NOT NULL, internal_description TEXT DEFAULT NULL, deck_data TEXT DEFAULT NULL, show_on_page TINYINT DEFAULT 0, ordering INT(6) DEFAULT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"
+                create_sounds_table:
+                    sql: "CREATE TABLE sounds (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, relative_path VARCHAR(255) NOT NULL, absolute_path VARCHAR(255) NOT NULL, file_name VARCHAR(255) NOT NULL, absolute_full_path VARCHAR(255) NOT NULL, relative_full_path VARCHAR(255) NOT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"
+                create_theory_sounds_table:
+                    sql: "CREATE TABLE theory_sounds (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, sound_id INT(6) NOT NULL, theory_id INT(6) NOT NULL, deck_id INT(6) NOT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"
 
     callable:
         last_words:
@@ -289,3 +337,6 @@ configuration:
         search_callable:
             type: object
             name: AppBundle\BlueDotCallable\SearchCallable
+        create_deck_callable:
+            type: object
+            name: AppBundle\BlueDotCallable\CreateDeckCallable
