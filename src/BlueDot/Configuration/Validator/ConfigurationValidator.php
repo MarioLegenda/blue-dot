@@ -131,6 +131,7 @@ class ConfigurationValidator
                             $nodeValue
                                 ->cannotBeEmpty('sql')
                                 ->isString('sql')
+                                ->isBooleanIfExists('has_to_be_present')
                                 ->isArrayIfExists('parameters')
                                 ->isBooleanIfExists('can_be_empty_result')
                                 ->cannotBeEmptyIfExists('use')
