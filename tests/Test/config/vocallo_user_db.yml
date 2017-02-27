@@ -278,19 +278,16 @@ configuration:
                 create_sound:
                     sql: "INSERT INTO sounds (relative_path, absolute_path, file_name, absolute_full_path, relative_full_path) VALUES (:relative_path, :absolute_path, :file_name, :absolute_full_path, :relative_full_path)"
                     parameters: [relative_path, absolute_path, file_name, absolute_full_path, relative_full_path]
-                    has_to_be_present: false
                 create_theory_deck:
                     sql: "INSERT INTO theory_decks (theory_id, internal_name, deck_data, internal_description, show_on_page, ordering) VALUES (:theory_id, :internal_name, :deck_data, :internal_description, :show_on_page, :ordering)"
                     parameters: [theory_id, internal_name, deck_data, internal_description, show_on_page, ordering]
                 select_inserted_deck:
                     sql: "SELECT id, theory_id FROM theory_decks WHERE id = :deck_id"
-                    if_exists: create_sound
                     foreign_key:
                         statement_name: create_theory_deck
                         bind_to: deck_id
                 create_deck_sound:
                     sql: "INSERT INTO theory_sounds (sound_id, theory_id, deck_id) VALUES (:sound_id, :theory_id, :deck_id)"
-                    if_exists: create_sound
                     foreign_key:
                         statement_name: create_sound
                         bind_to: sound_id
