@@ -20,6 +20,7 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
     private $statements;
     /**
      * @return StrategyInterface
+     * @throws BlueDotRuntimeException
      */
     public function execute() : StrategyInterface
     {

@@ -84,10 +84,19 @@ class RecursiveStatementExecution implements StrategyInterface
         $statementType = $this->statement->get('statement_type');
 
         if ($statementType === 'insert') {
+            $insertedIds = array();
+
+            foreach ($result as $res) {
+                $insertedIds[] = $res->get('last_insert_id');
+            }
+
             $entity = new Entity();
 
-            $entity->add('last_insert_id', $result->get('last_insert_id'));
-            $entity->add('row_count', $result->get('rows_affected'));
+            $entity->add('inserted_ids', $insertedIds);
+            $entity->add('inserted_ids_count', count($insertedIds));
+
+            $entity->add('last_insert_id', $insertedIds[count($insertedIds) - 1]);
+            $entity->add('row_count', $result[0]->get('rows_affected'));
 
             return $entity;
         } else if ($statementType === 'select') {
@@ -136,11 +145,39 @@ class RecursiveStatementExecution implements StrategyInterface
     private function executeReal(ArgumentBag $statements) : StrategyInterface
     {
         try {
-            $insertType = $this->statement->get('query_strategy');
-
             if (!$this->connection->getConnection()->inTransaction()) {
                 $this->connection->getConnection()->beginTransaction();
             }
+
+            if ($this->statement->has('foreign_key') and $this->statement->get('statement_type') === 'insert') {
+                $foreignKey = $this->statement->get('foreign_key');
+                $foreignKeyStatement = $statements->get($this->statement->get('scenario_name').'.'.$foreignKey->getName());
+
+                if (!$this->resultReport->has($foreignKeyStatement->get('resolved_statement_name'))) {
+                    $recursiveStatementExecution = new RecursiveStatementExecution(
+                        $foreignKeyStatement,
+                        $this->resultReport,
+                        $this->connection
+                    );
+
+                    $recursiveStatementExecution->execute($statements);
+                }
+
+                $result = $this->resultReport->get($foreignKeyStatement->get('resolved_statement_name'));
+                $insertedIds = $result->get('inserted_ids');
+                $newParameters = array();
+
+                if (count($insertedIds) > 1) {
+                    foreach ($insertedIds as $id) {
+                        $newParameters[$foreignKey->getBindTo()][] = $id;
+                    }
+                }
+
+                $this->statement->add('parameters', $newParameters, true);
+                $this->statement->add('query_strategy', 'individual_multi_strategy', true);
+            }
+
+            $insertType = $this->statement->get('query_strategy');
 
             switch ($insertType) {
                 case 'individual_strategy':
@@ -262,11 +299,7 @@ class RecursiveStatementExecution implements StrategyInterface
                 $report->add('last_insert_id', $lastInsertId);
                 $report->add('rows_affected', $rowCount);
 
-                if ($this->resultReport->has($resolvedStatementName)) {
-                    $this->resultReport->add($resolvedStatementName, $report, true);
-                } else {
-                    $this->resultReport->add($resolvedStatementName, $report);
-                }
+                $this->resultReport->appendValue($resolvedStatementName, $report);
             }
         } else if ($statementType === 'update' or $statementType === 'delete') {
             $resolvedStatementName = $this->statement->get('resolved_statement_name');

@@ -74,11 +74,34 @@ class VocalloTest extends \PHPUnit_Framework_TestCase
 
         $blueDot->execute('scenario.create_theory_deck', array(
             'create_sound' => array(
-                'relative_path' => 'mario',
-                'absolute_path' => 'mario',
-                'file_name' => 'mario',
-                'relative_full_path' => 'idiot',
-                'absolute_full_path' => 'mario',
+                array(
+                    'relative_path' => 'mario',
+                    'absolute_path' => 'mario',
+                    'file_name' => 'mario',
+                    'relative_full_path' => 'idiot',
+                    'absolute_full_path' => 'mario',
+                ),
+                array(
+                    'relative_path' => 'mario',
+                    'absolute_path' => 'mario',
+                    'file_name' => 'mario',
+                    'relative_full_path' => 'idiot',
+                    'absolute_full_path' => 'mario',
+                ),
+                array(
+                    'relative_path' => 'mario',
+                    'absolute_path' => 'mario',
+                    'file_name' => 'mario',
+                    'relative_full_path' => 'idiot',
+                    'absolute_full_path' => 'mario',
+                ),
+                array(
+                    'relative_path' => 'mario',
+                    'absolute_path' => 'mario',
+                    'file_name' => 'mario',
+                    'relative_full_path' => 'idiot',
+                    'absolute_full_path' => 'mario',
+                ),
             ),
             'create_theory_deck' => array(
                 'theory_id' => 7,
