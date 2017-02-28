@@ -150,6 +150,16 @@ class RecursiveStatementExecution implements StrategyInterface
             }
 
             if ($this->statement->has('foreign_key') and $this->statement->get('statement_type') === 'insert') {
+                $currentStatementType = $this->statement->get('statement_type');
+
+                if ($currentStatementType !== 'insert' and $currentStatementType !== 'update') {
+                    throw new BlueDotRuntimeException(
+                        sprintf('Invalid statement type. \'foreign_key\' options can only be used with \'insert\' or \'update\' statement for statement \'%s\'. Try using \'use\' option instead',
+                            $this->statement->get('resolved_statement_name')
+                        )
+                    );
+                }
+
                 $foreignKey = $this->statement->get('foreign_key');
                 $foreignKeyStatement = $statements->get($this->statement->get('scenario_name').'.'.$foreignKey->getName());
 
@@ -167,14 +177,20 @@ class RecursiveStatementExecution implements StrategyInterface
                 $insertedIds = $result->get('inserted_ids');
                 $newParameters = array();
 
+                $parameters = array();
+
+                if ($this->statement->has('parameters')) {
+                    $parameters = $this->statement->get('parameters');
+                }
+
                 if (count($insertedIds) > 1) {
                     foreach ($insertedIds as $id) {
                         $newParameters[$foreignKey->getBindTo()][] = $id;
                     }
-                }
 
-                $this->statement->add('parameters', $newParameters, true);
-                $this->statement->add('query_strategy', 'individual_multi_strategy', true);
+                    $this->statement->add('parameters', $newParameters, true);
+                    $this->statement->add('query_strategy', 'individual_multi_strategy', true);
+                }
             }
 
             $insertType = $this->statement->get('query_strategy');

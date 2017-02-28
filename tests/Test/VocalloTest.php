@@ -71,6 +71,21 @@ class VocalloTest extends \PHPUnit_Framework_TestCase
             return 'failure';
         })->getResult();*/
 
+/*        $blueDot->execute('scenario.insert_word', array(
+            'insert_word' => array(
+                'language_id' => 1,
+                'word' => 'dfasdfsadf',
+                'type' => 'sdkjfslakdjfl',
+            ),
+            'insert_word_image' => null,
+            'insert_translation' => array(
+                'translation' => array('mile', 'mile', 'mile')
+            ),
+            'insert_word_category' => array(
+                'category_id' => 5,
+            ),
+        ));*/
+
 
         $blueDot->execute('scenario.create_theory_deck', array(
             'create_sound' => array(
