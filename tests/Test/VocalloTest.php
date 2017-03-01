@@ -86,7 +86,7 @@ class VocalloTest extends \PHPUnit_Framework_TestCase
             ),
         ));*/
 
-
+/*
         $blueDot->execute('scenario.create_theory_deck', array(
             'create_sound' => array(
                 array(
@@ -126,7 +126,36 @@ class VocalloTest extends \PHPUnit_Framework_TestCase
                 'show_on_page' => true,
                 'ordering' => 7
             )
-        ));
+        ));*/
+        $parameters = array(
+            'select_sounds' => array(
+                'deck_id' => 2,
+            ),
+            'remove_deck_sounds' => null,
+            'remove_theory_sounds' => null,
+            'create_sounds' => null,
+            'update_theory_deck' => array(
+                'deck_id' => 2,
+                'internal_name' => 'sdfjsajdg',
+                'deck_data' => 'sjdkfjlsčakdjf',
+                'internal_description' => 'sdjkfhsadjf',
+                'show_on_page' => false,
+                'ordering' => 6,
+            ),
+            'select_deck' => array(
+                'deck_id' => 2,
+            ),
+        );
+
+        $promise = $blueDot->execute('scenario.update_theory_deck', $parameters)
+            ->success(function(PromiseInterface $promise) {
+                var_dump($promise->getOriginalEntity());
+            })
+            ->failure(function(PromiseInterface $promise) {
+                var_dump($promise->getOriginalEntity());
+            })
+            ->getResult();
+
 
         die("budala");
     }

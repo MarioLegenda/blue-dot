@@ -71,7 +71,7 @@ class RecursiveStatementExecution implements StrategyInterface
         if ($canBeEmptyResult === false) {
             if (is_null($result)) {
                 throw new BlueDotRuntimeException(sprintf(
-                    'Empty result returned for statement \'%s\'. Scenario statements have to have a result and cannot be empty',
+                    'Empty result returned for statement \'%s\'. Scenario statements have to have a result and cannot be empty. Set \'can_be_empty_result\' to true if you expect an empty result from this statement',
                     $this->statement->get('resolved_statement_name')
                 ));
             }
@@ -100,6 +100,16 @@ class RecursiveStatementExecution implements StrategyInterface
 
             return $entity;
         } else if ($statementType === 'select') {
+            if ($canBeEmptyResult === true) {
+                if (is_null($result)) {
+                    $entity = new Entity();
+
+                    $entity->add('rows_returned', 0);
+
+                    return $entity;
+                }
+            }
+
             if (count($result) === 1) {
                 $entity = new Entity($result[0][0]);
 

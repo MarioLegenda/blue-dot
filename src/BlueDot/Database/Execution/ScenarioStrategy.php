@@ -37,6 +37,15 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
         foreach ($this->statements as $statement) {
             try {
                 if ($statement->has('if_exists')) {
+                    if (!$this->statements->has($statement->get('scenario_name').'.'.$statement->get('if_exists'))) {
+                        throw new BlueDotRuntimeException(
+                            sprintf('Invalid statement. \'if_exists\' statement \'%s\' does not exist in scenario \'%s\'',
+                                $statement->get('if_exists'),
+                                $statement->get('scenario_name')
+                            )
+                        );
+                    }
+
                     $ifExistsStatement = $this->statements->get($statement->get('scenario_name').'.'.$statement->get('if_exists'));
 
                     if ($ifExistsStatement->has('has_to_execute')) {
@@ -128,6 +137,21 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
                 }
 
                 $resultEntityColumnName = $returnEntity->getColumnName();
+
+                if (!$resultEntity->has($resultEntityColumnName)) {
+                    if ($returnEntity->hasAlias()) {
+                        $alias = $returnEntity->getAlias();
+
+                        $entity->add($alias, null);
+
+                        continue;
+                    }
+
+                    $entity->add($resultEntityColumnName, null);
+
+                    continue;
+                }
+
                 $resultValue = $resultEntity->get($resultEntityColumnName);
 
                 if ($returnEntity->hasAlias()) {
