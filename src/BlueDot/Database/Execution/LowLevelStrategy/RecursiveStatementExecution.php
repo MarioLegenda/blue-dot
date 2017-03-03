@@ -10,6 +10,7 @@ use BlueDot\Exception\BlueDotRuntimeException;
 use BlueDot\Common\StorageInterface;
 use BlueDot\Entity\Entity;
 use BlueDot\Database\Parameter\Parameter;
+use BlueDot\Result\ResultReportContext;
 
 class RecursiveStatementExecution implements StrategyInterface
 {
@@ -103,15 +104,32 @@ class RecursiveStatementExecution implements StrategyInterface
             if ($canBeEmptyResult === true) {
                 if (is_null($result)) {
                     $entity = new Entity();
+                    $entity->add('statement_type', 'select');
 
                     $entity->add('rows_returned', 0);
 
                     return $entity;
                 }
             }
+/*
+            if ($result->getMetadata()->isOneRow()) {
+                $queryResult = $result->getQueryResult();
 
-            if (count($result) === 1) {
+                $entity = new Entity(array($queryResult));
+                $entity
+                    ->add('rows_returned', 1)
+                    ->add('query_result', $result);
+
+                return $entity;
+            }
+
+            if ($result->getMetadata()->isMultipleRows()) {
+
+            }
+
+            if (count($result[0]) === 1) {
                 $entity = new Entity($result[0][0]);
+                $entity->add('statement_type', 'select');
 
                 $entity->add('rows_returned', 1);
 
@@ -121,17 +139,20 @@ class RecursiveStatementExecution implements StrategyInterface
             $temp = array();
 
             $rowsReturned = 0;
-            foreach ($result as $rows) {
-                foreach ($rows as $key => $row) {
-                    $rowsReturned++;
-                    $temp[] = $row;
+            if (count($result[0]) > 1) {
+                foreach ($result as $rows) {
+                    foreach ($rows as $key => $row) {
+                        $rowsReturned++;
+                        $temp[] = $row;
+                    }
                 }
-            }
 
-            $entity = new Entity($temp);
-            $entity->add('rows_returned', $rowsReturned);
+                $entity = new Entity($temp);
+                $entity->add('statement_type', 'select');
+                $entity->add('rows_returned', $rowsReturned);
 
-            return $entity;
+                return $entity;
+            }*/
         } else if ($statementType === 'update' or $statementType === 'delete') {
             $entity = new Entity();
 
@@ -300,15 +321,20 @@ class RecursiveStatementExecution implements StrategyInterface
     private function saveResult(\PDOStatement $pdoStatement)
     {
         $statementType = $this->statement->get('statement_type');
+
         if ($statementType === 'select') {
 
-            $resolvedStatementName = $this->statement->get('resolved_statement_name');
-            $queryResult = $pdoStatement->fetchAll(\PDO::FETCH_ASSOC);
+            $queryResult = ResultReportContext::context(array(
+                'statement_type' => $statementType,
+                'pdo_statement' => $pdoStatement,
+            ))->makeReport();
 
-            if (empty($queryResult)) {
+            $resolvedStatementName = $this->statement->get('resolved_statement_name');
+
+            if ($queryResult->getMetadata()->isEmpty()) {
                 $this->resultReport->add($resolvedStatementName, null);
             } else {
-                $this->resultReport->appendValue($resolvedStatementName, $queryResult);
+                $this->resultReport->add($resolvedStatementName, $queryResult);
             }
         } else if ($statementType === 'insert') {
             $resolvedStatementName = $this->statement->get('resolved_statement_name');

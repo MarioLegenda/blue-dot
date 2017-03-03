@@ -127,15 +127,18 @@ class VocalloTest extends \PHPUnit_Framework_TestCase
                 'ordering' => 7
             )
         ));*/
+
+
+
         $parameters = array(
             'select_sounds' => array(
-                'deck_id' => 2,
+                'deck_id' => 1,
             ),
             'remove_deck_sounds' => null,
             'remove_theory_sounds' => null,
             'create_sounds' => null,
             'update_theory_deck' => array(
-                'deck_id' => 2,
+                'deck_id' => 1,
                 'internal_name' => 'sdfjsajdg',
                 'deck_data' => 'sjdkfjlsčakdjf',
                 'internal_description' => 'sdjkfhsadjf',
@@ -143,7 +146,7 @@ class VocalloTest extends \PHPUnit_Framework_TestCase
                 'ordering' => 6,
             ),
             'select_deck' => array(
-                'deck_id' => 2,
+                'deck_id' => 1,
             ),
         );
 
