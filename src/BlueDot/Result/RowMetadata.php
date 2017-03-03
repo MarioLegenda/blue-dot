@@ -21,6 +21,10 @@ class RowMetadata
      */
     private $empty = false;
     /**
+     * @var array $columnNames
+     */
+    private $columnNames = array();
+    /**
      * RowMetadata constructor.
      * @param array $data
      */
@@ -32,21 +36,16 @@ class RowMetadata
             return;
         }
 
-        if (is_string(array_keys($data)[0])) {
+        if (count($data) === 1) {
             $this->isOneRow = true;
 
             $this->rowCount = 1;
-
-            return;
-        }
-
-        if (is_int(array_keys($data)[0])) {
+        } else {
             $this->isMultipleRows = true;
-
             $this->rowCount = count($data);
-
-            return;
         }
+
+        $this->extractColumnNames($data);
     }
     /**
      * @return bool
@@ -75,5 +74,26 @@ class RowMetadata
     public function getRowCount() : int
     {
         return $this->rowCount;
+    }
+    /**
+     * @param string $column
+     * @return bool
+     */
+    public function hasColumn(string $column) : bool
+    {
+        return in_array($column, $this->columnNames) === true;
+    }
+
+    private function extractColumnNames(array $data)
+    {
+        if ($this->isOneRow()) {
+            $this->columnNames = array_keys($data[0]);
+        }
+
+        if ($this->isMultipleRows()) {
+            $firstRow = $data[0];
+
+            $this->columnNames = array_keys($firstRow);
+        }
     }
 }

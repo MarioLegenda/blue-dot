@@ -36,4 +36,27 @@ class SelectQueryResult
     {
         return $this->queryResult;
     }
+    /**
+     * @param string $column
+     * @return array|mixed|null
+     */
+    public function getColumnValues(string $column)
+    {
+        if (!$this->getMetadata()->hasColumn($column)) {
+            return null;
+        }
+
+        if ($this->getMetadata()->isOneRow()) {
+            return $this->queryResult[0][$column];
+        }
+
+        if ($this->getMetadata()->isMultipleRows()) {
+            $results = array();
+            foreach ($this->queryResult as $result) {
+                $results[] = $result[$column];
+            }
+
+            return $results;
+        }
+    }
 }

@@ -11,6 +11,9 @@ use BlueDot\Entity\Entity;
 use BlueDot\Entity\EntityCollection;
 use BlueDot\Exception\BlueDotRuntimeException;
 use BlueDot\Database\Execution\LowLevelStrategy\RecursiveStatementExecution;
+use BlueDot\Result\InsertQueryResult;
+use BlueDot\Result\MultipleInsertQueryResult;
+use BlueDot\Result\SelectQueryResult;
 
 class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
 {
@@ -99,19 +102,16 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
 
         $entity = new Entity();
 
-        var_dump($this->resultReport);
-        die();
-
         if (empty($returnEntities)) {
             if (!$this->resultReport->isEmpty()) {
                 foreach ($this->resultReport as $scenarioName => $report) {
                     $name = explode('.', $scenarioName)[2];
 
-                    if (!$report->isEmpty() and $report->has('last_insert_id')) {
+                    if ($report instanceof MultipleInsertQueryResult or $report instanceof InsertQueryResult) {
                         $info = new ArgumentBag();
 
-                        $info->add('last_insert_id', $report->get('last_insert_id'));
-                        $info->add('row_count', $report->get('row_count'));
+                        $info->add('last_insert_id', $report->getLastInsertId());
+                        $info->add('row_count', $report->getRowCount());
 
                         $entity->add($name, $info);
                     }
@@ -126,21 +126,21 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
             $resolvedStatementName = 'scenario.'.$scenarioName.'.'.$statementName;
 
             if ($this->resultReport->has($resolvedStatementName)) {
-                $resultEntity = $this->resultReport->get($resolvedStatementName);
+                $query = $this->resultReport->get($resolvedStatementName);
 
-                if (!$resultEntity instanceof $resultEntity) {
+                if (!$query instanceof SelectQueryResult) {
                     throw new BlueDotRuntimeException('Return result specified in \'return_entity\' has to be a select sql type for '.$resolvedStatementName);
                 }
 
                 if (!$returnEntity->hasColumnName()) {
-                    $entity->add($statementName, $resultEntity);
+                    $entity->add($statementName, $query);
 
                     continue;
                 }
 
                 $resultEntityColumnName = $returnEntity->getColumnName();
 
-                if (!$resultEntity->has($resultEntityColumnName)) {
+                if (!$query->getMetadata()->hasColumn($resultEntityColumnName)) {
                     if ($returnEntity->hasAlias()) {
                         $alias = $returnEntity->getAlias();
 
@@ -154,7 +154,7 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
                     continue;
                 }
 
-                $resultValue = $resultEntity->get($resultEntityColumnName);
+                $resultValue = $query->getColumnValues($resultEntityColumnName);
 
                 if ($returnEntity->hasAlias()) {
                     $alias = $returnEntity->getAlias();

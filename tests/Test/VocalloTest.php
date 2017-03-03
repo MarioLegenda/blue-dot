@@ -86,7 +86,7 @@ class VocalloTest extends \PHPUnit_Framework_TestCase
             ),
         ));*/
 
-/*
+
         $blueDot->execute('scenario.create_theory_deck', array(
             'create_sound' => array(
                 array(
@@ -126,7 +126,7 @@ class VocalloTest extends \PHPUnit_Framework_TestCase
                 'show_on_page' => true,
                 'ordering' => 7
             )
-        ));*/
+        ));
 
 
 
@@ -134,8 +134,12 @@ class VocalloTest extends \PHPUnit_Framework_TestCase
             'select_sounds' => array(
                 'deck_id' => 1,
             ),
-            'remove_deck_sounds' => null,
-            'remove_theory_sounds' => null,
+            'remove_deck_sounds' => array(
+                'deck_id' => 1,
+            ),
+            'remove_theory_sounds' => array(
+                'deck_id' => 1,
+            ),
             'create_sounds' => null,
             'update_theory_deck' => array(
                 'deck_id' => 1,
@@ -155,7 +159,6 @@ class VocalloTest extends \PHPUnit_Framework_TestCase
                 var_dump($promise->getOriginalEntity());
             })
             ->failure(function(PromiseInterface $promise) {
-                var_dump($promise->getOriginalEntity());
             })
             ->getResult();
 

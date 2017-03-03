@@ -2,6 +2,7 @@
 
 namespace BlueDot\Result\Context;
 
+use BlueDot\Result\NullQueryResult;
 use BlueDot\Result\SelectQueryResult;
 use BlueDot\Result\RowMetadata;
 
@@ -19,8 +20,10 @@ class SelectContext implements ContextInterface
     {
         $this->pdoStatement = $statement;
     }
-
-    public function makeReport() : SelectQueryResult
+    /**
+     * @return NullQueryResult|SelectQueryResult
+     */
+    public function makeReport()
     {
         $queryResult = $this->pdoStatement->fetchAll(\PDO::FETCH_ASSOC);
 

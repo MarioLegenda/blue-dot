@@ -270,6 +270,7 @@ configuration:
                 remove_word:
                     sql: "DELETE FROM words WHERE id = :word_id AND schedule_removal = 1"
                     parameters: [word_id]
+
         create_theory_deck:
             atomic: true
             rules: { return_entity: false }
@@ -303,6 +304,7 @@ configuration:
                 select_sounds:
                     sql: "SELECT s.absolute_full_path FROM sounds AS s INNER JOIN theory_sounds AS ts ON s.id = ts.sound_id AND ts.deck_id = :deck_id"
                     parameters: [deck_id]
+                    can_be_empty_result: true
                 remove_deck_sounds:
                     sql: "DELETE s.* FROM sounds AS s INNER JOIN theory_sounds AS ts ON s.id = ts.sound_id AND ts.deck_id = :deck_id"
                     parameters: [deck_id]

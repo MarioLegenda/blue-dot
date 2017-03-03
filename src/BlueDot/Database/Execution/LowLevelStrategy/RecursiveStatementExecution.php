@@ -7,9 +7,11 @@ use BlueDot\Database\Connection;
 use BlueDot\Common\ArgumentBag;
 
 use BlueDot\Exception\BlueDotRuntimeException;
-use BlueDot\Common\StorageInterface;
 use BlueDot\Entity\Entity;
 use BlueDot\Database\Parameter\Parameter;
+use BlueDot\Result\InsertQueryResult;
+use BlueDot\Result\MultipleInsertQueryResult;
+use BlueDot\Result\NullQueryResult;
 use BlueDot\Result\ResultReportContext;
 
 class RecursiveStatementExecution implements StrategyInterface
@@ -60,8 +62,8 @@ class RecursiveStatementExecution implements StrategyInterface
     }
     /**
      * @param ArgumentBag|null $statement
-     * @return StorageInterface|Entity|EntityCollection
-     * @throws \BlueDot\Exception\BlueDotRuntimeException
+     * @return mixed
+     * @throws BlueDotRuntimeException
      */
     public function getResult(ArgumentBag $statement = null)
     {
@@ -70,7 +72,7 @@ class RecursiveStatementExecution implements StrategyInterface
         $canBeEmptyResult = $this->statement->get('can_be_empty_result');
 
         if ($canBeEmptyResult === false) {
-            if (is_null($result)) {
+            if ($result instanceof NullQueryResult) {
                 throw new BlueDotRuntimeException(sprintf(
                     'Empty result returned for statement \'%s\'. Scenario statements have to have a result and cannot be empty. Set \'can_be_empty_result\' to true if you expect an empty result from this statement',
                     $this->statement->get('resolved_statement_name')
@@ -78,90 +80,7 @@ class RecursiveStatementExecution implements StrategyInterface
             }
         }
 
-        if ($result instanceof Entity) {
-            return $result;
-        }
-
-        $statementType = $this->statement->get('statement_type');
-
-        if ($statementType === 'insert') {
-            $insertedIds = array();
-
-            foreach ($result as $res) {
-                $insertedIds[] = $res->get('last_insert_id');
-            }
-
-            $entity = new Entity();
-
-            $entity->add('inserted_ids', $insertedIds);
-            $entity->add('inserted_ids_count', count($insertedIds));
-
-            $entity->add('last_insert_id', $insertedIds[count($insertedIds) - 1]);
-            $entity->add('row_count', $result[0]->get('rows_affected'));
-
-            return $entity;
-        } else if ($statementType === 'select') {
-            if ($canBeEmptyResult === true) {
-                if (is_null($result)) {
-                    $entity = new Entity();
-                    $entity->add('statement_type', 'select');
-
-                    $entity->add('rows_returned', 0);
-
-                    return $entity;
-                }
-            }
-/*
-            if ($result->getMetadata()->isOneRow()) {
-                $queryResult = $result->getQueryResult();
-
-                $entity = new Entity(array($queryResult));
-                $entity
-                    ->add('rows_returned', 1)
-                    ->add('query_result', $result);
-
-                return $entity;
-            }
-
-            if ($result->getMetadata()->isMultipleRows()) {
-
-            }
-
-            if (count($result[0]) === 1) {
-                $entity = new Entity($result[0][0]);
-                $entity->add('statement_type', 'select');
-
-                $entity->add('rows_returned', 1);
-
-                return $entity;
-            }
-
-            $temp = array();
-
-            $rowsReturned = 0;
-            if (count($result[0]) > 1) {
-                foreach ($result as $rows) {
-                    foreach ($rows as $key => $row) {
-                        $rowsReturned++;
-                        $temp[] = $row;
-                    }
-                }
-
-                $entity = new Entity($temp);
-                $entity->add('statement_type', 'select');
-                $entity->add('rows_returned', $rowsReturned);
-
-                return $entity;
-            }*/
-        } else if ($statementType === 'update' or $statementType === 'delete') {
-            $entity = new Entity();
-
-            if ($result !== null) {
-                $entity->add('row_count', $result->get('row_count'));
-            }
-
-            return $entity;
-        }
+        return $result;
     }
 
     protected function bindSingleParameter(Parameter $parameter, \PDOStatement $pdoStatement)
@@ -205,16 +124,18 @@ class RecursiveStatementExecution implements StrategyInterface
                 }
 
                 $result = $this->resultReport->get($foreignKeyStatement->get('resolved_statement_name'));
-                $insertedIds = $result->get('inserted_ids');
-                $newParameters = array();
 
-                $parameters = array();
+                if ($result instanceof MultipleInsertQueryResult) {
 
-                if ($this->statement->has('parameters')) {
-                    $parameters = $this->statement->get('parameters');
-                }
+                    $insertedIds = $result->getInsertedIds();
+                    $newParameters = array();
 
-                if (count($insertedIds) > 1) {
+                    $parameters = array();
+
+                    if ($this->statement->has('parameters')) {
+                        $parameters = $this->statement->get('parameters');
+                    }
+
                     foreach ($insertedIds as $id) {
                         $newParameters[$foreignKey->getBindTo()][] = $id;
                     }
@@ -322,20 +243,41 @@ class RecursiveStatementExecution implements StrategyInterface
     {
         $statementType = $this->statement->get('statement_type');
 
-        if ($statementType === 'select') {
+        $resolvedStatementName = $this->statement->get('resolved_statement_name');
 
-            $queryResult = ResultReportContext::context(array(
-                'statement_type' => $statementType,
-                'pdo_statement' => $pdoStatement,
-            ))->makeReport();
+        $queryResult = ResultReportContext::context(array(
+            'statement_type' => $statementType,
+            'pdo_statement' => $pdoStatement,
+            'connection' => $this->connection,
+        ))->makeReport();
 
-            $resolvedStatementName = $this->statement->get('resolved_statement_name');
+        if ($queryResult instanceof InsertQueryResult) {
+            if ($this->resultReport->has($resolvedStatementName)) {
+                $existingResult = $this->resultReport->get($resolvedStatementName);
 
-            if ($queryResult->getMetadata()->isEmpty()) {
-                $this->resultReport->add($resolvedStatementName, null);
-            } else {
-                $this->resultReport->add($resolvedStatementName, $queryResult);
+                if ($existingResult instanceof MultipleInsertQueryResult) {
+                    $existingResult->addInsertResult($queryResult);
+                } else {
+                    $this->resultReport->remove($resolvedStatementName);
+
+                    $multipleInsertResult = new MultipleInsertQueryResult();
+
+                    $multipleInsertResult->addInsertResult($queryResult);
+
+                    $this->resultReport->add($resolvedStatementName, $multipleInsertResult);
+                }
+
+                return;
             }
+
+            $this->resultReport->add($resolvedStatementName, $queryResult);
+
+            return;
+        }
+
+        $this->resultReport->add($resolvedStatementName, $queryResult);
+
+/*        if ($statementType === 'select') {
         } else if ($statementType === 'insert') {
             $resolvedStatementName = $this->statement->get('resolved_statement_name');
             $lastInsertId = $this->connection->getConnection()->lastInsertId();
@@ -372,7 +314,7 @@ class RecursiveStatementExecution implements StrategyInterface
                     $this->resultReport->add($resolvedStatementName, $report);
                 }
             }
-        }
+        }*/
     }
 
     private function handleUseOption(ArgumentBag $statements, \PDOStatement $pdoStatement)
@@ -395,7 +337,7 @@ class RecursiveStatementExecution implements StrategyInterface
 
             $useOptionResult = $this->resultReport->get($useStatement->get('resolved_statement_name'));
 
-            if (is_null($useOptionResult)) {
+            if (!$useOptionResult->getMetadata()->isOneRow()) {
                 throw new BlueDotRuntimeException(sprintf(
                     'Results of \'use\' statements can only return one row and cannot be empty for statement \'%s\'',
                     $useStatement->get('resolved_statement_name')
@@ -405,7 +347,7 @@ class RecursiveStatementExecution implements StrategyInterface
             foreach ($useOption->getValues() as $key => $parameterKey) {
                 $exploded = explode('.', $key);
 
-                $parameterValue = $useOptionResult->get($exploded[1]);
+                $parameterValue = $useOptionResult->getQueryResult()[0][$exploded[1]];
 
                 $this->bindSingleParameter(new Parameter($parameterKey, $parameterValue), $pdoStatement);
             }
@@ -439,7 +381,7 @@ class RecursiveStatementExecution implements StrategyInterface
                 ));
             }
 
-            $this->bindSingleParameter(new Parameter($foreignKeyOption->getBindTo(), $foreignKeyResult->get('last_insert_id')), $pdoStatement);
+            $this->bindSingleParameter(new Parameter($foreignKeyOption->getBindTo(), $foreignKeyResult->getLastInsertId()), $pdoStatement);
         }
     }
 }
