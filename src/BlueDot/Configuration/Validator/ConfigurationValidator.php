@@ -117,7 +117,7 @@ class ConfigurationValidator
                     ->stepInto($key)
                     ->cannotBeEmpty('atomic')
                     ->isBoolean('atomic')
-                    ->isArray('return_entity')
+                    ->isArrayIfExists('return_data')
                     ->isArrayIfExists('rules')
                     ->cannotBeEmpty('statements')
                     ->isAssociativeStringArray('statements')

@@ -185,9 +185,17 @@ class Compiler
                 $rootConfig = new ArgumentBag();
                 $rootConfig
                     ->add('atomic', $scenarioConfigs['atomic'])
-                    ->add('return_entity', new ScenarioReturnEntity($scenarioConfigs['return_entity']))
                     ->add('scenario_name', $scenarioName);
 
+                if (array_key_exists('return_data', $scenarioConfigs)) {
+                    if (empty($scenarioConfigs['return_data'])) {
+                        throw new CompileException(
+                            sprintf('Invalid configuration. If provided, \'return_data\' has to be a non empty array');
+                        )
+                    }
+
+                    $rootConfig->add('return_data', new ScenarioReturnEntity($scenarioConfigs['return_data']));
+                }
 
                 if (array_key_exists('rules', $scenarioConfigs)) {
                     $rootConfig->add('rules', new Rules($scenarioConfigs['rules']));
