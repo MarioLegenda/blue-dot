@@ -29,6 +29,13 @@ class MultipleInsertQueryResult
         return $insertedIds;
     }
     /**
+     * @return bool
+     */
+    public function containsOnlyOne() : bool
+    {
+        return count($this->queryResults) === 1;
+    }
+    /**
      * @return int
      */
     public function getLastInsertId() : int

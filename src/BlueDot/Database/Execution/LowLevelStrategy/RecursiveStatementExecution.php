@@ -126,11 +126,8 @@ class RecursiveStatementExecution implements StrategyInterface
                 $result = $this->resultReport->get($foreignKeyStatement->get('resolved_statement_name'));
 
                 if ($result instanceof MultipleInsertQueryResult) {
-
                     $insertedIds = $result->getInsertedIds();
                     $newParameters = array();
-
-                    $parameters = array();
 
                     if ($this->statement->has('parameters')) {
                         $parameters = $this->statement->get('parameters');
@@ -253,24 +250,14 @@ class RecursiveStatementExecution implements StrategyInterface
 
         if ($queryResult instanceof InsertQueryResult) {
             if ($this->resultReport->has($resolvedStatementName)) {
-                $existingResult = $this->resultReport->get($resolvedStatementName);
+                $this->resultReport->get($resolvedStatementName)->addInsertResult($queryResult);
+            } else {
+                $multipleInsertResult = new MultipleInsertQueryResult();
 
-                if ($existingResult instanceof MultipleInsertQueryResult) {
-                    $existingResult->addInsertResult($queryResult);
-                } else {
-                    $this->resultReport->remove($resolvedStatementName);
+                $multipleInsertResult->addInsertResult($queryResult);
 
-                    $multipleInsertResult = new MultipleInsertQueryResult();
-
-                    $multipleInsertResult->addInsertResult($queryResult);
-
-                    $this->resultReport->add($resolvedStatementName, $multipleInsertResult);
-                }
-
-                return;
+                $this->resultReport->add($resolvedStatementName, $multipleInsertResult);
             }
-
-            $this->resultReport->add($resolvedStatementName, $queryResult);
 
             return;
         }

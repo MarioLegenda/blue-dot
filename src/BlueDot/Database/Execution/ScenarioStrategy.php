@@ -107,7 +107,7 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
                 foreach ($this->resultReport as $scenarioName => $report) {
                     $name = explode('.', $scenarioName)[2];
 
-                    if ($report instanceof MultipleInsertQueryResult or $report instanceof InsertQueryResult) {
+                    if ($report instanceof MultipleInsertQueryResult) {
                         $info = new ArgumentBag();
 
                         $info->add('last_insert_id', $report->getLastInsertId());

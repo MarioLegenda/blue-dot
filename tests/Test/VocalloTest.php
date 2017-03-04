@@ -86,10 +86,7 @@ class VocalloTest extends \PHPUnit_Framework_TestCase
             ),
         ));*/
 
-        $blueDot->execute('scenario.database');
-        $blueDot->execute('scenario.seed');
-
-
+/*
         $blueDot->execute('scenario.create_theory_deck', array(
             'create_sound' => array(
                 array(
@@ -129,9 +126,7 @@ class VocalloTest extends \PHPUnit_Framework_TestCase
                 'show_on_page' => true,
                 'ordering' => 7
             )
-        ));
-
-
+        ));*/
 
         $parameters = array(
             'select_sounds' => array(
