@@ -4,6 +4,8 @@ namespace BlueDot\Database\Execution;
 
 use BlueDot\Common\ArgumentBag;
 use BlueDot\Common\StorageInterface;
+use BlueDot\Component\CreateInsertsComponent;
+use BlueDot\Component\CreateReturnEntitiesComponent;
 use BlueDot\Database\Execution\LowLevelStrategy\BasicStatementExecution;
 use BlueDot\Database\Parameter\ParameterCollection;
 use BlueDot\Database\Parameter\Parameter;
@@ -100,75 +102,13 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
         $returnEntities = $this->statement->get('root_config')->get('return_entity')->getAllReturnData();
         $scenarioName = $this->statement->get('root_config')->get('scenario_name');
 
-        $entity = new Entity();
-
         if (empty($returnEntities)) {
             if (!$this->resultReport->isEmpty()) {
-                foreach ($this->resultReport as $scenarioName => $report) {
-                    $name = explode('.', $scenarioName)[2];
-
-                    if ($report instanceof MultipleInsertQueryResult) {
-                        $info = new ArgumentBag();
-
-                        $info->add('last_insert_id', $report->getLastInsertId());
-                        $info->add('row_count', $report->getRowCount());
-
-                        $entity->add($name, $info);
-                    }
-                }
-
-                return $entity;
+                return (new CreateInsertsComponent($this->resultReport))->createEntity();
             }
         }
 
-        foreach ($returnEntities as $returnEntity) {
-            $statementName = $returnEntity->getStatementName();
-            $resolvedStatementName = 'scenario.'.$scenarioName.'.'.$statementName;
-
-            if ($this->resultReport->has($resolvedStatementName)) {
-                $query = $this->resultReport->get($resolvedStatementName);
-
-                if (!$query instanceof SelectQueryResult) {
-                    throw new BlueDotRuntimeException('Return result specified in \'return_entity\' has to be a select sql type for '.$resolvedStatementName);
-                }
-
-                if (!$returnEntity->hasColumnName()) {
-                    $entity->add($statementName, $query);
-
-                    continue;
-                }
-
-                $resultEntityColumnName = $returnEntity->getColumnName();
-
-                if (!$query->getMetadata()->hasColumn($resultEntityColumnName)) {
-                    if ($returnEntity->hasAlias()) {
-                        $alias = $returnEntity->getAlias();
-
-                        $entity->add($alias, null);
-
-                        continue;
-                    }
-
-                    $entity->add($resultEntityColumnName, null);
-
-                    continue;
-                }
-
-                $resultValue = $query->getColumnValues($resultEntityColumnName);
-
-                if ($returnEntity->hasAlias()) {
-                    $alias = $returnEntity->getAlias();
-
-                    $entity->add($alias, $resultValue);
-
-                    continue;
-                }
-
-                $entity->add($resultEntityColumnName, $resultValue);
-            }
-        }
-
-        return $entity;
+        return (new CreateReturnEntitiesComponent($returnEntities, $this->resultReport, $scenarioName))->createEntity();
     }
 
 }
