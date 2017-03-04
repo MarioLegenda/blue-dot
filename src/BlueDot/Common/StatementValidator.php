@@ -70,7 +70,6 @@ class StatementValidator implements ValidatorInterface
     private function validateReturnData(ArgumentBag $mainStatement)
     {
         $rootConfig = $mainStatement->get('root_config');
-        $returnEntities = $rootConfig->get('return_entity')->getAllReturnData();
         $scenarioName = $rootConfig->get('scenario_name');
         $statements = $mainStatement->get('statements');
 
@@ -84,11 +83,15 @@ class StatementValidator implements ValidatorInterface
             }
         }
 
-        foreach ($returnEntities as $returnEntity) {
-            $scenarioStatementName = 'scenario.'.$scenarioName.'.'.$returnEntity->getStatementName();
+        if ($rootConfig->has('return_data')) {
+            $returnEntities = $rootConfig->get('return_data')->getAllReturnData();
 
-            if (!$statements->has($scenarioStatementName)) {
-                throw new ConfigurationException('Scenario statement name provided in the \'return_entity\' configuration value for '.$scenarioStatementName.' does not exist');
+            foreach ($returnEntities as $returnEntity) {
+                $scenarioStatementName = 'scenario.'.$scenarioName.'.'.$returnEntity->getStatementName();
+
+                if (!$statements->has($scenarioStatementName)) {
+                    throw new ConfigurationException('Scenario statement name provided in the \'return_entity\' configuration value for '.$scenarioStatementName.' does not exist');
+                }
             }
         }
     }

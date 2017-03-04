@@ -6,16 +6,8 @@ use BlueDot\Common\ArgumentBag;
 use BlueDot\Common\StorageInterface;
 use BlueDot\Component\CreateInsertsComponent;
 use BlueDot\Component\CreateReturnEntitiesComponent;
-use BlueDot\Database\Execution\LowLevelStrategy\BasicStatementExecution;
-use BlueDot\Database\Parameter\ParameterCollection;
-use BlueDot\Database\Parameter\Parameter;
-use BlueDot\Entity\Entity;
-use BlueDot\Entity\EntityCollection;
 use BlueDot\Exception\BlueDotRuntimeException;
 use BlueDot\Database\Execution\LowLevelStrategy\RecursiveStatementExecution;
-use BlueDot\Result\InsertQueryResult;
-use BlueDot\Result\MultipleInsertQueryResult;
-use BlueDot\Result\SelectQueryResult;
 
 class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
 {
@@ -96,19 +88,22 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
 
         return $this;
     }
-
+    /**
+     * @return StorageInterface
+     */
     public function getResult() : StorageInterface
     {
-        $returnEntities = $this->statement->get('root_config')->get('return_entity')->getAllReturnData();
         $scenarioName = $this->statement->get('root_config')->get('scenario_name');
 
-        if (empty($returnEntities)) {
+        if (!$this->statement->get('root_config')->has('return_data')) {
             if (!$this->resultReport->isEmpty()) {
                 return (new CreateInsertsComponent($this->resultReport))->createEntity();
             }
         }
 
-        return (new CreateReturnEntitiesComponent($returnEntities, $this->resultReport, $scenarioName))->createEntity();
+        $returnData = $this->statement->get('root_config')->get('return_data')->getAllReturnData();
+
+        return (new CreateReturnEntitiesComponent($returnData, $this->resultReport, $scenarioName))->createEntity();
     }
 
 }
