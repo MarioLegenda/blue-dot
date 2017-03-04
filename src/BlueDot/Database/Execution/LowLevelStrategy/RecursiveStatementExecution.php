@@ -125,7 +125,7 @@ class RecursiveStatementExecution implements StrategyInterface
 
                 $result = $this->resultReport->get($foreignKeyStatement->get('resolved_statement_name'));
 
-                if ($result instanceof MultipleInsertQueryResult) {
+                if ($result instanceof MultipleInsertQueryResult and !$result->containsOnlyOne()) {
                     $insertedIds = $result->getInsertedIds();
                     $newParameters = array();
 
