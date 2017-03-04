@@ -6,6 +6,7 @@ use BlueDot\Result\Context\ContextInterface;
 use BlueDot\Result\Context\DeleteContext;
 use BlueDot\Result\Context\InsertContext;
 use BlueDot\Result\Context\SelectContext;
+use BlueDot\Result\Context\TableContext;
 use BlueDot\Result\Context\UpdateContext;
 
 class ResultReportContext
@@ -29,6 +30,8 @@ class ResultReportContext
                 return new UpdateContext($pdoStatement);
             case 'delete':
                 return new DeleteContext($pdoStatement);
+            case 'table':
+                return new TableContext();
         }
     }
 }
