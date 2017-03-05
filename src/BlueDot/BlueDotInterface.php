@@ -2,7 +2,6 @@
 
 namespace BlueDot;
 
-use BlueDot\Common\StorageInterface;
 use BlueDot\Database\Connection;
 use BlueDot\Entity\PromiseInterface;
 use BlueDot\StatementBuilder\StatementBuilder;
@@ -19,10 +18,15 @@ interface BlueDotInterface
      * @param \PDO $connection
      * @return BlueDotInterface
      */
-    public function setExternalConnection(\PDO $connection) : BlueDotInterface;
+    public function setConnection(\PDO $connection) : BlueDotInterface;
     /**
      * @param Connection|null $connection
      * @return StatementBuilder
      */
     public function createStatementBuilder(Connection $connection = null) : StatementBuilder;
+    /**
+     * @param string $configSource
+     * @return BlueDotInterface
+     */
+    public function setConfiguration(string $configSource) : BlueDotInterface;
 }

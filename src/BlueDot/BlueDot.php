@@ -2,8 +2,7 @@
 
 namespace BlueDot;
 
-use BlueDot\Command\CreateDatabaseCommand;
-use BlueDot\Common\{ ArgumentValidator, StatementValidator, StorageInterface };
+use BlueDot\Common\{ ArgumentValidator, StatementValidator };
 
 use BlueDot\Configuration\Compiler;
 
@@ -24,23 +23,23 @@ use Symfony\Component\Yaml\Yaml;
 class BlueDot implements BlueDotInterface
 {
     /**
-     * @var Compiler $compiler
-     */
-    private $compiler;
-    /**
      * @var BlueDot $singletonInstance
      */
     private static $singletonInstance;
+    /**
+     * @var Compiler $compiler
+     */
+    private $compiler;
     /**
      * @var Connection $connection
      */
     private $connection;
     /**
-     * @param $configSource
+     * @param string $configSource
      * @param Connection|null $connection
      * @return BlueDot
      */
-    public static function instance($configSource = null, Connection $connection = null)
+    public static function instance(string $configSource = null, Connection $connection = null)
     {
         self::$singletonInstance =
             (self::$singletonInstance instanceof self) ?
@@ -51,12 +50,12 @@ class BlueDot implements BlueDotInterface
     }
     /**
      * BlueDot constructor.
-     * @param $configSource
+     * @param string $configSource
      * @param Connection|null $connection
      * @throws ConfigurationException
      * @throws ConnectionException
      */
-    public function __construct($configSource = null, Connection $connection = null)
+    public function __construct(string $configSource = null, Connection $connection = null)
     {
         if (is_null($configSource)) {
             return $this;
@@ -103,7 +102,7 @@ class BlueDot implements BlueDotInterface
      * @param \PDO $connection
      * @return BlueDotInterface
      */
-    public function setExternalConnection(\PDO $connection) : BlueDotInterface
+    public function setConnection(\PDO $connection) : BlueDotInterface
     {
         if (!$this->connection instanceof Connection) {
             $this->connection = new Connection();
@@ -119,9 +118,19 @@ class BlueDot implements BlueDotInterface
     /**
      * @return Connection
      */
-    public function getConnection() : Connection
+    public function getConnection()
     {
         return $this->connection;
+    }
+    /**
+     * @param string $configSource
+     * @return BlueDotInterface
+     */
+    public function setConfiguration(string $configSource) : BlueDotInterface
+    {
+        $this->initBlueDot($configSource);
+
+        return $this;
     }
     /**
      * @param Connection|null $connection
@@ -149,22 +158,17 @@ class BlueDot implements BlueDotInterface
         $this->connection = $this->createConnection($parsedConfiguration, $connection);
     }
 
-    private function resolveConfiguration($configSource)
+    private function resolveConfiguration(string $configSource)
     {
-        if (!is_string($configSource) and !is_array($configSource)) {
-            throw new ConfigurationException('Invalid configuration. Configuration can be a configuration array or a .yml file source');
+        if (!is_string($configSource)) {
+            throw new ConfigurationException('Invalid configuration. Configuration has to be a file path to .yml configuration');
         }
 
-        $parsedConfiguration = array();
-        if (is_array($configSource)) {
-            $parsedConfiguration = $configSource;
-        } else if (is_string($configSource)) {
-            if (!file_exists($configSource)) {
-                throw new ConfigurationException('Configuration file'.$configSource.'does not exist');
-            }
-
-            $parsedConfiguration = Yaml::parse(file_get_contents($configSource));
+        if (!file_exists($configSource)) {
+            throw new ConfigurationException('Configuration file'.$configSource.'does not exist');
         }
+
+        $parsedConfiguration = Yaml::parse(file_get_contents($configSource));
 
         if (empty($parsedConfiguration)) {
             throw new ConfigurationException('Invalid configuration. Configuration could not be parsed');
