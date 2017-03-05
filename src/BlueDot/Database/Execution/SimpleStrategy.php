@@ -89,7 +89,7 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
             if ($this->statement->has('model')) {
                 $modelConverter = new ModelConverter($this->statement->get('model'), $result->toArray()[0]);
 
-                $converted = $modelConverter->convert();
+                $converted = $modelConverter->convertIntoModel();
 
                 if (is_array($converted)) {
                     return new Entity($converted);

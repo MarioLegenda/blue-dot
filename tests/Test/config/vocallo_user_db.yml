@@ -7,9 +7,6 @@ configuration:
 
     simple:
         select:
-            generic_injectable_sql:
-                sql: "injectable sql"
-
             # languages
             find_language:
                 sql: "SELECT language FROM languages WHERE language = :language"
@@ -135,10 +132,6 @@ configuration:
                 parameters: [file_name]
 
         insert:
-            generic_insert:
-                sql: 'some insert'
-
-
             create_language:
                 sql: "INSERT INTO languages (language) VALUES (:language)"
                 parameters: [language]

@@ -65,12 +65,12 @@ class BlueDot implements BlueDotInterface
     }
     /**
      * @param string $name
-     * @param array $parameters
+     * @param null $parameters
      * @return PromiseInterface
      * @throws BlueDotRuntimeException
      * @throws ConnectionException
      */
-    public function execute(string $name, $parameters = array()) : PromiseInterface
+    public function execute(string $name, $parameters = null) : PromiseInterface
     {
         if (!$this->connection instanceof Connection) {
             throw new ConnectionException(

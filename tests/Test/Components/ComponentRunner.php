@@ -30,11 +30,15 @@ class ComponentRunner
     }
     /**
      * @param string $componentNamespace
+     * @param bool $execute
      * @return ComponentRunner
      */
-    public function addComponent(string $componentNamespace) : ComponentRunner
+    public function addComponent(string $componentNamespace, bool $execute = true) : ComponentRunner
     {
-        $this->components[] = $componentNamespace;
+        $this->components[] = array(
+            'execute' => $execute,
+            'component' => $componentNamespace,
+        );
 
         return $this;
     }
@@ -44,9 +48,13 @@ class ComponentRunner
     public function run()
     {
         foreach ($this->components as $component) {
-            $componentObject = new $component($this->phpunit, $this->blueDot);
+            $execute = $component['execute'];
 
-            $componentObject->run();
+            if ($execute) {
+                $componentObject = new $component['component']($this->phpunit, $this->blueDot);
+
+                $componentObject->run();
+            }
         }
     }
 }

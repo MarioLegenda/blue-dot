@@ -7,6 +7,10 @@ use BlueDot\Exception\BlueDotRuntimeException;
 
 class ParameterConversion
 {
+    const PARAMETERS_ARRAY = 1;
+    const PARAMETERS_OBJECT = 2;
+    const PARAMETERS_ARRAY_OBJECT = 4;
+
     /**
      * @var ParameterConversion $instance
      */
@@ -19,12 +23,14 @@ class ParameterConversion
      * @var ArgumentBag $statement;
      */
     private $statement;
+
+    private $parameterType = null;
     /**
      * @param array $userParameters
      * @param ArgumentBag $statement
      * @return ParameterConversion
      */
-    public static function instance(array $userParameters, ArgumentBag $statement) : ParameterConversion
+    public static function instance($userParameters, ArgumentBag $statement) : ParameterConversion
     {
         return (self::$instance instanceof self) ? self::$instance : new self($userParameters, $statement);
     }
@@ -33,7 +39,7 @@ class ParameterConversion
      * @param array $userParameters
      * @param ArgumentBag $statement
      */
-    private function __construct(array $userParameters, ArgumentBag $statement)
+    private function __construct($userParameters, ArgumentBag $statement)
     {
         $this->userParameters = $userParameters;
         $this->statement = $statement;
@@ -49,7 +55,7 @@ class ParameterConversion
 
             $this->statement->add('query_strategy', 'individual_strategy', true);
 
-            $this->validateParameters($this->statement, $this->userParameters);
+            $this->validateParameters($this->statement, $this->userParameters, 'simple');
 
             if ($this->statement->has('config_parameters')) {
                 $this->statement->add('parameters', $this->userParameters, true);
@@ -147,7 +153,7 @@ class ParameterConversion
         }
     }
 
-    private function validateParameters(ArgumentBag $statement, $userParameters)
+    private function validateParameters(ArgumentBag $statement, $userParameters, $statementType = null)
     {
         $configParameters = array();
         if ($statement->has('config_parameters')) {
@@ -171,6 +177,14 @@ class ParameterConversion
 
         if (empty($configParameters) and empty($userParameters)) {
             return null;
+        }
+
+        if ($statementType === 'simple') {
+            $userParameters = $this->convertSimpleObjectParameters($configParameters, $userParameters);
+        }
+
+        if ($statementType === 'scenario') {
+
         }
 
         $individualInsert = false;
@@ -238,6 +252,10 @@ class ParameterConversion
                     }
                 }
             }
+
+            if ($this->parameterType === ParameterConversion::PARAMETERS_OBJECT) {
+                $this->userParameters = $userParameters;
+            }
         }
 
         if ($multiInsert === true) {
@@ -249,28 +267,41 @@ class ParameterConversion
         }
     }
 
-    private function convertSimpleParameters(ArgumentBag $statement, $userParameters = array())
+    private function convertSimpleObjectParameters(array $configParameters, $userParameters)
     {
-        if (empty($userParameters)) {
-            throw new BlueDotRuntimeException('Statement '.$statement->get('resolved_name').' has parameters in the configuration but none are provided');
-        }
+        $convertedParameters = array();
 
-        $configParameters = $statement->get('parameters');
+        if (is_object($userParameters)) {
+            if (!class_exists(get_class($userParameters))) {
+                throw new BlueDotRuntimeException(
+                    sprintf('Invalid parameter. Provided parameter object %s does not exist', get_class($userParameters))
+                );
+            }
 
-        foreach ($userParameters as $parameters) {
-            if (is_array($parameters)) {
-                if (!$statement->has('multi_insert')) {
-                    $statement->add('multi_insert', true);
+            $this->parameterType = ParameterConversion::PARAMETERS_OBJECT;
 
-                    break;
+            foreach ($configParameters as $configParameter) {
+                $method = 'get'.str_replace('_', '', ucwords($configParameter, '_'));
+
+                if (!method_exists($userParameters, $method)) {
+                    throw new BlueDotRuntimeException(
+                        sprintf('Invalid parameter. Method %s does not exist in object %s that is to be bound to config parameter %s',
+                            $method,
+                            get_class($userParameters),
+                            $configParameter
+                        )
+                    );
                 }
+
+                $convertedParameters[$configParameter] = $userParameters->{$method}();
             }
         }
 
-        $parameters = $configParameters
-            ->compare($userParameters)
-            ->bindValues($userParameters, $statement->has('multi_insert'));
+        return $convertedParameters;
+    }
 
-        $statement->add('parameters', $parameters, true);
+    private function convertScenarioObjectParameters(array $configParameters, $userParameters)
+    {
+
     }
 }

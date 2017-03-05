@@ -25,7 +25,7 @@ class ModelConverter
     /**
      * @return mixed
      */
-    public function convert()
+    public function convertIntoModel()
     {
         if (count($this->result) === 1) {
             return $this->arrayToModel($this->result[0]);
