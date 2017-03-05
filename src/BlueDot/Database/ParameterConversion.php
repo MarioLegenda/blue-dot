@@ -3,6 +3,7 @@
 namespace BlueDot\Database;
 
 use BlueDot\Common\ArgumentBag;
+use BlueDot\Component\ModelConverter;
 use BlueDot\Exception\BlueDotRuntimeException;
 
 class ParameterConversion
@@ -136,7 +137,7 @@ class ParameterConversion
                         throw new BlueDotRuntimeException('Configuration has parameters to bound but you haven\'t supplied any for '.$singleStatement->get('resolved_statement_name'));
                     }
 
-                    $this->validateParameters($singleStatement, $this->userParameters[$singleStatement->get('statement_name')]);
+                    $this->validateParameters($singleStatement, $this->userParameters[$singleStatement->get('statement_name')], 'scenario');
 
                     $singleStatement->add('parameters', $this->userParameters[$singleStatement->get('statement_name')], true);
                 } else if (!$singleStatement->has('config_parameters')) {
@@ -184,7 +185,7 @@ class ParameterConversion
         }
 
         if ($statementType === 'scenario') {
-
+            //$userParameters = $this->convertScenarioObjectParameters($configParameters, $userParameters);
         }
 
         $individualInsert = false;
@@ -255,6 +256,8 @@ class ParameterConversion
 
             if ($this->parameterType === ParameterConversion::PARAMETERS_OBJECT) {
                 $this->userParameters = $userParameters;
+            } else if ($this->parameterType === ParameterConversion::PARAMETERS_ARRAY_OBJECT) {
+                $this->userParameters = $userParameters;
             }
         }
 
@@ -269,39 +272,35 @@ class ParameterConversion
 
     private function convertSimpleObjectParameters(array $configParameters, $userParameters)
     {
-        $convertedParameters = array();
+        $modelConverted = new ModelConverter();
 
         if (is_object($userParameters)) {
-            if (!class_exists(get_class($userParameters))) {
-                throw new BlueDotRuntimeException(
-                    sprintf('Invalid parameter. Provided parameter object %s does not exist', get_class($userParameters))
-                );
-            }
+            $convertedData = $modelConverted->modelToParameters($configParameters, $userParameters);
 
-            $this->parameterType = ParameterConversion::PARAMETERS_OBJECT;
+            $this->parameterType = $convertedData['parameter_type'];
 
-            foreach ($configParameters as $configParameter) {
-                $method = 'get'.str_replace('_', '', ucwords($configParameter, '_'));
+            return $convertedData['converted_parameters'];
+        }
 
-                if (!method_exists($userParameters, $method)) {
-                    throw new BlueDotRuntimeException(
-                        sprintf('Invalid parameter. Method %s does not exist in object %s that is to be bound to config parameter %s',
-                            $method,
-                            get_class($userParameters),
-                            $configParameter
-                        )
-                    );
-                }
+        if (is_array($userParameters)) {
+            $convertedData = $modelConverted->multipleModelsToParameters($configParameters, $userParameters);
 
-                $convertedParameters[$configParameter] = $userParameters->{$method}();
+            $this->parameterType = $convertedData['parameter_type'];
+
+            return $convertedData['converted_parameters'];
+        }
+    }
+
+    private function convertScenarioObjectParameters(array $configParameters, $userParameters) : array
+    {
+        $convertedParameters = array();
+
+        foreach ($userParameters as $scenarioName => $userParameter) {
+            if (is_object($userParameter)) {
+                $convertedParameters[$scenarioName] = $this->convertSimpleObjectParameters($configParameters, $userParameter);
             }
         }
 
         return $convertedParameters;
-    }
-
-    private function convertScenarioObjectParameters(array $configParameters, $userParameters)
-    {
-
     }
 }
