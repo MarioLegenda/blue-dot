@@ -73,11 +73,16 @@ class BlueDot implements BlueDotInterface
     public function execute(string $name, $parameters = array()) : PromiseInterface
     {
         if (!$this->connection instanceof Connection) {
-            throw new ConnectionException('No connection present. If you constructed BlueDot without configuration, then you have to provide a Connection object');
+            throw new ConnectionException(
+                sprintf('No connection present. If you constructed BlueDot without configuration, then you have to provide a connection object with %s that accepts an %s object',
+                    BlueDotInterface::class,
+                    Connection::class
+                )
+            );
         }
 
         if (!$this->compiler instanceof Compiler) {
-            throw new BlueDotRuntimeException('Configuration does not exist. You have not constructed BlueDot with a configuration file. Only statement builder can be used');
+            throw new BlueDotRuntimeException('Configuration does not exist. You have not constructed BlueDot with a configuration file. Only statement builder can be used at this point');
         }
 
         $statement = $this->compiler->compile($name);
@@ -160,12 +165,8 @@ class BlueDot implements BlueDotInterface
 
     private function resolveConfiguration(string $configSource)
     {
-        if (!is_string($configSource)) {
-            throw new ConfigurationException('Invalid configuration. Configuration has to be a file path to .yml configuration');
-        }
-
         if (!file_exists($configSource)) {
-            throw new ConfigurationException('Configuration file'.$configSource.'does not exist');
+            throw new ConfigurationException('Invalid configuration. Configuration file'.$configSource.'does not exist');
         }
 
         $parsedConfiguration = Yaml::parse(file_get_contents($configSource));
