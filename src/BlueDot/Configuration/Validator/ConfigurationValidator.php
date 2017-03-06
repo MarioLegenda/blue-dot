@@ -118,7 +118,6 @@ class ConfigurationValidator
                     ->cannotBeEmpty('atomic')
                     ->isBoolean('atomic')
                     ->isArrayIfExists('return_data')
-                    ->isArrayIfExists('rules')
                     ->cannotBeEmpty('statements')
                     ->isAssociativeStringArray('statements')
                     ->stepInto('statements')

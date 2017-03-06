@@ -115,25 +115,11 @@ class VocalloScenario implements TestComponentInterface
                     'absolute_full_path' => 'mrcina',
                 ),
                 array(
-                    'relative_path' => 'moco',
-                    'absolute_path' => 'mrki',
-                    'file_name' => 'mrkodol',
-                    'relative_full_path' => 'idiot',
-                    'absolute_full_path' => 'moron',
-                ),
-                array(
-                    'relative_path' => 'mirko',
-                    'absolute_path' => 'mikidol',
-                    'file_name' => 'mario',
-                    'relative_full_path' => 'andrea',
-                    'absolute_full_path' => 'andrea',
-                ),
-                array(
                     'relative_path' => 'andrea',
-                    'absolute_path' => 'andrea',
+                    'absolute_path' => 'mile',
                     'file_name' => 'mario',
                     'relative_full_path' => 'andrea',
-                    'absolute_full_path' => 'mario',
+                    'absolute_full_path' => 'mrcina',
                 ),
             ),
             'create_theory_deck' => array(
@@ -174,7 +160,14 @@ class VocalloScenario implements TestComponentInterface
 
         $this->blueDot->execute('scenario.update_theory_deck', $parameters)
             ->success(function(PromiseInterface $promise) {
-                var_dump($promise->getOriginalEntity());
+                $filesToDelete = $promise->getResult()->get('files_to_delete');
+
+                if (!is_string($filesToDelete) and !is_array($filesToDelete)) {
+                    $this->phpunit->fail('scenario.update_theory_deck expects expects \'files_to_delete\' to be a string or an array');
+                }
+            })
+            ->failure(function(PromiseInterface $promise) {
+                $this->phpunit->fail('scenario.update_theory_deck failed');
             });
     }
 }

@@ -107,28 +107,30 @@ class ParameterConversion
                     }
                 }
 
-                if (array_key_exists($singleStatement->get('statement_name'), $this->userParameters)) {
-                  if ($this->userParameters[$singleStatement->get('statement_name')] === null) {
-                        if (array_key_exists($singleStatement->get('statement_name'), $foreignKeys)) {
-                            $statementName = $singleStatement->get('statement_name');
-                            $holderResolvedStatements = $foreignKeys[$statementName];
+                if (is_array($this->userParameters)) {
+                    if (array_key_exists($singleStatement->get('statement_name'), $this->userParameters)) {
+                        if ($this->userParameters[$singleStatement->get('statement_name')] === null) {
+                            if (array_key_exists($singleStatement->get('statement_name'), $foreignKeys)) {
+                                $statementName = $singleStatement->get('statement_name');
+                                $holderResolvedStatements = $foreignKeys[$statementName];
 
-                            foreach ($holderResolvedStatements as $holderResolvedStatement) {
-                                $ifExistsStatement = $statements->get($holderResolvedStatement);
+                                foreach ($holderResolvedStatements as $holderResolvedStatement) {
+                                    $ifExistsStatement = $statements->get($holderResolvedStatement);
 
-                                if (!$ifExistsStatement->has('if_exists')) {
-                                    throw new BlueDotRuntimeException(sprintf(
-                                        'Invalid statement. Statement \'%s\' has to be executed because it exists as a \'foreign_key\' in statement(s) \'%s\'',
-                                        $singleStatement->get('resolved_statement_name'),
-                                        implode(', ', $foreignKeys[$singleStatement->get('statement_name')])
-                                    ));
+                                    if (!$ifExistsStatement->has('if_exists')) {
+                                        throw new BlueDotRuntimeException(sprintf(
+                                            'Invalid statement. Statement \'%s\' has to be executed because it exists as a \'foreign_key\' in statement(s) \'%s\'',
+                                            $singleStatement->get('resolved_statement_name'),
+                                            implode(', ', $foreignKeys[$singleStatement->get('statement_name')])
+                                        ));
+                                    }
                                 }
                             }
+
+                            $singleStatement->add('has_to_execute', false, true);
+
+                            continue;
                         }
-
-                        $singleStatement->add('has_to_execute', false, true);
-
-                        continue;
                     }
                 }
 
@@ -156,6 +158,7 @@ class ParameterConversion
 
     private function validateParameters(ArgumentBag $statement, $userParameters, $statementType = null)
     {
+        $this->parameterType = null;
         $configParameters = array();
         if ($statement->has('config_parameters')) {
             $configParameters = $statement->get('config_parameters');

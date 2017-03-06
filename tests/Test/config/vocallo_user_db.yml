@@ -266,7 +266,6 @@ configuration:
 
         create_theory_deck:
             atomic: true
-            rules: { return_entity: false }
             return_entity: []
             statements:
                 create_sound:
@@ -292,7 +291,7 @@ configuration:
 
         update_theory_deck:
             atomic: true
-            return_entity: ['select_deck.id as deck_id', 'select_sounds.absolute_full_path as files_to_delete']
+            return_data: ['select_deck.id as deck_id', 'select_sounds.absolute_full_path as files_to_delete']
             statements:
                 select_sounds:
                     sql: "SELECT s.absolute_full_path FROM sounds AS s INNER JOIN theory_sounds AS ts ON s.id = ts.sound_id AND ts.deck_id = :deck_id"
