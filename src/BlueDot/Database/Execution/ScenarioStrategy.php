@@ -33,8 +33,10 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
 
         foreach ($this->statements as $statement) {
             try {
-                if ($statement->has('if_exists')) {
-                    if (!$this->statements->has($statement->get('scenario_name').'.'.$statement->get('if_exists'))) {
+                if ($statement->has('if_exists') or $statement->has('if_not_exists')) {
+                    $existsType = ($statement->has('if_exists')) ? 'if_exists' : 'if_not_exists';
+
+                    if (!$this->statements->has($statement->get('scenario_name').'.'.$statement->get($existsType))) {
                         throw new BlueDotRuntimeException(
                             sprintf('Invalid statement. \'if_exists\' statement \'%s\' does not exist in scenario \'%s\'',
                                 $statement->get('if_exists'),
@@ -43,13 +45,13 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
                         );
                     }
 
-                    $ifExistsStatement = $this->statements->get($statement->get('scenario_name').'.'.$statement->get('if_exists'));
+                    $existsStatement = $this->statements->get($statement->get('scenario_name').'.'.$statement->get('if_exists'));
 
-                    if ($ifExistsStatement->has('has_to_execute')) {
+                    if ($existsStatement->has('has_to_execute')) {
                         continue;
                     }
 
-                    if (!$this->resultReport->has($ifExistsStatement->get('resolved_statement_name'))) {
+                    if (!$this->resultReport->has($existsStatement->get('resolved_statement_name'))) {
                         $recursiveStatementExecution = new RecursiveStatementExecution(
                             $statement,
                             $this->resultReport,
@@ -58,6 +60,8 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
 
                         $recursiveStatementExecution->execute($this->statements);
                     }
+
+                    $existsResult = $this->resultReport->get($existsStatement->get('resolved_statement_name'));
                 }
 
                 if ($statement->has('has_to_execute')) {

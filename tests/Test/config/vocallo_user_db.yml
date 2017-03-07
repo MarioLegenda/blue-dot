@@ -220,8 +220,6 @@ configuration:
 
         insert_word:
             atomic: true
-            rules: { return_entity: false }
-            return_entity: []
             statements:
                 insert_word:
                     sql: "INSERT INTO words (language_id, word, type) VALUES (:language_id, :word, :type)"

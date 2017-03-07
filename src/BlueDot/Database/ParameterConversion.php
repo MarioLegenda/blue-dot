@@ -6,6 +6,31 @@ use BlueDot\Common\ArgumentBag;
 use BlueDot\Component\ModelConverter;
 use BlueDot\Exception\BlueDotRuntimeException;
 
+/**
+ * Class ParameterConversion
+ * @package BlueDot\Database
+ *
+ * Rules for validation:
+ *
+ * Simple:
+ *
+ * - All simple statements have to be validated
+ *
+ * Scenario:
+ *
+ * - a scenario has to have at least one statement
+ *     - if that statement has option 'can_be_empty_result' and the statement returns an empty result,
+ *       that statement is regarded as success
+ *     - if the statement does not have option 'can_be_empty_result', and statement returns an empty
+ *       result, statement is regarded as failure
+ *
+ * - if user does not provide the statement in execute function, that statement will not be executed
+ *      - statement has to be provided in these circumstances
+ *           1. If that statement is a foreign key in some other statement
+ *           2  If that statement is a use option in some other statement
+ *      - if the statement has the option 'can_be_empty_result', it will regard itself as an empty result
+ *
+ */
 class ParameterConversion
 {
     const PARAMETERS_ARRAY = 1;
