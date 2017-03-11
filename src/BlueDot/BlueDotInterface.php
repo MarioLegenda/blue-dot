@@ -15,10 +15,10 @@ interface BlueDotInterface
      */
     public function execute(string $name, $parameters = array()) : PromiseInterface;
     /**
-     * @param \PDO $connection
+     * @param Connection $connection
      * @return BlueDotInterface
      */
-    public function setConnection(\PDO $connection) : BlueDotInterface;
+    public function setConnection(Connection $connection) : BlueDotInterface;
     /**
      * @param Connection|null $connection
      * @return StatementBuilder

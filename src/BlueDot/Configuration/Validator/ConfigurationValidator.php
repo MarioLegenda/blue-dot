@@ -27,8 +27,8 @@ class ConfigurationValidator
         $simpleConfiguration = $configuration
             ->keyExists('configuration')
             ->stepInto('configuration')
-                ->keyExists('connection')
-                ->stepInto('connection')
+                ->isArrayIfExists('connection')
+                ->stepIntoIfExists('connection')
                     ->keyExists('host')->isString('host')
                     ->keyExists('database_name')->isString('database_name')
                     ->keyExists('user')->isString('user')

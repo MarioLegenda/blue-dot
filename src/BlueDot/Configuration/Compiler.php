@@ -196,10 +196,6 @@ class Compiler
 
                     $rootConfig->add('return_data', new ScenarioReturnEntity($scenarioConfigs['return_data']));
                 }
-/*
-                if (array_key_exists('rules', $scenarioConfigs)) {
-                    $rootConfig->add('rules', new Rules($scenarioConfigs['rules']));
-                }*/
 
                 $statemens = new ArgumentBag();
                 foreach ($scenarioStatements as $statementName => $statementConfig) {
@@ -226,7 +222,7 @@ class Compiler
 
                     $sqlType = trim(strtolower($matches[1]));
 
-                    if ($sqlType === 'create' or $sqlType === 'use') {
+                    if ($sqlType === 'create' or $sqlType === 'use' or $sqlType === 'drop') {
                         $sqlType = 'table';
                     }
 

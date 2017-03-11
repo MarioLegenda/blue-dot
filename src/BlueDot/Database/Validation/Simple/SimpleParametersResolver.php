@@ -32,7 +32,7 @@ class SimpleParametersResolver extends AbstractTask
                 $parameters = $converted['converted_parameters'];
             }
 
-            if ($this->hasOption('parameters_exist')) {
+            if ($this->hasOption('parameters_exist') or $this->hasOption('single_model_parameter') or $this->hasOption('array_model_parameters')) {
                 $this->determineStrategy($statement, $configParameters, $parameters);
             }
 

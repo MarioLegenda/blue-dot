@@ -1,10 +1,4 @@
 configuration:
-    connection:
-        host: 127.0.0.1
-        database_name: 'vocallo'
-        user: 'root'
-        password: 'root'
-
     simple:
         select:
             generic_injectable_sql:
@@ -201,9 +195,8 @@ configuration:
         database:
             atomic: true
             statements:
-#                drop_database:
-#                    sql: "DROP DATABASE IF NOT EXISTS vocallo"
-#                    sql_type: database
+                drop_database:
+                    sql: "DROP DATABASE IF EXISTS vocallo"
                 create_database:
                     sql: "CREATE DATABASE IF NOT EXISTS vocallo CHARACTER SET = 'utf8' COLLATE = 'utf8_general_ci'"
                 use_database:

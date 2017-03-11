@@ -95,8 +95,8 @@ class RecursiveStatementExecution implements StrategyInterface
     private function executeReal(ArgumentBag $statements) : StrategyInterface
     {
         try {
-            if (!$this->connection->getConnection()->inTransaction()) {
-                $this->connection->getConnection()->beginTransaction();
+            if (!$this->connection->getPDO()->inTransaction()) {
+                $this->connection->getPDO()->beginTransaction();
             }
 
             if ($this->statement->has('foreign_key') and $this->statement->get('statement_type') === 'insert') {
@@ -157,16 +157,16 @@ class RecursiveStatementExecution implements StrategyInterface
                 default: throw new BlueDotRuntimeException('Internal Error. Query strategy not determined');
             }
 
-            if (!$this->connection->getConnection()->inTransaction()) {
-                $this->connection->getConnection()->commit();
+            if (!$this->connection->getPDO()->inTransaction()) {
+                $this->connection->getPDO()->commit();
             }
 
             return $this;
         } catch (\PDOException $e) {
             $message = sprintf('A PDOException was thrown for statement %s with message \'%s\'', $this->statement->get('resolved_statement_name'), $e->getMessage());
 
-            if (!$this->connection->getConnection()->inTransaction()) {
-                $this->connection->getConnection()->rollBack();
+            if (!$this->connection->getPDO()->inTransaction()) {
+                $this->connection->getPDO()->rollBack();
             }
 
             throw new BlueDotRuntimeException($message);
@@ -175,7 +175,7 @@ class RecursiveStatementExecution implements StrategyInterface
 
     private function individualStatement(ArgumentBag $statements)
     {
-        $pdoStatement = $this->connection->getConnection()->prepare($this->statement->get('sql'));
+        $pdoStatement = $this->connection->getPDO()->prepare($this->statement->get('sql'));
 
         $this->handleUseOption($statements, $pdoStatement);
         $this->handleForeignKey($statements, $pdoStatement);
@@ -202,7 +202,7 @@ class RecursiveStatementExecution implements StrategyInterface
             $values = $parameters[$bindParameter];
 
             foreach ($values as $value) {
-                $pdoStatement = $this->connection->getConnection()->prepare($this->statement->get('sql'));
+                $pdoStatement = $this->connection->getPDO()->prepare($this->statement->get('sql'));
 
                 $this->handleForeignKey($statements, $pdoStatement);
                 $this->handleUseOption($statements, $pdoStatement);
@@ -222,7 +222,7 @@ class RecursiveStatementExecution implements StrategyInterface
             $parameters = $this->statement->get('parameters');
 
             foreach ($parameters as $realParameters) {
-                $pdoStatement = $this->connection->getConnection()->prepare($this->statement->get('sql'));
+                $pdoStatement = $this->connection->getPDO()->prepare($this->statement->get('sql'));
 
                 foreach ($realParameters as $key => $value) {
                     $this->handleForeignKey($statements, $pdoStatement);
@@ -263,45 +263,6 @@ class RecursiveStatementExecution implements StrategyInterface
         }
 
         $this->resultReport->add($resolvedStatementName, $queryResult);
-
-/*        if ($statementType === 'select') {
-        } else if ($statementType === 'insert') {
-            $resolvedStatementName = $this->statement->get('resolved_statement_name');
-            $lastInsertId = $this->connection->getConnection()->lastInsertId();
-            $rowCount = $pdoStatement->rowCount();
-
-            if (empty($lastInsertId)) {
-                $this->resultReport->add($resolvedStatementName, null);
-            } else {
-                $report = new ArgumentBag();
-
-                $report->add('statement_type', $statementType);
-                $report->add('resolved_statement_name', $resolvedStatementName);
-                $report->add('last_insert_id', $lastInsertId);
-                $report->add('rows_affected', $rowCount);
-
-                $this->resultReport->appendValue($resolvedStatementName, $report);
-            }
-        } else if ($statementType === 'update' or $statementType === 'delete') {
-            $resolvedStatementName = $this->statement->get('resolved_statement_name');
-            $rowCount = $pdoStatement->rowCount();
-
-            if (empty($rowCount)) {
-                $this->resultReport->add($resolvedStatementName, null);
-            } else {
-                $report = new ArgumentBag();
-
-                $report->add('statement_type', $statementType);
-                $report->add('resolved_statement_name', $resolvedStatementName);
-                $report->add('row_count', $pdoStatement->rowCount());
-
-                if ($this->resultReport->has($resolvedStatementName)) {
-                    $this->resultReport->add($resolvedStatementName, $report, true);
-                } else {
-                    $this->resultReport->add($resolvedStatementName, $report);
-                }
-            }
-        }*/
     }
 
     private function handleUseOption(ArgumentBag $statements, \PDOStatement $pdoStatement)

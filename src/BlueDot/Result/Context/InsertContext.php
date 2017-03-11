@@ -31,7 +31,7 @@ class InsertContext implements ContextInterface
      */
     public function makeReport()
     {
-        $lastInsertId = $this->connection->getConnection()->lastInsertId();
+        $lastInsertId = $this->connection->getPDO()->lastInsertId();
         $rowCount = $this->pdoStatement->rowCount();
 
         if (empty($lastInsertId)) {

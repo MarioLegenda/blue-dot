@@ -108,19 +108,18 @@ class BlueDot implements BlueDotInterface
         return new Promise($strategy->execute()->getResult());
     }
     /**
-     * @param \PDO $connection
+     * @param Connection $connection
      * @return BlueDotInterface
      */
-    public function setConnection(\PDO $connection) : BlueDotInterface
+    public function setConnection(Connection $connection) : BlueDotInterface
     {
         if (!$this->connection instanceof Connection) {
-            $this->connection = new Connection();
-            $this->connection->setConnection($connection);
+            $this->connection = $connection;
 
             return $this;
         }
 
-        $this->connection->setConnection($connection);
+        $this->connection->setConnection($connection->getPDO());
 
         return $this;
     }
@@ -192,7 +191,7 @@ class BlueDot implements BlueDotInterface
         );
     }
 
-    private function createConnection(array $parsedConfiguration, Connection $connection = null) : Connection
+    private function createConnection(array $parsedConfiguration, Connection $connection = null)
     {
         if (array_key_exists('connection', $parsedConfiguration['configuration'])) {
             return new Connection($parsedConfiguration['configuration']['connection']);
@@ -200,10 +199,12 @@ class BlueDot implements BlueDotInterface
 
         if (!$this->connection instanceof Connection) {
             if (!$connection instanceof Connection) {
-                throw new ConnectionException('Connection is missing. You can provide connection parameters in the configuration or as a '.Connection::class.' object in the constructor');
+                return null;
             }
 
             return $connection;
         }
+
+        return null;
     }
 }

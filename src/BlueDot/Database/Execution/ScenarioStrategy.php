@@ -26,7 +26,7 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
         $rootConfig = $this->statement->get('root_config');
 
         if ($rootConfig->get('atomic') === true) {
-            $this->connection->getConnection()->beginTransaction();
+            $this->connection->getPDO()->beginTransaction();
         }
 
         $this->statements = $this->statement->get('statements');
@@ -87,7 +87,7 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
 
         if ($rootConfig->get('atomic') === true) {
             // make inTransaction() check here
-            $this->connection->getConnection()->commit();
+            $this->connection->getPDO()->commit();
         }
 
         return $this;

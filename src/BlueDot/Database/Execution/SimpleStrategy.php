@@ -28,8 +28,8 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
 
             $insertType = $this->statement->get('query_strategy');
 
-            if (!$this->connection->getConnection()->inTransaction()) {
-                $this->connection->getConnection()->beginTransaction();
+            if (!$this->connection->getPDO()->inTransaction()) {
+                $this->connection->getPDO()->beginTransaction();
             }
 
             switch ($insertType) {
@@ -43,16 +43,16 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
                     $this->multiStrategyStatement();
             }
 
-            if ($this->connection->getConnection()->inTransaction()) {
-                $this->connection->getConnection()->commit();
+            if ($this->connection->getPDO()->inTransaction()) {
+                $this->connection->getPDO()->commit();
             }
 
             return $this;
         } catch (\PDOException $e) {
             $message = sprintf('A PDOException was thrown for statement %s with message \'%s\'', $this->statement->get('resolved_statement_name'), $e->getMessage());
 
-            if ($this->connection->getConnection()->inTransaction()) {
-                $this->connection->getConnection()->rollBack();
+            if ($this->connection->getPDO()->inTransaction()) {
+                $this->connection->getPDO()->rollBack();
             }
 
             throw new BlueDotRuntimeException($message);
@@ -146,7 +146,7 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
 
     private function individualStatement()
     {
-        $this->pdoStatement = $this->connection->getConnection()->prepare($this->statement->get('sql'));
+        $this->pdoStatement = $this->connection->getPDO()->prepare($this->statement->get('sql'));
 
         if ($this->statement->has('parameters')) {
             $parameters = $this->statement->get('parameters');
@@ -170,7 +170,7 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
             $values = $parameters[$bindParameter];
 
             foreach ($values as $value) {
-                $this->pdoStatement = $this->connection->getConnection()->prepare($this->statement->get('sql'));
+                $this->pdoStatement = $this->connection->getPDO()->prepare($this->statement->get('sql'));
 
                 $this->bindSingleParameter(new Parameter($bindParameter, $value), $this->pdoStatement);
 
@@ -187,7 +187,7 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
             $parameters = $this->statement->get('parameters');
 
             foreach ($parameters as $realParameters) {
-                $this->pdoStatement = $this->connection->getConnection()->prepare($this->statement->get('sql'));
+                $this->pdoStatement = $this->connection->getPDO()->prepare($this->statement->get('sql'));
 
                 foreach ($realParameters as $key => $value) {
                     $this->bindSingleParameter(new Parameter($key, $value), $this->pdoStatement);
@@ -215,14 +215,14 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
             }
         } else if ($statementType === 'insert') {
             $resolvedStatementName = $this->statement->get('resolved_statement_name');
-            $lastInsertId = $this->connection->getConnection()->lastInsertId();
+            $lastInsertId = $this->connection->getPDO()->lastInsertId();
 
             if (empty($lastInsertId)) {
                 $this->resultReport->add($resolvedStatementName, null);
             } else {
                 $this->resultReport->appendValue(
                     $resolvedStatementName,
-                    $this->connection->getConnection()->lastInsertId()
+                    $this->connection->getPDO()->lastInsertId()
                 );
             }
         } else if ($statementType === 'update' or $statementType === 'delete') {
