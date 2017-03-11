@@ -203,6 +203,7 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
     private function saveResult(\PDOStatement $pdoStatement)
     {
         $statementType = $this->statement->get('statement_type');
+
         if ($statementType === 'select') {
             $resolvedStatementName = $this->statement->get('resolved_statement_name');
             $queryResult = $pdoStatement->fetchAll(\PDO::FETCH_ASSOC);

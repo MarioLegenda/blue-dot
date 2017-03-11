@@ -7,6 +7,9 @@ configuration:
 
     simple:
         select:
+            generic_injectable_sql:
+                sql: "injectable sql"
+
             # languages
             find_language:
                 sql: "SELECT language FROM languages WHERE language = :language"
@@ -111,9 +114,9 @@ configuration:
             find_all_theories_by_lesson:
                 sql: "SELECT * FROM theories WHERE lesson_id = :lesson_id"
                 parameters: [lesson_id]
-            find_by_theory_id:
-                sql: "SELECT * FROM theories WHERE id = :theory_id"
-                parameters: [theory_id]
+            find_theory_by_id:
+                sql: "SELECT * FROM theories WHERE id = :id"
+                parameters: [id]
             find_decks_by_theory:
                 sql: "SELECT id, internal_name FROM theory_decks WHERE theory_id = :theory_id"
                 parameters: [theory_id]
@@ -132,6 +135,10 @@ configuration:
                 parameters: [file_name]
 
         insert:
+            generic_insert:
+                sql: 'some insert'
+
+
             create_language:
                 sql: "INSERT INTO languages (language) VALUES (:language)"
                 parameters: [language]
@@ -170,8 +177,8 @@ configuration:
 
         update:
             update_working_language:
-                sql: "UPDATE languages SET working_language = :working_language AND id = :language_id"
-                parameters: [working_language, language_id]
+                sql: "UPDATE languages SET working_language = :working_language AND id = :id"
+                parameters: [working_language, id]
             remove_working_language:
                 sql: "UPDATE languages SET working_language = 0 WHERE working_language = 1"
             schedule_word_removal:
@@ -184,8 +191,8 @@ configuration:
                 sql: "UPDATE lessons SET name = :name WHERE id = :lesson_id"
                 parameters: [lesson_id, name]
             rename_theory:
-                sql: "UPDATE theories SET name = :name WHERE id = :theory_id"
-                parameters: [name, theory_id]
+                sql: "UPDATE theories SET name = :name WHERE id = :id"
+                parameters: [name, id]
             update_theory_deck:
                 sql: "UPDATE theory_decks SET internal_name = :internal_name, deck_data = :deck_data, internal_description = :internal_description, show_on_page = :show_on_page, ordering = :ordering WHERE id = :deck_id"
                 parameters: [deck_id, internal_name, deck_data, internal_description, show_on_page, ordering]
@@ -193,8 +200,6 @@ configuration:
     scenario:
         database:
             atomic: true
-            rules: { return_entity: false }
-            return_entity: []
             statements:
 #                drop_database:
 #                    sql: "DROP DATABASE IF NOT EXISTS vocallo"
@@ -204,10 +209,30 @@ configuration:
                 use_database:
                     sql: "USE vocallo"
 
+        create_category:
+            atomic: true
+            statements:
+                find_category:
+                    sql: "SELECT category FROM categories WHERE category = :category AND language_id = :language_id"
+                    parameters: [category, language_id]
+                create_category:
+                    sql: "INSERT INTO categories (category, language_id) VALUES (:category, :language_id)"
+                    parameters: [category, language_id]
+                    if_exists: find_category
+
+        update_working_language:
+            atomic: true
+            statements:
+                remove_working_language:
+                    sql: "UPDATE languages SET working_language = 0 WHERE working_language = 1"
+                    can_be_empty_result: true
+                update_working_language:
+                    sql: "UPDATE languages SET working_language = :working_language AND id = :language_id"
+                    parameters: [working_language, language_id]
+                    can_be_empty_result: true
+
         create_course:
             atomic: true
-            rules: { return_entity: false}
-            return_entity: []
             statements:
                 create_course:
                     sql: "INSERT INTO courses (language_id, name) VALUES (:language_id, :name)"
@@ -220,6 +245,8 @@ configuration:
 
         insert_word:
             atomic: true
+            rules: { return_entity: false }
+            return_entity: []
             statements:
                 insert_word:
                     sql: "INSERT INTO words (language_id, word, type) VALUES (:language_id, :word, :type)"
@@ -264,11 +291,10 @@ configuration:
 
         create_theory_deck:
             atomic: true
-            return_entity: []
             statements:
                 create_sound:
-                    sql: "INSERT INTO sounds (relative_path, absolute_path, file_name, absolute_full_path, relative_full_path) VALUES (:relative_path, :absolute_path, :file_name, :absolute_full_path, :relative_full_path)"
-                    parameters: [relative_path, absolute_path, file_name, absolute_full_path, relative_full_path]
+                    sql: "INSERT INTO sounds (relative_path, absolute_path, file_name, absolute_full_path, relative_full_path, client_original_name) VALUES (:relative_path, :absolute_path, :file_name, :absolute_full_path, :relative_full_path, :client_original_name)"
+                    parameters: [relative_path, absolute_path, file_name, absolute_full_path, relative_full_path, client_original_name]
                 create_theory_deck:
                     sql: "INSERT INTO theory_decks (theory_id, internal_name, deck_data, internal_description, show_on_page, ordering) VALUES (:theory_id, :internal_name, :deck_data, :internal_description, :show_on_page, :ordering)"
                     parameters: [theory_id, internal_name, deck_data, internal_description, show_on_page, ordering]
@@ -294,15 +320,19 @@ configuration:
                 select_sounds:
                     sql: "SELECT s.absolute_full_path FROM sounds AS s INNER JOIN theory_sounds AS ts ON s.id = ts.sound_id AND ts.deck_id = :deck_id"
                     parameters: [deck_id]
+                    can_be_empty_result: true
                 remove_deck_sounds:
                     sql: "DELETE s.* FROM sounds AS s INNER JOIN theory_sounds AS ts ON s.id = ts.sound_id AND ts.deck_id = :deck_id"
                     parameters: [deck_id]
+                    can_be_empty_result: true
                 remove_theory_sounds:
                     sql: "DELETE FROM theory_sounds WHERE deck_id = :deck_id"
                     parameters: [deck_id]
+                    can_be_empty_result: true
                 update_theory_deck:
                     sql: "UPDATE theory_decks SET internal_name = :internal_name, deck_data = :deck_data, internal_description = :internal_description, show_on_page = :show_on_page, ordering = :ordering WHERE id = :deck_id"
                     parameters: [deck_id, internal_name, deck_data, internal_description, show_on_page, ordering]
+                    can_be_empty_result: true
                 create_sounds:
                     sql: "INSERT INTO sounds (relative_path, absolute_path, file_name, absolute_full_path, relative_full_path, client_original_name) VALUES (:relative_path, :absolute_path, :file_name, :absolute_full_path, :relative_full_path, :client_original_name)"
                     parameters: [relative_path, absolute_path, file_name, absolute_full_path, relative_full_path, client_original_name]
@@ -347,7 +377,7 @@ configuration:
                 create_theory_deck:
                     sql: "CREATE TABLE theory_decks (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, theory_id INT(6) NOT NULL, internal_name VARCHAR(255) NOT NULL, internal_description TEXT DEFAULT NULL, deck_data TEXT DEFAULT NULL, show_on_page TINYINT DEFAULT 0, ordering INT(6) DEFAULT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"
                 create_sounds_table:
-                    sql: "CREATE TABLE sounds (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, relative_path VARCHAR(255) NOT NULL, absolute_path VARCHAR(255) NOT NULL, file_name VARCHAR(255) NOT NULL, absolute_full_path VARCHAR(255) NOT NULL, relative_full_path VARCHAR(255) NOT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"
+                    sql: "CREATE TABLE sounds (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, relative_path VARCHAR(255) NOT NULL, absolute_path VARCHAR(255) NOT NULL, file_name VARCHAR(255) NOT NULL, absolute_full_path VARCHAR(255) NOT NULL, relative_full_path VARCHAR(255) NOT NULL, client_original_name VARCHAR(255) NOT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"
                 create_theory_sounds_table:
                     sql: "CREATE TABLE theory_sounds (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, sound_id INT(6) NOT NULL, theory_id INT(6) NOT NULL, deck_id INT(6) NOT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"
 

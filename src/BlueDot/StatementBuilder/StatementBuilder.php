@@ -11,7 +11,11 @@ use BlueDot\Entity\Model;
 use BlueDot\Exception\StatementBuilderException;
 use BlueDot\Database\Execution\ExecutionContext;
 use BlueDot\Entity\Promise;
-use BlueDot\Database\ParameterConversion;
+use BlueDot\Component\TaskRunner\TaskRunnerFactory;
+use BlueDot\Database\Validation\SimpleStatementTaskRunner;
+use BlueDot\Component\ModelConverter;
+use BlueDot\Database\Validation\Simple\SimpleStatementParameterValidation;
+use BlueDot\Database\Validation\Simple\SimpleParametersResolver;
 
 class StatementBuilder
 {
@@ -130,8 +134,6 @@ class StatementBuilder
         if (!empty($this->configParameters)) {
             $this->statement->add('config_parameters', $this->configParameters);
         }
-
-        ParameterConversion::instance($this->userParameters, $this->statement)->convert();
 
         $this->statement->add('connection', $this->connection);
 

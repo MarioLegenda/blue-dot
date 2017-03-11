@@ -37,6 +37,12 @@ class SimpleParametersResolver extends AbstractTask
             }
 
             $statement->add('parameters', $parameters, true);
+
+            return;
+        }
+
+        if (!$statement->has('config_parameters') and !$statement->has('parameters')) {
+            $statement->add('query_strategy', 'individual_strategy', true);
         }
     }
 

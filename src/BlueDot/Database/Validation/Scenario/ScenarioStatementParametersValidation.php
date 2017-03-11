@@ -127,6 +127,12 @@ class ScenarioStatementParametersValidation extends AbstractTask
                     );
                 }
 
+                $userParameters = $parameters[$statementName];
+
+                if (is_null($userParameters)) {
+                    $statement->add('has_to_execute', false, true);
+                }
+
                 // This currently iterating statement is also a foreign key in some other statement
                 // If this statement is a foreign_key in some other statement,
                 // then that statement has to be executed i.e. parameters have to be provided
@@ -150,9 +156,9 @@ class ScenarioStatementParametersValidation extends AbstractTask
                                     )
                                 );
                             }
-
-                            $statement->add('has_to_execute', false, true);
                         }
+
+                        $statement->add('has_to_execute', false, true);
                     }
                 }
 
