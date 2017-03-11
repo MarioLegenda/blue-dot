@@ -67,20 +67,7 @@ class RecursiveStatementExecution implements StrategyInterface
      */
     public function getResult(ArgumentBag $statement = null)
     {
-        $result = $this->resultReport->get($this->statement->get('resolved_statement_name'));
-
-        $canBeEmptyResult = $this->statement->get('can_be_empty_result');
-
-        if ($canBeEmptyResult === false) {
-            if ($result instanceof NullQueryResult) {
-                throw new BlueDotRuntimeException(sprintf(
-                    'Empty result returned for statement \'%s\'. Scenario statements have to have a result and cannot be empty. Set \'can_be_empty_result\' to true if you expect an empty result from this statement',
-                    $this->statement->get('resolved_statement_name')
-                ));
-            }
-        }
-
-        return $result;
+        return $this->resultReport->get($this->statement->get('resolved_statement_name'));
     }
 
     protected function bindSingleParameter(Parameter $parameter, \PDOStatement $pdoStatement)

@@ -4,9 +4,12 @@ namespace BlueDot\Component;
 
 use BlueDot\Common\ArgumentBag;
 use BlueDot\Entity\Entity;
+use BlueDot\Result\DeleteQueryResult;
 use BlueDot\Result\MultipleInsertQueryResult;
+use BlueDot\Result\NullQueryResult;
+use BlueDot\Result\UpdateQueryResult;
 
-class CreateInsertsComponent
+class CreateRegularComponent
 {
     /**
      * @var ArgumentBag $report
@@ -35,6 +38,30 @@ class CreateInsertsComponent
 
                 $info->add('last_insert_id', $report->getLastInsertId());
                 $info->add('row_count', $report->getRowCount());
+
+                $entity->add($name, $info);
+            }
+
+            if ($report instanceof DeleteQueryResult) {
+                $info = new ArgumentBag();
+
+                $info->add('row_count', $report->getRowCount());
+
+                $entity->add($name, $info);
+            }
+
+            if ($report instanceof UpdateQueryResult) {
+                $info = new ArgumentBag();
+
+                $info->add('row_count', $report->getRowCount());
+
+                $entity->add($name, $info);
+            }
+
+            if ($report instanceof NullQueryResult) {
+                $info = new ArgumentBag();
+
+                $info->add('row_count', null);
 
                 $entity->add($name, $info);
             }

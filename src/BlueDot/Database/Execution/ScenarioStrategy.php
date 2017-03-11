@@ -4,10 +4,11 @@ namespace BlueDot\Database\Execution;
 
 use BlueDot\Common\ArgumentBag;
 use BlueDot\Common\StorageInterface;
-use BlueDot\Component\CreateInsertsComponent;
+use BlueDot\Component\CreateRegularComponent;
 use BlueDot\Component\CreateReturnEntitiesComponent;
 use BlueDot\Exception\BlueDotRuntimeException;
 use BlueDot\Database\Execution\LowLevelStrategy\RecursiveStatementExecution;
+use BlueDot\Result\NullQueryResult;
 
 class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
 {
@@ -34,16 +35,6 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
         foreach ($this->statements as $statement) {
             try {
                 if ($statement->has('if_exists') or $statement->has('if_not_exists')) {
-                    $existsType = ($statement->has('if_exists')) ? 'if_exists' : 'if_not_exists';
-
-                    if (!$this->statements->has($statement->get('scenario_name').'.'.$statement->get($existsType))) {
-                        throw new BlueDotRuntimeException(
-                            sprintf('Invalid statement. \'if_exists\' statement \'%s\' does not exist in scenario \'%s\'',
-                                $statement->get('if_exists'),
-                                $statement->get('scenario_name')
-                            )
-                        );
-                    }
 
                     $existsStatement = $this->statements->get($statement->get('scenario_name').'.'.$statement->get('if_exists'));
 
@@ -53,7 +44,7 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
 
                     if (!$this->resultReport->has($existsStatement->get('resolved_statement_name'))) {
                         $recursiveStatementExecution = new RecursiveStatementExecution(
-                            $statement,
+                            $existsStatement,
                             $this->resultReport,
                             $this->connection
                         );
@@ -62,6 +53,18 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
                     }
 
                     $existsResult = $this->resultReport->get($existsStatement->get('resolved_statement_name'));
+
+                    if ($statement->has('if_exists')) {
+                        if ($existsResult instanceof NullQueryResult) {
+                            continue;
+                        }
+                    }
+
+                    if ($statement->has('if_not_exists')) {
+                        if (!$existsResult instanceof NullQueryResult) {
+                            continue;
+                        }
+                    }
                 }
 
                 if ($statement->has('has_to_execute')) {
@@ -99,15 +102,16 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
     {
         $scenarioName = $this->statement->get('root_config')->get('scenario_name');
 
-        if (!$this->statement->get('root_config')->has('return_data')) {
+        if ($this->statement->get('root_config')->has('return_data')) {
             if (!$this->resultReport->isEmpty()) {
-                return (new CreateInsertsComponent($this->resultReport))->createEntity();
+
+                $returnData = $this->statement->get('root_config')->get('return_data')->getAllReturnData();
+
+                return (new CreateReturnEntitiesComponent($returnData, $this->resultReport, $scenarioName))->createEntity();
             }
         }
 
-        $returnData = $this->statement->get('root_config')->get('return_data')->getAllReturnData();
-
-        return (new CreateReturnEntitiesComponent($returnData, $this->resultReport, $scenarioName))->createEntity();
+        return (new CreateRegularComponent($this->resultReport))->createEntity();
     }
 
 }

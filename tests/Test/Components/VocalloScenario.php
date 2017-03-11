@@ -4,6 +4,7 @@ namespace Test\Components;
 
 use BlueDot\BlueDotInterface;
 use BlueDot\Entity\PromiseInterface;
+use BlueDot\BlueDot;
 
 class VocalloScenario implements TestComponentInterface
 {
@@ -28,7 +29,9 @@ class VocalloScenario implements TestComponentInterface
 
     public function run()
     {
-        $this->blueDot->execute('scenario.insert_word', array(
+        $this->blueDot = new BlueDot(__DIR__ . '/../config/vocallo_user_db.yml');
+
+        $insertWordPromise = $this->blueDot->execute('scenario.insert_word', array(
             'insert_word' => array(
                 'language_id' => 1,
                 'word' => 'some word',
@@ -39,14 +42,28 @@ class VocalloScenario implements TestComponentInterface
             ),
             'insert_word_category' => null,
             'insert_word_image' => null,
-        ))->success(function(PromiseInterface $promise) {
-            $lastInsertId = $promise->getResult()->get('insert_word')->get('last_insert_id');
+        ));
 
-            $this->blueDot->execute('simple.update.schedule_word_removal', array(
+        if ($insertWordPromise->isSuccess()) {
+            $result = $insertWordPromise->getResult();
+            $lastInsertId = $result->get('insert_word')->get('last_insert_id');
+
+            $this->phpunit->assertInternalType('int', (int) $lastInsertId, 'last_insert_id should be integer for scenario.insert_word.insert_word');
+
+            $insertTranslationInfo = $result->get('insert_translation');
+
+            $this->phpunit->assertInternalType('int', $insertTranslationInfo->get('last_insert_id'), 'last_insert_id for scenario.insert_word.insert_translation should be an integer');
+            $this->phpunit->assertEquals(2, $insertTranslationInfo->get('row_count'), 'row_count for scenario.insert_word.insert_translation should be 2');
+
+            $wordRemovalPromise = $this->blueDot->execute('simple.update.schedule_word_removal', array(
                 'word_id' => $lastInsertId,
             ));
 
-            $this->blueDot->execute('scenario.remove_word', array(
+            $result = $wordRemovalPromise->getResult();
+
+            $this->phpunit->assertEquals(1, $result->get('rows_affected'), 'rows_affected for simple.update.schedule_word_removal should be 1');
+
+            $removeWordPromise = $this->blueDot->execute('scenario.remove_word', array(
                 'remove_translations' => array(
                     'word_id' => $lastInsertId,
                 ),
@@ -60,13 +77,25 @@ class VocalloScenario implements TestComponentInterface
                     'word_id' => $lastInsertId,
                 ),
             ));
-        });
+
+            $result = $removeWordPromise->getResult();
+
+            $this->phpunit->assertEquals(2, $result->get('remove_translations')->get('row_count'), 'scenario.remove_word.remove_translation should only remove 2 rows');
+            $this->phpunit->assertEquals(1, $result->get('remove_word')->get('row_count'), 'scenario.remove_word.remove_word should only remove 1 row');
+        }
 
         $this->blueDot->execute('scenario.create_course', array(
             'create_course' => array(
                 'name' => 'Some name',
             ),
-        ));
+        ))->success(function(PromiseInterface $promise) {
+            $result = $promise->getResult();
+
+            $this->phpunit->assertInternalType('int', $result->get('create_course')->get('last_insert_id'), 'scenario.create_course.create_course should have inserted a row. Invalid last_insert_id returned');
+            $this->phpunit->assertEquals(1, $result->get('create_course')->get('row_count'), 'scenario.create_course.create_course should have only inserted only 1 row');
+        })->failure(function() {
+            $this->phpunit->fail('scenario.create_course failed');
+        });
 
         $translations = $this->blueDot
             ->createStatementBuilder()
@@ -74,21 +103,20 @@ class VocalloScenario implements TestComponentInterface
             ->execute()
             ->getResult();
 
+        foreach ($translations as $translation) {
+            $this->phpunit->assertArrayHasKey('word_id', $translation, 'Fetching translations with statement builder should return with key word_id');
+            $this->phpunit->assertArrayHasKey('translation', $translation, 'Fetching translations with statement builder should return with key translation');
+        }
+
         $id = '60';
         $translations->extract('translation', function($row) use ($id) {
             return $row['word_id'] === $id;
         });
 
-        $this->blueDot->execute('simple.select.find_all_languages');
-
-        $this->blueDot->execute('simple.select.find_lesson', array(
-            'class_id' => 1,
-            'name' => 'kreten',
-        ))->success(function(PromiseInterface $promise) {
-            return 'success';
-        })->failure(function(PromiseInterface $promise) {
-            return 'failure';
-        })->getResult();
+        $this->blueDot->execute('simple.select.find_all_languages')
+            ->failure(function() {
+                $this->phpunit->fail('simple.select.find_all_languages failed');
+            });
 
         $this->blueDot->execute('scenario.insert_word', array(
             'insert_word' => array(
@@ -103,7 +131,10 @@ class VocalloScenario implements TestComponentInterface
             'insert_word_category' => array(
                 'category_id' => 5,
             ),
-        ));
+        ))
+            ->failure(function(PromiseInterface $promise) {
+                $this->phpunit->fail('scenario.insert_word failed');
+            });
 
 
         $createTheoryDeck = $this->blueDot->execute('scenario.create_theory_deck', array(
@@ -171,6 +202,11 @@ class VocalloScenario implements TestComponentInterface
             })
             ->failure(function(PromiseInterface $promise) {
                 $this->phpunit->fail('scenario.update_theory_deck failed');
+            });
+
+        $this->blueDot->execute('scenario.update_theory_deck_no_return_data', $parameters)
+            ->failure(function() {
+                $this->phpunit->fail('scenario.update_theory_deck_no_return_data failed');
             });
     }
 }

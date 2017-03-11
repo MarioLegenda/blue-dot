@@ -5,6 +5,7 @@ namespace Test\Components;
 use BlueDot\BlueDotInterface;
 use BlueDot\Entity\PromiseInterface;
 use Test\Model\Language;
+use BlueDot\BlueDot;
 
 class VocalloSimple implements TestComponentInterface
 {
@@ -29,6 +30,7 @@ class VocalloSimple implements TestComponentInterface
 
     public function run()
     {
+        $this->blueDot = new BlueDot(__DIR__ . '/../config/vocallo_user_db.yml');
 
         $languages = array('nigerian', 'moltovian', 'russian', 'chinese');
         $languageModels = array();

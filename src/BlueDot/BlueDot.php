@@ -169,7 +169,12 @@ class BlueDot implements BlueDotInterface
     private function resolveConfiguration(string $configSource)
     {
         if (!file_exists($configSource)) {
-            throw new ConfigurationException('Invalid configuration. Configuration file'.$configSource.'does not exist');
+            throw new ConfigurationException(
+                sprintf(
+                    'Invalid configuration. Configuration file %s does not exist',
+                    $configSource
+                )
+            );
         }
 
         $parsedConfiguration = Yaml::parse(file_get_contents($configSource));

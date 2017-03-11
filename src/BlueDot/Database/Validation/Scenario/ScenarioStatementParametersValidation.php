@@ -89,7 +89,6 @@ class ScenarioStatementParametersValidation extends AbstractTask
             if ($statement->has('if_exists') or $statement->has('if_not_exists')) {
                 $existsStatementName = ($statement->has('if_exists')) ? $statement->get('if_exists') : $statement->get('if_not_exists');
                 $existsStatementResolvedName = $statement->get('scenario_name').'.'.$existsStatementName;
-                $existsStatement = $statements->get($existsStatementResolvedName);
 
                 if (!$statements->has($existsStatementResolvedName)) {
                     throw new BlueDotRuntimeException(
@@ -100,6 +99,8 @@ class ScenarioStatementParametersValidation extends AbstractTask
                         )
                     );
                 }
+
+                $existsStatement = $statements->get($existsStatementResolvedName);
 
                 $this->existsMetadata[$existsStatementResolvedName]['exists_usage_statements'][] = $resolvedStatementName;
 

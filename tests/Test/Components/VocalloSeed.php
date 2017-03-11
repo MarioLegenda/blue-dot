@@ -44,6 +44,7 @@ class VocalloSeed implements TestComponentInterface
             ->setPassword('root')
             ->setUser('root');
 
+        $connection->connect();
 
         $blueDot->setConnection($connection);
 

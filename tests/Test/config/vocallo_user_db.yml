@@ -1,4 +1,10 @@
 configuration:
+    connection:
+        host: 127.0.0.1
+        database_name: 'vocallo'
+        user: 'root'
+        password: 'root'
+
     simple:
         select:
             generic_injectable_sql:
@@ -313,19 +319,46 @@ configuration:
                 select_sounds:
                     sql: "SELECT s.absolute_full_path FROM sounds AS s INNER JOIN theory_sounds AS ts ON s.id = ts.sound_id AND ts.deck_id = :deck_id"
                     parameters: [deck_id]
-                    can_be_empty_result: true
                 remove_deck_sounds:
                     sql: "DELETE s.* FROM sounds AS s INNER JOIN theory_sounds AS ts ON s.id = ts.sound_id AND ts.deck_id = :deck_id"
                     parameters: [deck_id]
-                    can_be_empty_result: true
                 remove_theory_sounds:
                     sql: "DELETE FROM theory_sounds WHERE deck_id = :deck_id"
                     parameters: [deck_id]
-                    can_be_empty_result: true
                 update_theory_deck:
                     sql: "UPDATE theory_decks SET internal_name = :internal_name, deck_data = :deck_data, internal_description = :internal_description, show_on_page = :show_on_page, ordering = :ordering WHERE id = :deck_id"
                     parameters: [deck_id, internal_name, deck_data, internal_description, show_on_page, ordering]
-                    can_be_empty_result: true
+                create_sounds:
+                    sql: "INSERT INTO sounds (relative_path, absolute_path, file_name, absolute_full_path, relative_full_path, client_original_name) VALUES (:relative_path, :absolute_path, :file_name, :absolute_full_path, :relative_full_path, :client_original_name)"
+                    parameters: [relative_path, absolute_path, file_name, absolute_full_path, relative_full_path, client_original_name]
+                create_deck_sound:
+                    sql: "INSERT INTO theory_sounds (sound_id, theory_id, deck_id) VALUES (:sound_id, :theory_id, :deck_id)"
+                    if_exists: create_sounds
+                    foreign_key:
+                        statement_name: create_sounds
+                        bind_to: sound_id
+                    use:
+                        statement_name: select_deck
+                        values: {select_deck.id: deck_id, select_deck.theory_id: theory_id }
+                select_deck:
+                    sql: "SELECT id, theory_id FROM theory_decks WHERE id = :deck_id"
+                    parameters: [deck_id]
+
+        update_theory_deck_no_return_data:
+            atomic: true
+            statements:
+                select_sounds:
+                    sql: "SELECT s.absolute_full_path FROM sounds AS s INNER JOIN theory_sounds AS ts ON s.id = ts.sound_id AND ts.deck_id = :deck_id"
+                    parameters: [deck_id]
+                remove_deck_sounds:
+                    sql: "DELETE s.* FROM sounds AS s INNER JOIN theory_sounds AS ts ON s.id = ts.sound_id AND ts.deck_id = :deck_id"
+                    parameters: [deck_id]
+                remove_theory_sounds:
+                    sql: "DELETE FROM theory_sounds WHERE deck_id = :deck_id"
+                    parameters: [deck_id]
+                update_theory_deck:
+                    sql: "UPDATE theory_decks SET internal_name = :internal_name, deck_data = :deck_data, internal_description = :internal_description, show_on_page = :show_on_page, ordering = :ordering WHERE id = :deck_id"
+                    parameters: [deck_id, internal_name, deck_data, internal_description, show_on_page, ordering]
                 create_sounds:
                     sql: "INSERT INTO sounds (relative_path, absolute_path, file_name, absolute_full_path, relative_full_path, client_original_name) VALUES (:relative_path, :absolute_path, :file_name, :absolute_full_path, :relative_full_path, :client_original_name)"
                     parameters: [relative_path, absolute_path, file_name, absolute_full_path, relative_full_path, client_original_name]
