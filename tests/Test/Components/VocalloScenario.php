@@ -28,7 +28,7 @@ class VocalloScenario implements TestComponentInterface
 
     public function run()
     {
-        $info = $this->blueDot->execute('scenario.insert_word', array(
+/*        $info = $this->blueDot->execute('scenario.insert_word', array(
             'insert_word' => array(
                 'language_id' => 1,
                 'word' => 'some word',
@@ -103,7 +103,8 @@ class VocalloScenario implements TestComponentInterface
             'insert_word_category' => array(
                 'category_id' => 5,
             ),
-        ));
+        ));*/
+
 
         $createTheoryDeck = $this->blueDot->execute('scenario.create_theory_deck', array(
             'create_sound' => array(

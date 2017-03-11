@@ -79,10 +79,21 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
 
         if ($statementType === 'insert') {
             $entity = new Entity();
+            $resultCount = count($result);
 
-            $lastInsertId = (int)$result[0];
+            if ($resultCount === 1) {
+                $entity->add('inserted_ids', $result);
+                $entity->add('last_insert_id', $result[0]);
 
-            $entity->add('last_insert_id', $lastInsertId);
+                return $entity;
+            }
+
+            if ($resultCount > 1) {
+                $entity->add('inserted_ids', $result);
+                $entity->add('last_insert_id', $result[$resultCount - 1]);
+
+                return $entity;
+            }
 
             return $entity;
         } else if ($statementType === 'select') {

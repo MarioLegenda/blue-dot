@@ -238,6 +238,10 @@ class Compiler
                         $scenarioStatement->add('if_exists', $statementConfig['if_exists']);
                     }
 
+                    if (array_key_exists('if_not_exists', $statementConfig)) {
+                        $scenarioStatement->add('if_not_exists', $statementConfig['if_exists']);
+                    }
+
                     if (array_key_exists('can_be_empty_result', $statementConfig)) {
                         $scenarioStatement->add('can_be_empty_result', $statementConfig['can_be_empty_result'], true);
                     }

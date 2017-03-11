@@ -14,8 +14,6 @@ class ModelConverter
 
         $this->classExistsCheck($userParameters);
 
-        $parameterType = ParameterConversion::PARAMETERS_OBJECT;
-
         foreach ($configParameters as $configParameter) {
             $method = 'get'.str_replace('_', '', ucwords($configParameter, '_'));
 
@@ -32,13 +30,8 @@ class ModelConverter
             $convertedParameters[$configParameter] = $userParameters->{$method}();
         }
 
-        if (is_null($parameterType)) {
-            throw new BlueDotRuntimeException('Invalid parameters. Parameter type could not be determined. This could be an internal error. Check your parameters and fix any bugs. If everything is ok with parameters, please, contact whitepostmail@gmail.com or post an issue on Github');
-        }
-
         return array(
             'converted_parameters' => $convertedParameters,
-            'parameter_type' => $parameterType,
         );
     }
 
@@ -58,13 +51,11 @@ class ModelConverter
 
         if (!$oneObjectExists) {
             return array(
-                'parameter_type' => null,
                 'converted_parameters' => $userParameters,
             );
         }
 
         return array(
-            'parameter_type' => ParameterConversion::PARAMETERS_ARRAY_OBJECT,
             'converted_parameters' => $convertedParameters,
         );
     }

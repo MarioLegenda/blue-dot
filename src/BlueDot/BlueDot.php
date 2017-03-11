@@ -4,10 +4,14 @@ namespace BlueDot;
 
 use BlueDot\Common\{ ArgumentValidator, StatementValidator };
 
+use BlueDot\Component\ModelConverter;
+use BlueDot\Component\TaskRunner\TaskRunnerFactory;
 use BlueDot\Configuration\Compiler;
 
 use BlueDot\Configuration\Validator\ConfigurationValidator;
-use BlueDot\Database\{ Connection, ParameterConversion };
+use BlueDot\Database\{
+    Connection, ParameterConversion, Validation\Simple\SimpleParametersResolver, Validation\Simple\SimpleStatementParameterValidation, Validation\SimpleStatementTaskRunner
+};
 
 use BlueDot\Database\Execution\{ CallableStrategy, ExecutionContext };
 
@@ -87,7 +91,7 @@ class BlueDot implements BlueDotInterface
 
         $statement = $this->compiler->compile($name);
 
-        ParameterConversion::instance($parameters, $statement)->convert();
+        //ParameterConversion::instance($parameters, $statement)->convert();
 
         if ($statement->get('type') === 'callable') {
             $callableStrategy = new CallableStrategy($statement, $this, $parameters);
@@ -99,7 +103,7 @@ class BlueDot implements BlueDotInterface
 
         $statement->add('connection', $this->connection);
 
-        $strategy = (new ExecutionContext($statement))->getStrategy();
+        $strategy = (new ExecutionContext($statement, $parameters))->getStrategy();
 
         return new Promise($strategy->execute()->getResult());
     }

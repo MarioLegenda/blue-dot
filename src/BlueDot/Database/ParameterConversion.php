@@ -79,13 +79,11 @@ class ParameterConversion
 
         if ($type === 'simple') {
 
-            $this->statement->add('query_strategy', 'individual_strategy', true);
+            //$this->validateParameters($this->statement, $this->userParameters, 'simple');
 
-            $this->validateParameters($this->statement, $this->userParameters, 'simple');
-
-            if ($this->statement->has('config_parameters')) {
+/*            if ($this->statement->has('config_parameters')) {
                 $this->statement->add('parameters', $this->userParameters, true);
-            }
+            }*/
         } else if ($type === 'scenario') {
             $statements = $this->statement->get('statements');
 

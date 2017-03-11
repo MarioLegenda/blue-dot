@@ -131,6 +131,7 @@ class ConfigurationValidator
                                 ->cannotBeEmpty('sql')
                                 ->isString('sql')
                                 ->isStringIfExists('if_exists')
+                                ->isStringIfExists('if_not_exists')
                                 ->isArrayIfExists('parameters')
                                 ->isBooleanIfExists('can_be_empty_result')
                                 ->cannotBeEmptyIfExists('use')

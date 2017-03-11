@@ -37,7 +37,11 @@ class VocalloSimple implements TestComponentInterface
             $languageModels[] = (new Language())->setLanguage($language);
         }
 
-        $this->blueDot->execute('simple.insert.create_language', $languageModels);
+        $this->blueDot->execute('simple.insert.create_language', $languageModels)
+            ->success(function(PromiseInterface $promise) {
+                $this->phpunit->assertEquals(4, count($promise->getResult()->get('inserted_ids')), 'There should be 4 inserts for simple.insert.create_language');
+                $this->phpunit->assertInternalType('int', (int) $promise->getResult()->get('last_insert_id'));
+            });
 
         $this->blueDot->execute('simple.select.find_language', array(
             'language' => 'croatian',
@@ -65,5 +69,17 @@ class VocalloSimple implements TestComponentInterface
             array('language' => 'norwegian'),
             array('language' => 'bosnian'),
         ));
+
+        $bosnianLanguage = new Language();
+        $bosnianLanguage->setLanguage('bosnian');
+
+        $this->blueDot->execute('simple.select.find_language', $bosnianLanguage)
+            ->success(function(PromiseInterface $promise) {
+                $result = $promise->getResult();
+
+                foreach ($result as $language) {
+                    $this->phpunit->assertEquals('bosnian', $language['language'], 'simple.select.find_language has to return bosnian');
+                }
+            });
     }
 }

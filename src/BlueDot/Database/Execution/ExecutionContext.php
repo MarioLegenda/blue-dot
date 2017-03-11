@@ -3,7 +3,15 @@
 namespace BlueDot\Database\Execution;
 
 use BlueDot\Common\ArgumentBag;
+use BlueDot\Database\Validation\Scenario\ScenarioParametersResolver;
+use BlueDot\Database\Validation\Scenario\ScenarioStatementParametersValidation;
+use BlueDot\Database\Validation\ScenarioStatementTaskRunner;
 use BlueDot\Exception\BlueDotRuntimeException;
+use BlueDot\Component\TaskRunner\TaskRunnerFactory;
+use BlueDot\Database\Validation\SimpleStatementTaskRunner;
+use BlueDot\Component\ModelConverter;
+use BlueDot\Database\Validation\Simple\SimpleStatementParameterValidation;
+use BlueDot\Database\Validation\Simple\SimpleParametersResolver;
 
 class ExecutionContext
 {
@@ -12,11 +20,17 @@ class ExecutionContext
      */
     private $statement;
     /**
-     * @param ArgumentBag $statement
+     * @var mixed $parameters
      */
-    public function __construct(ArgumentBag $statement)
+    private $parameters;
+    /**
+     * @param ArgumentBag $statement
+     * @param mixed $parameters
+     */
+    public function __construct(ArgumentBag $statement, $parameters = null)
     {
         $this->statement = $statement;
+        $this->parameters = $parameters;
     }
     /**
      * @return StrategyInterface
@@ -28,8 +42,29 @@ class ExecutionContext
 
         switch($type) {
             case 'simple':
+                TaskRunnerFactory::createTaskRunner(function() {
+                    return new SimpleStatementTaskRunner(
+                        $this->statement,
+                        $this->parameters,
+                        new ModelConverter());
+                })
+                    ->addTask(new SimpleStatementParameterValidation())
+                    ->addTask(new SimpleParametersResolver())
+                    ->doTasks();
+
                 return new SimpleStrategy($this->statement);
             case 'scenario':
+                TaskRunnerFactory::createTaskRunner(function() {
+                    return new ScenarioStatementTaskRunner(
+                        $this->statement,
+                        $this->parameters,
+                        new ModelConverter()
+                    );
+                })
+                    ->addTask(new ScenarioStatementParametersValidation())
+                    ->addTask(new ScenarioParametersResolver())
+                    ->doTasks();
+
                 return new ScenarioStrategy($this->statement);
         }
 
