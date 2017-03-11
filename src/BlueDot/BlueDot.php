@@ -119,7 +119,7 @@ class BlueDot implements BlueDotInterface
             return $this;
         }
 
-        $this->connection->setConnection($connection->getPDO());
+        $this->connection->setPDO($connection->getPDO());
 
         return $this;
     }
