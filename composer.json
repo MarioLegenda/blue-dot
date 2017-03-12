@@ -13,6 +13,7 @@
     ],
 
     "require": {
+        "php": "7.0",
         "symfony/yaml": ">=2.8.0"
     },
 
