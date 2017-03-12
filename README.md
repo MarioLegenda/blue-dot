@@ -78,160 +78,111 @@ connection with a Connection object which you can pass as the second argument to
     
 You can also instantiate **BlueDot** without configuration and only a **Connection** object
 but you could not execute any sql that you configured in your config .yml file.
-You can, however, execute sql statement with the **statement builder**. More on 
+You can, however, execute sql statements with the **statement builder**. More on 
 statement builder later on.
 
 Also, database setup in your .yml configuration is not mandatory. You can set
 the connection with **BlueDot::setConnection()** method that accepts a 
 **BlueDot\Database\Connection** object.
 
-The **Connection** object also has method to set dsn values, like 
-**Connection::setDatabaseName()** etc. Also, there is a **Connection::setAttribute()**
-method with which you can set a PDO attribute for establishing connection.
+The **Connection** object also has methods to set dsn values, like 
+**Connection::setDatabaseName()**, **Connection::setHost()** etc... Also, there is a **Connection::setAttribute()**
+method with which you can set a PDO attribute for establishing a connection.
 
     $connection->setAttribute( \PDO::ATTR_ERRMODE, \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION);
     
 *NOTE: Errormode attribute is already set, together with persistent connection
 and utf8 charset*
 
-**3.3 Simple sql statements**
+###4. Terminology
 
-First, let's create a ```simple``` sql query in the configuration and run with **BlueDot** (```simple``` statements will be explained in detail in later chapters)
+In the following text, I refer to *statements*. A statement is a configuration value
+that holds the configuration for an sql query to be executed.
 
-    configuration:
-        connection:
-            host: localhost
-            database_name: world
-            user: root
-            password: root
-            
-        simple:
-            select:
-                get_all_cities:
-                    sql: "SELECT * FROM city"
-                
-In your code, instantiate **BlueDot** and run the ```BlueDot::execute()``` method with notation ```simple.select.get_all_cities```
-
-    $resultEntity = $blueDot->execute('simple.select.get_all_cities')->getResult();
-    
-```$resultEntity``` will be and ```EntityCollection``` object that will contain all cities (more about working with ```Entity``` later)
-And that is it. Configure and execute.
-
-###4. Simple statements###
-
-Simple statements are what the name describes. Simple. They execute only one sql statement that you specify. It the example from
-the chapter above, it executed ```get_all_cities``` and returned the result.
-
-There are four types of simple statements. ```select```, ```insert```, ```update``` and ```delete```. If there is a ```simple```
-configuration value present, there has to be at least one of the above configuration values present. The name of the statement can
-be anything you like. In the above example, it is ```get_all_cities```
-
-**4.1 Parameters explained**
-
-If your sql statement has parameters, you configure them and pass them as the second parameter to ```BlueDot::execute()``` method.
-
-    configuration:
-        connection:
-            host: localhost
-            database_name: world
-            user: root
-            password: root
-            
-        simple:
-            select:
-                get_city_by_name:
-                    sql: "SELECT * FROM city WHERE name = :name"
-                    parameters: [name]
-                    
-And in your code
-
-    $blueDot->execute('simple.select.get_city_by_name', array(
-        'name' => 'Split'
-    ));
-                  
-The parameters all have to have the same name. That means, if you specified ```:name``` in the sql query, then that string value
-has to be in the ```parameters``` configuration entry and also as an entry in the second argument of ```BlueDot::execute()```
-method.
-
-Same goes for insert, update, and delete statements. 
-
-**4.2 Atomic inserts, updates and deletes**
-
-If you wish to have multiple atomic insert, update and delete statements, you provide the values as the second argument of
-```BlueDot::execute()```
-
-For example
+For example...
 
     simple:
-        insert:
-            insert_user:
-                sql: "INSERT INTO user (name, lastname) VALUES (:name, :lastname)"
-                parameters: [name, lastname]
-                
-If you call this statement like this
+        select:
+             find_users:
+                 sql: 'SELECT * FROM users'
+      
+*simple.select.find_users* is a statement, whereas 'SELECT * FROM users' is an
+sql query. So, when I mention the word *statement*, I mean *simple.select.find_users*,
+but when I mention an sql query, I mean 'SELECT ...', actual sql query.
 
-    $blueDot->execute('simple.insert.insert_user', array(
-        'name' => array(
-            'Zoey',
-            'Brittany',
-            'Michelle',
-        ),
-        'lastname' => array(
-            'Deschanel',
-            'Murphy',
-            'Gomez',
-        )
-    ));
-    
-it will execute ```insert_user``` three times, one for each name and lastname value. The number of values have to be the same. That is,
-if you provide three values for ```name```, you have to provide three values for ```lastname```, even if they are null. Same applies
-for update and delete statements.
+In **BlueDot**, there are 3 types of statement:
+- simple
+- scenario
+- callable
 
-###5. Scenario statements###
+Therefor, when I say statement, I mean one of those three.
 
-**5.1 How it works**
+### Simple statements
 
-Scenario statements are statements that are meant to be executed in bulk, together as one unit of work. 
+**3.1 Basic example**
 
-Let's image a webshop that sells clothes. It's frontend has a search feature that the user can search various clothes with it.
-We could have a table ```category``` and ```product``` with which we use an ```inner join``` to collect product data.
-But, after the product has been fetched from the database, we would like to save some preferences data to our 
-```user_preferences``` table. So, we need to make one query to find the product that best matches the search input, then, 
-make an inner join with our ```category``` table, select the logged in user and save the data to our ```user_preferences```
-table. So let's do all that with a scenario...
+Simple statement is a single sql query defined in configuration and executed in code.
 
+For example...
 
     configuration:
         connection:
             host: localhost
-            database_name: search_application
+            database_name: world
             user: root
             password: root
             
-        scenario:
-            search:
-                atomic: true
-                return_entity: []
-                statements:
-                    find_product:
-                        sql_type: select
-                        sql: "SELECT name, description, price, category_id FROM product WHERE name LIKE :name"
-                    find_by_category:
-                        sql_type: select
-                        sql: "SELECT p.name, p.description, p.price, c.name FROM product AS p INNER JOIN category AS c ON p.category_id = category_id"
-                        use: 
-                            statement_name: find_product
-                            values: [find_product: category_id]
-                    # this is the currently logged in user
-                    find_user:
-                        sql_type: select
-                        sql: "SELECT * FROM user WHERE id = :id"
-                    create_preference:
-                        sql_type: insert
-                        sql: "INSERT INTO user_preferences (user_id, category_id, product_id) VALUES (:user_id, :category_id, :product_id)
-                        use:
-                            
+        simple:
+            select:
+                find_users:
+                    sql: "SELECT * FROM users"
+                    
+*NOTE: from now on, I will not include connection parameters
+                
+In your code, instantiate **BlueDot** and run the ```BlueDot::execute()``` method with notation ```simple.select.find_users```
 
+    $blueDot->execute('simple.select.find_users');
+    
+This line of code will execute the sql query for statement ```simple.select.find_users```.
+You will see how to get the actual result of this statement lateron.
+
+There are 4 type of simple statements:
+- select
+- insert
+- update
+- delete
+
+To expand to the former example, an update simple statement would look like this:
+
+        simple:
+            select:
+                find_users:
+                    sql: "SELECT * FROM users"
+                    
+            update:
+                update_user:
+                    sql: "UPDATE users SET name = 'Mary' WHERE id = 6"
+                    
+*delete* and *insert* statements are defined the same way and you execute them the same way.
+
+Now, the result. The product of *BlueDot::execute()* method is a *promise*.
+A promise can be a **success** or a **failure**. If the query returned an empty
+result, the statement is a failure. If it return some results, then it is a success.
+
+For now, I'm only going to show you the basics of *Promise* interface. There is a 
+dedicated chapter only on promises.
+
+    $blueDot->execute('simple.select.find_users')
+        ->success(function(PromiseInterface $promise) {
+            echo 'Statement returned a result';
+        })
+        ->failure(function(PromiseInterface $promise) {
+            echo 'Statement failed because it did not return any result';
+        });
+
+If the statement *simple.select.find_users* returned a result, *success* functions
+will be executed. If it did not, *failure* function will be executed.
+ 
 
 
 
