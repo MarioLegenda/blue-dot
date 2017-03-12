@@ -8,19 +8,23 @@
 3. The basics
     * Initial configuration
     * Database connection
-    * Simple sql statements
-4. Simple statements
+4. Terminology
+5. Simple statements
+    * Basic example
     * Parameters explained
-    * Atomic inserts, updates and deletes
-5. Scenario statements
-    * How it works
+    * Working with models
+6. Scenario statements
+    * Basic example
+    * Parameters explained
     * 'use' configuration feature
     * 'foreign_key' configuration feature
-    * Parameters explained
+    * 'if_exists' and 'if_not_exists' configuration feature
     * Returning results
-6. Callable statement
-7. Results
-8. Configuration reference
+    * A complex example
+7. Callable statements
+8. Statement builder
+9. Promises
+10. Configuration reference
 
 ###1. Introduction###
 
@@ -32,7 +36,7 @@
 
 Install it with [composer](https://getcomposer.org/)
 
-    composer require mario-legenda/blue-dot
+    composer require mario-legenda/blue-dot 1.0.0
     
 ###3. The basics###
 
@@ -59,7 +63,36 @@ You can also instantiate via singleton
             user: root
             password: root
             
-And you are all set to make your first query to the database. The tests in this repository use the ```world``` database from mysql.
+And you are all set to make your first query to the database. You can also establish a 
+connection with a Connection object which you can pass as the second argument to 
+**BlueDot** constructor. 
+
+    $connection = new BlueDot\Database\Connection(array(
+        'host' => '127.0.0.1',
+        'database_name' => 'database',
+        'user' => 'root',
+        'password' => 'root',
+    ));
+    
+    $blueDot = new BlueDot\BlueDot('/path/to/configuration.yml', $connection);
+    
+You can also instantiate **BlueDot** without configuration and only a **Connection** object
+but you could not execute any sql that you configured in your config .yml file.
+You can, however, execute sql statement with the **statement builder**. More on 
+statement builder later on.
+
+Also, database setup in your .yml configuration is not mandatory. You can set
+the connection with **BlueDot::setConnection()** method that accepts a 
+**BlueDot\Database\Connection** object.
+
+The **Connection** object also has method to set dsn values, like 
+**Connection::setDatabaseName()** etc. Also, there is a **Connection::setAttribute()**
+method with which you can set a PDO attribute for establishing connection.
+
+    $connection->setAttribute( \PDO::ATTR_ERRMODE, \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION);
+    
+*NOTE: Errormode attribute is already set, together with persistent connection
+and utf8 charset*
 
 **3.3 Simple sql statements**
 

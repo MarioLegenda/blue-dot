@@ -7,9 +7,6 @@ configuration:
 
     simple:
         select:
-            generic_injectable_sql:
-                sql: "injectable sql"
-
             # languages
             find_language:
                 sql: "SELECT language FROM languages WHERE language = :language"
@@ -135,10 +132,6 @@ configuration:
                 parameters: [file_name]
 
         insert:
-            generic_insert:
-                sql: 'some insert'
-
-
             create_language:
                 sql: "INSERT INTO languages (language) VALUES (:language)"
                 parameters: [language]
@@ -244,8 +237,6 @@ configuration:
 
         insert_word:
             atomic: true
-            rules: { return_entity: false }
-            return_entity: []
             statements:
                 insert_word:
                     sql: "INSERT INTO words (language_id, word, type) VALUES (:language_id, :word, :type)"
@@ -270,8 +261,6 @@ configuration:
                         bind_to: word_id
         remove_word:
             atomic: true
-            rules: { return_entity: false }
-            return_entity: []
             statements:
                 remove_translations:
                     sql: "DELETE t FROM translations AS t INNER JOIN words AS w WHERE t.word_id = :word_id AND t.word_id = w.id AND w.schedule_removal = 1"
