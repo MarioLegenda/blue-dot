@@ -13,8 +13,7 @@
     ],
 
     "require": {
-        "symfony/yaml": ">=2.8.0",
-        "symfony/console": ">=2.8"
+        "symfony/yaml": ">=2.8.0"
     },
 
     "require-dev": {

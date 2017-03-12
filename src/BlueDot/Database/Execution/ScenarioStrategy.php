@@ -84,13 +84,18 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
                 $recursiveStatementExecution->execute($this->statements);
 
             } catch (\PDOException $e) {
+                if ($this->connection->getPDO()->inTransaction()) {
+                    $this->connection->getPDO()->rollBack();
+                }
+
                 throw new BlueDotRuntimeException('A PDOException has been thrown for statement '.$statement->get('resolved_statement_name').' with message \''.$e->getMessage().'\'');
             }
         }
 
         if ($rootConfig->get('atomic') === true) {
-            // make inTransaction() check here
-            $this->connection->getPDO()->commit();
+            if ($this->connection->getPDO()->inTransaction()) {
+                $this->connection->getPDO()->commit();
+            }
         }
 
         return $this;

@@ -144,7 +144,7 @@ class RecursiveStatementExecution implements StrategyInterface
                 default: throw new BlueDotRuntimeException('Internal Error. Query strategy not determined');
             }
 
-            if (!$this->connection->getPDO()->inTransaction()) {
+            if ($this->connection->getPDO()->inTransaction()) {
                 $this->connection->getPDO()->commit();
             }
 
@@ -152,7 +152,7 @@ class RecursiveStatementExecution implements StrategyInterface
         } catch (\PDOException $e) {
             $message = sprintf('A PDOException was thrown for statement %s with message \'%s\'', $this->statement->get('resolved_statement_name'), $e->getMessage());
 
-            if (!$this->connection->getPDO()->inTransaction()) {
+            if ($this->connection->getPDO()->inTransaction()) {
                 $this->connection->getPDO()->rollBack();
             }
 

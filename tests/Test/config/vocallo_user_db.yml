@@ -377,8 +377,6 @@ configuration:
 
         seed:
             atomic: true
-            rules: { return_entity: false }
-            return_entity: []
             statements:
                 create_languages_table:
                     sql: "CREATE TABLE languages (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, working_language TINYINT DEFAULT 0, language VARCHAR(256) NOT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"

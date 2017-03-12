@@ -15,12 +15,22 @@ class Connection
      */
     private $connection;
     /**
+     * @var array $attributes
+     */
+    private $attributes = array();
+    /**
      * @param array $dsn
      */
     public function __construct(array $dsn = array())
     {
         if (!empty($dsn)) {
             $this->validateDsn($dsn);
+
+            $this->attributes = array(
+                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+                \PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8',
+                \PDO::ATTR_PERSISTENT => true,
+            );
 
             $this->dsn = $dsn;
         }
@@ -67,6 +77,31 @@ class Connection
         return $this;
     }
     /**
+     * @param bool $persistent
+     * @return Connection
+     */
+    public function setPersistent(bool $persistent) : Connection
+    {
+        $this->dsn['persistent'] = $persistent;
+
+        return $this;
+    }
+    /**
+     * @param $attribute
+     * @param $value
+     * @return Connection
+     */
+    public function addAttribute($attribute, $value) : Connection
+    {
+        if (array_key_exists($attribute, $this->attributes)) {
+            unset($this->attributes[$attribute]);
+        }
+
+        $this->attributes[$attribute] = $value;
+
+        return $this;
+    }
+    /**
      * @return Connection
      * @throws ConnectionException
      */
@@ -88,18 +123,7 @@ class Connection
         $password = $this->dsn['password'];
 
         try {
-            $options = array(
-                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-                \PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8',
-            );
-
-            $options[\PDO::ATTR_PERSISTENT] = true;
-
-            if (array_key_exists('persistent', $this->dsn)) {
-                $options[\PDO::ATTR_PERSISTENT] = $this->dsn['persistent'];
-            }
-
-            $this->connection = new \PDO('mysql:host='.$host.';dbname='.$dbName, $user, $password, $options);
+            $this->connection = new \PDO('mysql:host='.$host.';dbname='.$dbName, $user, $password, $this->attributes);
         } catch (\PDOException $e) {
             throw new ConnectionException('A PDOException has been thrown when connecting to the database with message \''.$e->getMessage().'\'');
         }
@@ -147,12 +171,6 @@ class Connection
                 throw new ConnectionException(
                     sprintf('Invalid connection. \'%s\' dns entry has to be a string', $key)
                 );
-            }
-        }
-
-        if (array_key_exists('persistent', $dsn)) {
-            if (!is_bool($dsn['persistent'])) {
-                throw new ConnectionException('Invalid connection. \'persistent\' dsn option has to be a boolean');
             }
         }
     }

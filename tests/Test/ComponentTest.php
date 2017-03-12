@@ -4,6 +4,7 @@ namespace Test;
 
 use BlueDot\BlueDot;
 use Test\Components\ComponentRunner;
+use Test\Components\VocalloConnection;
 use Test\Components\VocalloScenario;
 use Test\Components\VocalloSeed;
 use Test\Components\VocalloSimple;
@@ -17,6 +18,7 @@ class ComponentTest extends \PHPUnit_Framework_TestCase
         $componentRunner = new ComponentRunner($this, $blueDot);
 
         $componentRunner
+            ->addComponent(VocalloConnection::class)
             ->addComponent(VocalloSeed::class)
             ->addComponent(VocalloSimple::class)
             ->addComponent(VocalloScenario::class);

@@ -61,7 +61,17 @@ class BlueDot implements BlueDotInterface
      */
     public function __construct(string $configSource = null, Connection $connection = null)
     {
-        if (is_null($configSource)) {
+        if (is_null($configSource) and is_null($connection)) {
+            return $this;
+        }
+
+        if (!is_null($connection)) {
+            if ($this->connection instanceof Connection) {
+                $this->connection->close();
+            }
+
+            $this->connection = $connection;
+
             return $this;
         }
 
@@ -113,13 +123,7 @@ class BlueDot implements BlueDotInterface
      */
     public function setConnection(Connection $connection) : BlueDotInterface
     {
-        if (!$this->connection instanceof Connection) {
-            $this->connection = $connection;
-
-            return $this;
-        }
-
-        $this->connection->setPDO($connection->getPDO());
+        $this->connection = $connection;
 
         return $this;
     }
@@ -162,8 +166,9 @@ class BlueDot implements BlueDotInterface
     {
         $parsedConfiguration = $this->resolveConfiguration($configSource);
 
-        $this->compiler = $this->createCompiler($parsedConfiguration);
         $this->connection = $this->createConnection($parsedConfiguration, $connection);
+
+        $this->compiler = $this->createCompiler($parsedConfiguration);
     }
 
     private function resolveConfiguration(string $configSource)
@@ -198,16 +203,16 @@ class BlueDot implements BlueDotInterface
 
     private function createConnection(array $parsedConfiguration, Connection $connection = null)
     {
-        if (array_key_exists('connection', $parsedConfiguration['configuration'])) {
-            return new Connection($parsedConfiguration['configuration']['connection']);
-        }
-
-        if (!$this->connection instanceof Connection) {
-            if (!$connection instanceof Connection) {
-                return null;
+        if ($connection instanceof Connection) {
+            if ($this->connection instanceof Connection) {
+                $this->connection->close();
             }
 
             return $connection;
+        }
+
+        if (array_key_exists('connection', $parsedConfiguration['configuration'])) {
+            return new Connection($parsedConfiguration['configuration']['connection']);
         }
 
         return null;
