@@ -19,16 +19,22 @@
     * 'use' configuration feature
     * 'foreign_key' configuration feature
     * 'if_exists' and 'if_not_exists' configuration feature
-    * Returning results
     * A complex example
 7. Callable statements
 8. Statement builder
-9. Promises
+9. Promise interface
 10. Configuration reference
 
 ###1. Introduction###
 
-**BlueDot** is a database abstraction layer that works with pure sql but returns domain objects that you can work with. It's configuration based and requires minimal work and setup to start working with it. The reason I created this tool is simple free time. Hope someone will find it useful.
+**BlueDot** is a database abstraction layer that works with pure sql but returns 
+domain objects that you can work with. It's configuration based and 
+requires minimal work and setup to start working with it. The reason I 
+created this tool is simple free time. Hope someone will find it useful.
+
+This documentation is written in a way in which you will first learn how
+to execute sql queries but getting the result and manipulating it is
+covered in *Chapter 9: Promise interface*
 
 ###2. Installation###
 
@@ -137,7 +143,7 @@ For example...
                 find_users:
                     sql: "SELECT * FROM users"
                     
-*NOTE: from now on, I will not include connection parameters
+*NOTE: from now on, I will not include connection parameters*
                 
 In your code, instantiate **BlueDot** and run the ```BlueDot::execute()``` method with notation ```simple.select.find_users```
 
