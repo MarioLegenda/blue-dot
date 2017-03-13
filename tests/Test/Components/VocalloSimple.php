@@ -90,7 +90,11 @@ class VocalloSimple implements TestComponentInterface
 
         $this->blueDot->execute('simple.select.find_word_by_id', $word)
             ->success(function(PromiseInterface $promise) {
-                
+                $result = $promise->getResult();
+
+                $this->phpunit->assertEquals(6, (int) $result->getId(), 'Word model should contain id 6');
+                $this->phpunit->assertEquals(1, (int) $result->getLanguage(), 'Word language should be 1');
+
             })
             ->failure(function() {
                 $this->phpunit->fail('simple.select.find_word_by_id failed');

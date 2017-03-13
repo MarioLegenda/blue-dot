@@ -371,8 +371,6 @@ You can combine these to approaches to find a specific user...
 **BlueDot** will bind the return value of method *User::getId()* to the *id*
 parameter and return a new *User* object populated will all the returned values.
 
-**IMPORTANT:**
-
 **BlueDot** works with column names. If you have a *last_name* column name and an object
 is supplied as a parameter, **BlueDot** will search for a method *User::getLastName()*.
 You can also name your table columns *lastName* and model binding will work. **BlueDot**
@@ -380,7 +378,28 @@ will not bind returned column values to an object if the object does not have a 
 *get* and *set* method for that column. For example, if a table contains a column date_created
 but the model does not have a *Model::setDateCreated()*, it will not bind that columns value
 to the supplied model.
+
+If you have a column name that is different that the model property, you can use *properties*
+configuration.
+
+    simple:
+        select:
+            find_user:
+               sql: "SELECT * FROM users WHERE id = :id"
+               parameters: [id]
+               model:
+                   object: App\Model\User
+                   properties: { find_user.created_on: dateCreated }
                     
+ In this example, *User* object has a property *dateCreated* with its corresponding *set*
+ and *get* methods but column name is *created_on*. **BlueDot** will search for a 
+ *User::setDateCreated()* method and save the value from *created_on* column. If
+ **BlueDot** could not find the property on the model or in *properties*, then it 
+ will skip that column and will not put it in the model. For example, if the table
+ contains a column *updated_on* but the model does not have a method *setUpdatedOn()* and
+ you haven't supplied a replacement in the *properties* configuration, that column will
+ be skipped.
+ 
  
 
 
