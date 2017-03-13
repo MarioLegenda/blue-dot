@@ -194,7 +194,10 @@ will be executed. If it did not, *failure* function will be executed.
 PHP PDO can bind parameters with *PDO::prepare()*. **BlueDot** supports this 
 feature in a slightly different way.
 
-To bind a parameter to a statement, you need to provide that parameters in configuration
+*NOTE: If you provide parameters in configuration but not in code, and vice versa
+an exception will be thrown*
+
+To bind a parameter to a statement, you need to provide that parameter in configuration
 and in code. Depending on the nature and number of parameters supplied in
 code, **BlueDot** decides weather to execute the statement only once
 or multiple times. 
@@ -214,7 +217,7 @@ Take a look at this statement
 This statement is executed only once and a user is returned whose 
 *id* is 6.
 
-But what when you need to executed a single sql query multiple times
+But what when you need to execute an single sql query multiple times
 with different parameters?
 
     simple:
@@ -259,12 +262,116 @@ to be bound, so you can use that shorthand.
     
 This shorthand way **only** works if there is only one parameter to be bound
 to an sql query. If sql query has to be bound with multiple parameters, this
-way won't work and you will receive an exception.
+way won't work and you will receive an exception. For example, if the above
+sql query has to be bound with a *name* parameter and an *id* parameter.
 
 To conclude, a statement is executed as many times as there are parameters
 for that statement. If you provide multiple parameters, the statement will execute
 as many times as there are parameters. If you provide only one parameter,
 statement will execute only once.
+
+**3.3 Working with models**
+
+Database tools like Doctrine use models to make communication with the
+database easier and more descriptive. Simple statements also provide that
+feature.
+
+For example, let's say we have a *language* table with columns *id* and 
+*language*. Our model would look like this...
+
+    namespace App\Model;
+    
+    class Language 
+    {
+        private $id;
+        
+        private $language;
+        
+        public function setId($id) : Language
+        {
+            $this->id = $id;
+            
+            return $this;
+        }
+        
+        public function getId() 
+        {
+            return $this->id;
+        }
+        
+        public function setLanguage($language) : Language
+        {
+            $this->language = $language;
+            
+            return $this;
+        }
+        
+        public function getLanguage() 
+        {
+            return $this->language;
+        }
+    }
+    
+Following previous examples, we can create a new language by using this model:
+
+    simple:
+        insert:
+            create_language:
+                sql: "INSERT INTO languages (name) VALUES (:language)"
+                parameters: [language]
+                model:
+                    object: App\Model\Language
+                    
+    $language = new Language();
+    $langauge->setLanguage('french');
+    
+    $blueDot->execute('simple.insert.create_language', $language);
+    
+**BlueDot** concludes from configuration that you wan't a language parameter to 
+be bound to the statement sql query. It then concludes that you supplied an object
+as a parameter and looks for a *Language::getLanguage()* method on that object.
+If it finds one, it binds the value returned from that method to the *language*
+parameter of the sql query.
+
+It is important to say that there has to be a *get* method on the model for the parameter(s)
+that you want to bind. For example, if you also need to bind a *name* parameter,
+there has to be a *Language::getLanguage* parameter on the *Language* model.
+
+Model binding also works in select simple statement. For example, to expand on our
+*users* example, we could have a *User* with fields *id*, *name*, *username* and *password*.
+
+    simple:
+        select:
+            find_users:
+                sql: "SELECT * FROM users"
+                model:
+                    object: App\Model\User
+                    
+    $blueDot->execute('simple.select.find_user');
+    
+**BlueDot** will return an array of *User* object populated with the value for
+*id*, *name*, *username* and *password*.
+
+You can combine these to approaches to find a specific user...
+
+    simple:
+        select:
+            find_user:
+                sql: "SELECT * FROM users WHERE id = :id"
+                parameters: [id]
+                model:
+                    object: App\Model\User
+                    
+    $userId = 6;
+    $user = new User();
+    $user->setId($userId);
+    
+    $blueDot->execute('simple.select.find_user', $user);
+    
+**BlueDot** will bind the return value of method *User::getId()* to the *id*
+parameter and return a new *User* object populated will all the returned values.
+
+                    
  
 
 
