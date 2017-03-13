@@ -327,7 +327,7 @@ Following previous examples, we can create a new language by using this model:
     
     $blueDot->execute('simple.insert.create_language', $language);
     
-**BlueDot** concludes from configuration that you wan't a language parameter to 
+**BlueDot** concludes from configuration that you want a language parameter to 
 be bound to the statement sql query. It then concludes that you supplied an object
 as a parameter and looks for a *Language::getLanguage()* method on that object.
 If it finds one, it binds the value returned from that method to the *language*
@@ -335,7 +335,7 @@ parameter of the sql query.
 
 It is important to say that there has to be a *get* method on the model for the parameter(s)
 that you want to bind. For example, if you also need to bind a *name* parameter,
-there has to be a *Language::getLanguage* parameter on the *Language* model.
+there has to be a *Language::getLanguage()* parameter on the *Language* model.
 
 Model binding also works in select simple statement. For example, to expand on our
 *users* example, we could have a *User* with fields *id*, *name*, *username* and *password*.
@@ -349,7 +349,7 @@ Model binding also works in select simple statement. For example, to expand on o
                     
     $blueDot->execute('simple.select.find_user');
     
-**BlueDot** will return an array of *User* object populated with the value for
+**BlueDot** will return an array of *User* objects populated with the value for
 *id*, *name*, *username* and *password*.
 
 You can combine these to approaches to find a specific user...
@@ -370,6 +370,16 @@ You can combine these to approaches to find a specific user...
     
 **BlueDot** will bind the return value of method *User::getId()* to the *id*
 parameter and return a new *User* object populated will all the returned values.
+
+**IMPORTANT**
+
+**BlueDot** works with column names. If you have a *last_name* column name and an object
+is supplied as a parameter, **BlueDot** will search for a method *User::getLastName()*.
+You can also name your table columns *lastName* and model binding will work. **BlueDot**
+will not bind returned column values to an object if the object does not have a corresponding
+*get* and *set* method for that column. For example, if a table contains a column date_created
+but the model does not have a *Model::setDateCreated()*, it will not bind that columns value
+to the supplied model.
 
                     
  
