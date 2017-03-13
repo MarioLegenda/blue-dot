@@ -407,6 +407,68 @@ configuration.
  to that model. You don't have to put that configuration if you provide a model as 
  a parameter. *model* configuration property is only used for returning models.
  
+ ###6.Scenario statements
+ 
+ **6.1 Basic example**
+ 
+ Scenario statements are a group of statements that are executed together,
+ in an atomic way. That means, if one of those statements failed, none of the
+ statements will be executed. They could describe a search feature on an 
+ application or a calculating feature that requires a lot of database traffic and
+ different information stored in many tables.
+ 
+ Let's create a basic example from the real world. In a user registration scenario,
+ you would first, search for a user with a registration username/email and then
+ create a the new user.
+ 
+     scenario:
+         create_user:
+             atomic: true
+             find_user_by_username:
+                 sql: "SELECT * FROM users WHERE username = :username"
+                 parameters: [username]
+             create_user:
+                 sql: "INSERT INTO users (name, username, password) VALUES (:name, :username, :password)"
+                 parameters: [name, username, password]
+                 if_exists: find_user_by_username
+                 
+     $blueDot->execute('scenario.create_user', array(
+         'find_user_by_username' => array(
+             'username' => 'John',
+         ),
+         'create_user => array(
+             'name' => 'Jennifer',
+             'username' => 'jennifer@gmail.com',
+             'password' => 'someweakpassword',
+         ),
+     ));
+     
+There are a couple of things to say about this simple example.
+
+First, the name of this scenario is *create_user*. *find_user_by_username* and
+*create_user* are it's statements. Statements are executing in the order in which
+they appear in configuration with a an exception with *use*, *foreign_key* and
+*if_exists/if_not_exists* options. Those options are executed before the statement
+in which those options are.
+
+Let me explain. *create_user* statement has an *if_exists* option. **BlueDot**
+start executing statements in the order in which they appear in configuration.
+First, it executes *find_user_by_username*. Then, it goes to execute *create_user*.
+It sees that *create_user* has *if_exists* option with the name of the statement for
+which existance it has to check. It then check if the *if_exists* statement is already
+executed. If it is not, it executes it and after that, executes *create_user*.
+
+In our example, when **BlueDot** wants to execute *create_user*, it sees that 
+*if_exists* statement is already executed, skips it's execution and executes *create_user*
+
+This is a basic example of what scenarios can do. In this example, I introduced
+*if_exists* option. *if_exists/if_not_exists* options check if the statement under
+those options exists or doesn't exist. Depending on that condition, statement that
+has those option will or will not be executed. More about scenario options later
+in this chapter.
+
+**6.2 Parameters explained**
+ 
  
  
 
