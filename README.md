@@ -123,9 +123,9 @@ In **BlueDot**, there are 3 types of statement:
 
 Therefor, when I say statement, I mean one of those three.
 
-### Simple statements
+###5. Simple statements
 
-**3.1 Basic example**
+**5.1 Basic example**
 
 Simple statement is a single sql query defined in configuration and executed in code.
 
@@ -189,7 +189,7 @@ dedicated chapter only on promises.
 If the statement *simple.select.find_users* returned a result, *success* functions
 will be executed. If it did not, *failure* function will be executed.
 
-**3.2 Parameters explained**
+**5.2 Parameters explained**
 
 PHP PDO can bind parameters with *PDO::prepare()*. **BlueDot** supports this 
 feature in a slightly different way.
@@ -270,7 +270,7 @@ for that statement. If you provide multiple parameters, the statement will execu
 as many times as there are parameters. If you provide only one parameter,
 statement will execute only once.
 
-**3.3 Working with models**
+**5.3 Working with models**
 
 Database tools like Doctrine use models to make communication with the
 database easier and more descriptive. Simple statements also provide that
@@ -399,6 +399,14 @@ configuration.
  contains a column *updated_on* but the model does not have a method *setUpdatedOn()* and
  you haven't supplied a replacement in the *properties* configuration, that column will
  be skipped.
+ 
+ 
+ **IMPORTANT**
+ 
+ *model* configuration property is used for telling **BlueDot** to bind return column values
+ to that model. You don't have to put that configuration if you provide a model as 
+ a parameter. *model* configuration property is only used for returning models.
+ 
  
  
 
