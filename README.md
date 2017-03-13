@@ -16,9 +16,9 @@
 6. Scenario statements
     * Basic example
     * Parameters explained
-    * 'use' configuration feature
-    * 'foreign_key' configuration feature
-    * 'if_exists' and 'if_not_exists' configuration feature
+    * 'use' configuration option
+    * 'foreign_key' configuration option
+    * 'if_exists' and 'if_not_exists' configuration option
     * A complex example
 7. Callable statements
 8. Statement builder
@@ -469,6 +469,40 @@ in this chapter.
 
 **6.2 Parameters explained**
  
+Parameters for scenarios are similar to simple statements in most way but with some 
+differences. You have to provide the name of the scenario statement as an array key,
+and an the parameters array as its value.
+
+In the previous example
+
+     $blueDot->execute('scenario.create_user', array(
+         'find_user_by_username' => array(
+             'username' => 'John',
+         ),
+         'create_user => array(
+             'name' => 'Jennifer',
+             'username' => 'jennifer@gmail.com',
+             'password' => 'someweakpassword',
+         ),
+     ));
+     
+you have two statements, *find_user_by_username* and *create_user*. You provide
+parameters for those statements by naming them as keys with parameter arrays. 
+The rules for parameters are the same as for simple statements with two exceptions:
+you cannot provide a model as a parameter and you can assign **null** as a parameter.
+
+If you assign **null** as a parameter for a scenario statement, that statement will
+not execute. This is useful if, for example, you have a delete or an update query that you do not
+want to execute in some cases, but in others you do.
+
+**6.3 'use' configuration option
+
+'use' option is a powerful scenario feature. With it, you can bind a parameter with
+the return value of another statement.
+
+For example...
+
+
  
  
 
