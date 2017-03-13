@@ -150,7 +150,7 @@ In your code, instantiate **BlueDot** and run the ```BlueDot::execute()``` metho
     $blueDot->execute('simple.select.find_users');
     
 This line of code will execute the sql query for statement ```simple.select.find_users```.
-You will see how to get the actual result of this statement lateron.
+You will see how to get the actual result of this statement later on.
 
 There are 4 type of simple statements:
 - select
@@ -158,7 +158,7 @@ There are 4 type of simple statements:
 - update
 - delete
 
-To expand to the former example, an update simple statement would look like this:
+To expand on the former example, an update simple statement would look like this:
 
         simple:
             select:
@@ -173,7 +173,7 @@ To expand to the former example, an update simple statement would look like this
 
 Now, the result. The product of *BlueDot::execute()* method is a *promise*.
 A promise can be a **success** or a **failure**. If the query returned an empty
-result, the statement is a failure. If it return some results, then it is a success.
+result, the statement is a failure. If it returned some results, then it is a success.
 
 For now, I'm only going to show you the basics of *Promise* interface. There is a 
 dedicated chapter only on promises.
@@ -188,6 +188,83 @@ dedicated chapter only on promises.
 
 If the statement *simple.select.find_users* returned a result, *success* functions
 will be executed. If it did not, *failure* function will be executed.
+
+**3.2 Parameters explained**
+
+PHP PDO can bind parameters with *PDO::prepare()*. **BlueDot** supports this 
+feature in a slightly different way.
+
+To bind a parameter to a statement, you need to provide that parameters in configuration
+and in code. Depending on the nature and number of parameters supplied in
+code, **BlueDot** decides weather to execute the statement only once
+or multiple times. 
+
+Take a look at this statement
+    
+    simple:
+        select:
+            find_user:
+                sql: "SELECT * FROM users WHERE id = :id"
+                parameters: [id]
+                    
+    $blueDot->execute('simple.select.find_users', array(
+        'id': 6,
+    ));
+    
+This statement is executed only once and a user is returned whose 
+*id* is 6.
+
+But what when you need to executed a single sql query multiple times
+with different parameters?
+
+    simple:
+        insert:
+            create_users:
+                sql: "INSERT INTO users (name) VALUES (:name)"
+                parameters: [name]
+                
+If you provide the same parameter as in previous example, this statement
+will be executed only once.
+
+    $blueDot->execute('simple.insert.create_users', array(
+        'id': 6,
+    ));
+    
+But if you provide multiple parameters as multiple arrays, then this statement
+will execute as many times as there are parameters.
+
+    $blueDot->execute('simple.insert.create_users', array(
+        array('name' => 'Mary'),
+        array('name' => 'Jean'),
+        array('name' => 'Zoey'),
+        array('name' => 'Jennifer'),
+    ));
+    
+*simple.insert.create_users* will execute 4 times because there are 4 parameters
+supplied to the *execute* method.
+
+There is a shorthand way of executing multiple statements but only when there is
+a single parameter to be bound in the statements sql query. In our 
+*simple.insert.create_users* statement, only a single *name* parameter has
+to be bound, so you can use that shorthand.
+
+    $blueDot->execute('simple.insert.create_users', array(
+        'name' => array(
+            'Mary',
+            'Jean',
+            'Zoey',
+            'Jennifer',
+        ),
+    ));
+    
+This shorthand way **only** works if there is only one parameter to be bound
+to an sql query. If sql query has to be bound with multiple parameters, this
+way won't work and you will receive an exception.
+
+To conclude, a statement is executed as many times as there are parameters
+for that statement. If you provide multiple parameters, the statement will execute
+as many times as there are parameters. If you provide only one parameter,
+statement will execute only once.
  
 
 
