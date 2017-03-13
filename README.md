@@ -217,7 +217,7 @@ Take a look at this statement
 This statement is executed only once and a user is returned whose 
 *id* is 6.
 
-But what when you need to execute an single sql query multiple times
+But what if you need to execute a single sql query multiple times
 with different parameters?
 
     simple:
@@ -319,8 +319,6 @@ Following previous examples, we can create a new language by using this model:
             create_language:
                 sql: "INSERT INTO languages (name) VALUES (:language)"
                 parameters: [language]
-                model:
-                    object: App\Model\Language
                     
     $language = new Language();
     $langauge->setLanguage('french');
@@ -335,11 +333,13 @@ parameter of the sql query.
 
 It is important to say that there has to be a *get* method on the model for the parameter(s)
 that you want to bind. For example, if you also need to bind a *name* parameter,
-there has to be a *Language::getLanguage()* parameter on the *Language* model.
+there has to be a *Language::getName()* parameter on the *Language* model.
 
-Model binding also works in select simple statement. For example, to expand on our
-*users* example, we could have a *User* with fields *id*, *name*, *username* and *password*.
-
+Model binding is a two-way process and it can be used to fetch models from the database.
+For example, to expand on our *users* example, you could have a *User* with fields *id*, *name*, *username* and *password*.
+You would like to pass the user object as a parameter but also return a populated *User*
+model from the database.
+ 
     simple:
         select:
             find_users:
