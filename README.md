@@ -407,7 +407,7 @@ configuration.
  to that model. You don't have to put that configuration if you provide a model as 
  a parameter. *model* configuration property is only used for returning models.
  
- ###6.Scenario statements
+###6.Scenario statements
  
  **6.1 Basic example**
  
