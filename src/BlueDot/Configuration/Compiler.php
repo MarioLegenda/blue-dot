@@ -139,12 +139,12 @@ class Compiler
                         if (!empty($properties)) {
                             foreach ($properties as $key => $value) {
                                 if (!is_string($key)) {
-                                    throw new CompileException('Invalid model options. \'properties\' should be a associative array. %s given for value %s', $key, $value);
+                                    throw new CompileException('Invalid model options. \'properties\' should be a associative array with {statement_name}.{column} as key and a model property as value. %s given for value %s', $key, $value);
                                 }
                             }
                         }
 
-                        $workConfig->add('model', new Model($object, $properties));
+                        $workConfig->add('model', new Model($object, $properties), true);
                     }
 
                     $builtStatement->mergeStorage($workConfig);

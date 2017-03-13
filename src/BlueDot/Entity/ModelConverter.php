@@ -53,7 +53,17 @@ class ModelConverter
                 $method = 'set'.ucfirst($property);
             }
 
-            if (method_exists($object, $method)) {
+            if (!method_exists($object, $method)) {
+                $property = $this->model->findPropertyByColumn($column);
+
+                if ($property instanceof Property) {
+                    $modelProperty = $property->getModelProperty();
+                    $method = 'set'.ucfirst($modelProperty);
+
+                    $object->{$method}($value);
+                }
+            }
+            else if (method_exists($object, $method)) {
                 $object->{$method}($value);
             }
         }

@@ -18,6 +18,7 @@ class SimpleParametersResolver extends AbstractTask
 
         if ($statement->has('config_parameters') and !empty($parameters)) {
             $modelConverter = $this->arguments['model_converter'];
+
             $configParameters = $statement->get('config_parameters');
 
             if ($this->hasOption('array_model_parameters')) {

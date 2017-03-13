@@ -2,11 +2,48 @@
 
 namespace BlueDot\Component;
 
+use BlueDot\Entity\Model;
 use BlueDot\Exception\BlueDotRuntimeException;
-use BlueDot\Database\ParameterConversion;
 
 class ModelConverter
 {
+    /**
+     * @var Model $model
+     */
+    private $model;
+    /**
+     * ModelConverter constructor.
+     * @param Model|null $model
+     */
+    public function __construct(Model $model = null)
+    {
+        $this->model = $model;
+    }
+    /**
+     * @param array $configParameters
+     * @param $parameters
+     * @throws BlueDotRuntimeException
+     */
+    public function validateSingleModel(array $configParameters, $parameters)
+    {
+        $class = get_class($parameters);
+
+        if ($this->model->getName() !== $class) {
+            throw new BlueDotRuntimeException(
+                sprintf(
+                    'Invalid model given. Configuration model is %s but you provided %s',
+                    $this->model->getName(),
+                    $class
+                )
+            );
+        }
+    }
+    /**
+     * @param array $configParameters
+     * @param $userParameters
+     * @return array
+     * @throws BlueDotRuntimeException
+     */
     public function modelToParameters(array $configParameters, $userParameters)
     {
         $parameterType = null;
@@ -34,7 +71,11 @@ class ModelConverter
             'converted_parameters' => $convertedParameters,
         );
     }
-
+    /**
+     * @param array $configParameters
+     * @param $userParameters
+     * @return array
+     */
     public function multipleModelsToParameters(array $configParameters, $userParameters)
     {
         $convertedParameters = array();

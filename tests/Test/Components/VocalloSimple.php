@@ -6,6 +6,7 @@ use BlueDot\BlueDotInterface;
 use BlueDot\Entity\PromiseInterface;
 use Test\Model\Language;
 use BlueDot\BlueDot;
+use Test\Model\Word;
 
 class VocalloSimple implements TestComponentInterface
 {
@@ -82,6 +83,17 @@ class VocalloSimple implements TestComponentInterface
                 foreach ($result as $language) {
                     $this->phpunit->assertEquals('bosnian', $language['language'], 'simple.select.find_language has to return bosnian');
                 }
+            });
+
+        $word = new Word();
+        $word->setId(6);
+
+        $this->blueDot->execute('simple.select.find_word_by_id', $word)
+            ->success(function(PromiseInterface $promise) {
+                
+            })
+            ->failure(function() {
+                $this->phpunit->fail('simple.select.find_word_by_id failed');
             });
     }
 }

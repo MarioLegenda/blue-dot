@@ -12,7 +12,6 @@ class ScenarioParametersResolver extends AbstractTask
     {
         $statement = $this->arguments['statement'];
         $parameters = $this->arguments['parameters'];
-        $modelConverter = $this->arguments['model_converter'];
 
         $statements = $statement->get('statements');
 

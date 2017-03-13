@@ -47,10 +47,11 @@ configuration:
                 sql: "SELECT * FROM words WHERE word = :word"
                 parameters: [word]
             find_word_by_id:
-                sql: "SELECT * FROM words WHERE id = :word_id"
-                parameters: [word_id]
+                sql: "SELECT * FROM words WHERE id = :id"
+                parameters: [id]
                 model:
-                    object: AppBundle\Entity\Word
+                    object: Test\Model\Word
+                    properties: { find_word_by_id.language_id: language }
 
             #images
             find_image_by_word:

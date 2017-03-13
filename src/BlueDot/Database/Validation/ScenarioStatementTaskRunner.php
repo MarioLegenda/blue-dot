@@ -20,20 +20,14 @@ class ScenarioStatementTaskRunner extends AbstractTaskRunner
      */
     private $parameters;
     /**
-     * @var ModelConverter $modelConverter
-     */
-    private $modelConverter;
-    /**
      * SimpleStatementTaskRunner constructor.
      * @param ArgumentBag $statement
      * @param array|null $parameters
-     * @param ModelConverter $modelConverter
      */
-    public function __construct(ArgumentBag $statement, $parameters = null, ModelConverter $modelConverter)
+    public function __construct(ArgumentBag $statement, $parameters = null)
     {
         $this->statement = $statement;
         $this->parameters = $parameters;
-        $this->modelConverter = $modelConverter;
     }
 
     public function addTask(TaskInterface $task): AbstractTaskRunner
@@ -41,8 +35,7 @@ class ScenarioStatementTaskRunner extends AbstractTaskRunner
         if ($task instanceof ScenarioStatementParametersValidation) {
             $task
                 ->addArgument('statement', $this->statement)
-                ->addArgument('parameters', $this->parameters)
-                ->addArgument('model_converter', $this->modelConverter);
+                ->addArgument('parameters', $this->parameters);
 
             $this->tasks[] = $task;
         }
@@ -50,8 +43,7 @@ class ScenarioStatementTaskRunner extends AbstractTaskRunner
         if ($task instanceof ScenarioParametersResolver) {
             $task
                 ->addArgument('statement', $this->statement)
-                ->addArgument('parameters', $this->parameters)
-                ->addArgument('model_converter', $this->modelConverter);
+                ->addArgument('parameters', $this->parameters);
 
             $this->tasks[] = $task;
         }

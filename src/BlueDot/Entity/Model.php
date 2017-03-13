@@ -20,7 +20,12 @@ class Model
     public function __construct(string $name, array $properties)
     {
         $this->name = $name;
-        $this->properties = $properties;
+
+        if (!empty($properties)) {
+            foreach ($properties as $statement => $property) {
+                $this->properties[] = new Property($statement, $property);
+            }
+        }
     }
     /**
      * @return string
@@ -37,17 +42,28 @@ class Model
         $this->name = $name;
     }
     /**
-     * @return array
+     * @return mixed
      */
-    public function getProperties(): array
+    public function getProperties()
     {
         return $this->properties;
     }
     /**
-     * @param array $properties
+     * @param string $column
+     * @return Property|null
      */
-    public function setProperties(array $properties)
+    public function findPropertyByColumn(string $column)
     {
-        $this->properties = $properties;
+        if (!is_array($this->properties)) {
+            return null;
+        }
+
+        foreach ($this->properties as $property) {
+            if ($property->getColumn() === $column) {
+                return $property;
+            }
+        }
+
+        return null;
     }
 }

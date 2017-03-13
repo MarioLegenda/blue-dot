@@ -57,8 +57,7 @@ class ExecutionContext
                 TaskRunnerFactory::createTaskRunner(function() {
                     return new ScenarioStatementTaskRunner(
                         $this->statement,
-                        $this->parameters,
-                        new ModelConverter()
+                        $this->parameters
                     );
                 })
                     ->addTask(new ScenarioStatementParametersValidation())
