@@ -372,14 +372,14 @@ You can combine these to approaches to find a specific user...
 parameter and return a new *User* object populated will all the returned values.
 
 **BlueDot** works with column names. If you have a *last_name* column name and an object
-is supplied as a parameter, **BlueDot** will search for a method *User::getLastName()*.
+is supplied as a parameter, **BlueDot** will search for a method *User::getLastName()/User::setLastName()*.
 You can also name your table columns *lastName* and model binding will work. **BlueDot**
 will not bind returned column values to an object if the object does not have a corresponding
 *get* and *set* method for that column. For example, if a table contains a column date_created
 but the model does not have a *Model::setDateCreated()*, it will not bind that columns value
 to the supplied model.
 
-If you have a column name that is different that the model property, you can use *properties*
+If you have a column name that is different than the model property, you can use *properties*
 configuration.
 
     simple:
