@@ -407,7 +407,7 @@ configuration.
  to that model. You don't have to put that configuration if you provide a model as 
  a parameter. *model* configuration property is only used for returning models.
  
-###6.Scenario statements
+###6. Scenario statements
  
  **6.1 Basic example**
  
@@ -447,12 +447,12 @@ There are a couple of things to say about this simple example.
 
 First, the name of this scenario is *create_user*. *find_user_by_username* and
 *create_user* are it's statements. Statements are executing in the order in which
-they appear in configuration with a an exception with *use*, *foreign_key* and
+they appear in configuration with an exception of *use*, *foreign_key* and
 *if_exists/if_not_exists* options. Those options are executed before the statement
 in which those options are.
 
 Let me explain. *create_user* statement has an *if_exists* option. **BlueDot**
-start executing statements in the order in which they appear in configuration.
+starts executing statements in the order in which they appear in configuration.
 First, it executes *find_user_by_username*. Then, it goes to execute *create_user*.
 It sees that *create_user* has *if_exists* option with the name of the statement for
 which existance it has to check. It then check if the *if_exists* statement is already
@@ -464,7 +464,7 @@ In our example, when **BlueDot** wants to execute *create_user*, it sees that
 This is a basic example of what scenarios can do. In this example, I introduced
 *if_exists* option. *if_exists/if_not_exists* options check if the statement under
 those options exists or doesn't exist. Depending on that condition, statement that
-has those option will or will not be executed. More about scenario options later
+has those options will or will not be executed. More about scenario options later
 in this chapter.
 
 **6.2 Parameters explained**
