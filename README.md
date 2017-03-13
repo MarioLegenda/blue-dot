@@ -372,6 +372,7 @@ You can combine these to approaches to find a specific user...
 parameter and return a new *User* object populated will all the returned values.
 
 **IMPORTANT:**
+
 **BlueDot** works with column names. If you have a *last_name* column name and an object
 is supplied as a parameter, **BlueDot** will search for a method *User::getLastName()*.
 You can also name your table columns *lastName* and model binding will work. **BlueDot**
