@@ -1,7 +1,7 @@
-###BlueDot###
+###BlueDot
 *Pure sql database abstraction layer*
 
-###Content###
+###Content
 
 1. Introduction
 2. Installation
@@ -25,7 +25,7 @@
 9. Promise interface
 10. Configuration reference
 
-###1. Introduction###
+###1. Introduction
 
 **BlueDot** is a database abstraction layer that works with pure sql but returns 
 domain objects that you can work with. It's configuration based and 
