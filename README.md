@@ -498,11 +498,11 @@ want to execute in some cases, but in others you do.
 
 ### 6.3 'use' configuration option
 
-'use' option is a powerful scenario feature. With it, you can bind a parameter with
+*use* option is a powerful scenario feature. With it, you can bind a parameter with
 the return value of another statement.
 
 For example, if a blog could be saved in many languages (locals), during saving, you
-would have to check if the language in which you are saving it exists and then save
+would have to check if the language in which you are saving exists and then save
 the text of the blog.
 
     scenario:
@@ -528,15 +528,15 @@ the text of the blog.
         ),
     ));
    
-**BlueDot** executes statement in order they appear in configuration. First, he executes
-*find_language*. Next on the menu is save_block. The first thing **BlueDot** sees is 
+**BlueDot** executes statements in the order in which they appear in configuration. First, he executes
+*find_language*. Next on the menu is *save_block*. The first thing **BlueDot** sees is 
 *if_exists*. This option tells **BlueDot** that *save_block* should be executed only
 if *find_language* statement returned some results i.e an *en* locale has been found.
 If it has been found, it sees that it has a *use* option statement.
 
 A *use* option gives you the opportunity to bind parameters with values returned from other
 statements. In the above example, you configured *find_language.id* returned from statement
-*find_language locale_id* parameter. *find_language.id* binds to *save_block.locale_id*.
+to be bound to *save_block.locale_id*  parameter. So, *find_language.id* binds to *save_block.locale_id*.
 
 If the *use* statement result is not executed, **BlueDot** executes it and only then it 
 executes *save_block* statement.
@@ -544,7 +544,14 @@ executes *save_block* statement.
 Although *use* option is a useful feature, it has its restrictions. A statement that is a
 *use* option in some other statement can only be a *select* sql query and it has to return
 a single row. In the above example, if *find_language* would have returned multiple rows, 
-**BlueDot* would have thrown an exception.
+**BlueDot** would have thrown an exception.
+
+The order in which you put the *use* option statement does not matter. In the above example,
+*find_language* could be configured below *save_block*. In that case, *save_block* would see 
+that it has a *use find_language* statement and executed. By the time execution gets to execute
+*find_language*, it would already be executed and it would be skipped.
+
+
 
 
  
