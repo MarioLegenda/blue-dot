@@ -548,8 +548,8 @@ a single row. In the above example, if *find_language* would have returned multi
 
 The order in which you put the *use* option statement does not matter. In the above example,
 *find_language* could be configured below *save_block*. In that case, *save_block* would see 
-that it has a *use find_language* statement and executed. By the time execution gets to execute
-*find_language*, it would already be executed and it would be skipped.
+that it has a *use find_language* statement and that statement bould be executed. By the 
+time execution gets to execute *find_language*, it would already be executed and it would be skipped.
 
 
 
