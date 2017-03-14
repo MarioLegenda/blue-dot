@@ -46,7 +46,7 @@ Install it with [composer](https://getcomposer.org/)
     
 ## 3. The basics###
 
-### 3.1 Initial configuration**
+#### 3.1 Initial configuration
 
 **BlueDot** is fully configurable trough .yml configuration file that you specify in the ```BlueDot``` constructor. 
 
@@ -60,7 +60,7 @@ You can also instantiate via singleton
     
     $blueDot = BlueDot::instance('/path/to/config/file/configuration.yml');
     
-### 3.2. Database connection
+#### 3.2. Database connection
 
     configuration:
         connection:
@@ -123,9 +123,9 @@ In **BlueDot**, there are 3 types of statement:
 
 Therefor, when I say statement, I mean one of those three.
 
-###5. Simple statements
+## 5. Simple statements
 
-**5.1 Basic example**
+#### 5.1 Basic example
 
 Simple statement is a single sql query defined in configuration and executed in code.
 
@@ -189,7 +189,7 @@ dedicated chapter only on promises.
 If the statement *simple.select.find_users* returned a result, *success* functions
 will be executed. If it did not, *failure* function will be executed.
 
-**5.2 Parameters explained**
+#### 5.2 Parameters explained
 
 PHP PDO can bind parameters with *PDO::prepare()*. **BlueDot** supports this 
 feature in a slightly different way.
@@ -270,7 +270,7 @@ for that statement. If you provide multiple parameters, the statement will execu
 as many times as there are parameters. If you provide only one parameter,
 statement will execute only once.
 
-**5.3 Working with models**
+#### 5.3 Working with models
 
 Database tools like Doctrine use models to make communication with the
 database easier and more descriptive. Simple statements also provide that
@@ -407,9 +407,9 @@ configuration.
  to that model. You don't have to put that configuration if you provide a model as 
  a parameter. *model* configuration property is only used for returning models.
  
-###6. Scenario statements
+## 6. Scenario statements
  
- **6.1 Basic example**
+ #### 6.1 Basic example
  
  Scenario statements are a group of statements that are executed together,
  in an atomic way. That means, if one of those statements failed, none of the
@@ -468,7 +468,7 @@ those options exists or doesn't exist. Depending on that condition, statement th
 has those options will or will not be executed. More about scenario options later
 in this chapter.
 
-**6.2 Parameters explained**
+#### 6.2 Parameters explained
  
 Parameters for scenarios are similar to simple statements in most way but with some 
 differences. You have to provide the name of the scenario statement as an array key,
@@ -496,7 +496,7 @@ If you assign **null** as a parameter for a scenario statement, that statement w
 not execute. This is useful if, for example, you have a delete or an update query that you do not
 want to execute in some cases, but in others you do.
 
-**6.3 'use' configuration option**
+### 6.3 'use' configuration option
 
 'use' option is a powerful scenario feature. With it, you can bind a parameter with
 the return value of another statement.
