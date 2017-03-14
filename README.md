@@ -44,7 +44,7 @@ Install it with [composer](https://getcomposer.org/)
 
     composer require mario-legenda/blue-dot 1.0.0
     
-## 3. The basics###
+## 3. The basics
 
 #### 3.1 Initial configuration
 
