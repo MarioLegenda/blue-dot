@@ -496,7 +496,7 @@ If you assign **null** as a parameter for a scenario statement, that statement w
 not execute. This is useful if, for example, you have a delete or an update query that you do not
 want to execute in some cases, but in others you do.
 
-**6.3 'use' configuration option
+**6.3 'use' configuration option**
 
 'use' option is a powerful scenario feature. With it, you can bind a parameter with
 the return value of another statement.
