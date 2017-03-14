@@ -551,6 +551,10 @@ The order in which you put the *use* option statement does not matter. In the ab
 that it has a *use find_language* statement and that statement bould be executed. By the 
 time execution gets to execute *find_language*, it would already be executed and it would be skipped.
 
+#### 6.4 'foreign_key' configuration option
+
+
+
 
 
 
