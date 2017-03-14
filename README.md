@@ -44,9 +44,9 @@ Install it with [composer](https://getcomposer.org/)
 
     composer require mario-legenda/blue-dot 1.0.0
     
-###3. The basics###
+## 3. The basics###
 
-**3.1 Initial configuration**
+### 3.1 Initial configuration**
 
 **BlueDot** is fully configurable trough .yml configuration file that you specify in the ```BlueDot``` constructor. 
 
@@ -60,7 +60,7 @@ You can also instantiate via singleton
     
     $blueDot = BlueDot::instance('/path/to/config/file/configuration.yml');
     
-**3.2. Database connection**
+### 3.2. Database connection
 
     configuration:
         connection:
@@ -100,7 +100,7 @@ method with which you can set a PDO attribute for establishing a connection.
 *NOTE: Errormode attribute is already set, together with persistent connection
 and utf8 charset*
 
-###4. Terminology
+## 4. Terminology
 
 In the following text, I refer to *statements*. A statement is a configuration value
 that holds the configuration for an sql query to be executed.
