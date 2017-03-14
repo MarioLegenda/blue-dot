@@ -424,13 +424,14 @@ configuration.
      scenario:
          create_user:
              atomic: true
-             find_user_by_username:
-                 sql: "SELECT * FROM users WHERE username = :username"
-                 parameters: [username]
-             create_user:
-                 sql: "INSERT INTO users (name, username, password) VALUES (:name, :username, :password)"
-                 parameters: [name, username, password]
-                 if_exists: find_user_by_username
+             statements:
+                 find_user_by_username:
+                     sql: "SELECT * FROM users WHERE username = :username"
+                     parameters: [username]
+                 create_user:
+                     sql: "INSERT INTO users (name, username, password) VALUES (:name, :username, :password)"
+                     parameters: [name, username, password]
+                     if_exists: find_user_by_username
                  
      $blueDot->execute('scenario.create_user', array(
          'find_user_by_username' => array(
@@ -500,7 +501,50 @@ want to execute in some cases, but in others you do.
 'use' option is a powerful scenario feature. With it, you can bind a parameter with
 the return value of another statement.
 
-For example...
+For example, if a blog could be saved in many languages (locals), during saving, you
+would have to check if the language in which you are saving it exists and then save
+the text of the blog.
+
+    scenario:
+        save_blog:
+            atomic: true
+            statements:
+                find_language:
+                    sql: "SELECT id FROM locales WHERE locale = :locale"
+                    parameters: [locale]
+                save_block:
+                    sql: "INSERT INTO blogs (locale_id, blog_text) VALUES(:locale_id, blog_text)"
+                    if_exists: find_language
+                    use:
+                        statement_name: find_language
+                        values: { find_language.id: locale_id }
+                
+    $blueDot->execute('scenario.save_blog', array(
+        'find_language' => array(
+            'locale' => 'en',
+        ),
+        'save_block' => array(
+            'blog_text' => 'Some cool blog text',
+        ),
+    ));
+   
+**BlueDot** executes statement in order they appear in configuration. First, he executes
+*find_language*. Next on the menu is save_block. The first thing **BlueDot** sees is 
+*if_exists*. This option tells **BlueDot** that *save_block* should be executed only
+if *find_language* statement returned some results i.e an *en* locale has been found.
+If it has been found, it sees that it has a *use* option statement.
+
+A *use* option gives you the opportunity to bind parameters with values returned from other
+statements. In the above example, you configured *find_language.id* returned from statement
+*find_language locale_id* parameter. *find_language.id* binds to *save_block.locale_id*.
+
+If the *use* statement result is not executed, **BlueDot** executes it and only then it 
+executes *save_block* statement.
+
+Although *use* option is a useful feature, it has its restrictions. A statement that is a
+*use* option in some other statement can only be a *select* sql query and it has to return
+a single row. In the above example, if *find_language* would have returned multiple rows, 
+**BlueDot* would have thrown an exception.
 
 
  
