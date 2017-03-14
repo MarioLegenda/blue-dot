@@ -36,7 +36,7 @@ This documentation is written in a way in which you will first learn how
 to execute sql queries but getting the result and manipulating it is
 covered in *Chapter 9: Promise interface*
 
-###2. Installation###
+###2. Installation
 
 **BlueDot** requires PHP 7.0 or higher
 
