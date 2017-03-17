@@ -1,0 +1,10 @@
+simple:
+    insert:
+        create_language: "INSERT INTO languages (language) VALUES (:language)"
+
+scenario:
+    insert_word:
+        insert_word: "INSERT INTO words (language_id, word, type) VALUES (:language_id, :word, :type)"
+        insert_translation: "INSERT INTO translations (word_id, translation) VALUES(:word_id, :translation)"
+        insert_word_category: "INSERT INTO word_category (word_id, category_id) VALUES (:word_id, :category_id)"
+        insert_word_image: "INSERT INTO word_images (word_id, relative_path, absolute_path, file_name, absolute_full_path, relative_full_path) VALUES (:word_id, :relative_path, :absolute_path, :file_name, :absolute_full_path, :relative_full_path)"

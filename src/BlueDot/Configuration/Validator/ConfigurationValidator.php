@@ -34,7 +34,8 @@ class ConfigurationValidator
                     ->keyExists('user')->isString('user')
                     ->keyExists('password')->isString('password')
                     ->isBooleanIfExists('persistent')
-                ->stepOut();
+                ->stepOut()
+                ->isStringIfExists('sql_import');
 
         $scenarioConfiguration =
             $this->validateSimpleConfiguration($simpleConfiguration)

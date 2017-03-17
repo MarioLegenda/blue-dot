@@ -5,6 +5,8 @@ configuration:
         user: 'root'
         password: 'root'
 
+    sql_import: sql_import.yml
+
     simple:
         select:
             # languages
@@ -134,7 +136,7 @@ configuration:
 
         insert:
             create_language:
-                sql: "INSERT INTO languages (language) VALUES (:language)"
+                sql: simple.insert.create_language
                 parameters: [language]
 
             create_category:
@@ -240,22 +242,22 @@ configuration:
             atomic: true
             statements:
                 insert_word:
-                    sql: "INSERT INTO words (language_id, word, type) VALUES (:language_id, :word, :type)"
+                    sql: scenario.insert_word.insert_word
                     parameters: [language_id, word, type]
                 insert_translation:
-                    sql: "INSERT INTO translations (word_id, translation) VALUES(:word_id, :translation)"
+                    sql: scenario.insert_word.insert_translation
                     parameters: [translation]
                     foreign_key:
                         statement_name: insert_word
                         bind_to: word_id
                 insert_word_category:
-                    sql: "INSERT INTO word_category (word_id, category_id) VALUES (:word_id, :category_id)"
+                    sql: scenario.insert_word.insert_word_category
                     parameters: [category_id]
                     foreign_key:
                         statement_name: insert_word
                         bind_to: word_id
                 insert_word_image:
-                    sql: "INSERT INTO word_images (word_id, relative_path, absolute_path, file_name, absolute_full_path, relative_full_path) VALUES (:word_id, :relative_path, :absolute_path, :file_name, :absolute_full_path, :relative_full_path)"
+                    sql: scenario.insert_word.insert_word_image
                     parameters: [:relative_path, :absolute_path, :file_name, :absolute_full_path, :relative_full_path]
                     foreign_key:
                         statement_name: insert_word
