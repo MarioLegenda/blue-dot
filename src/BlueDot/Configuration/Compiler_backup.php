@@ -2,15 +2,13 @@
 
 namespace BlueDot\Configuration;
 
-use BlueDot\Configuration\Import\ImportCollection;
-use BlueDot\Configuration\Import\SqlImport;
 use BlueDot\Configuration\Validator\ConfigurationValidator;
 use BlueDot\Entity\Model;
 use BlueDot\Exception\CompileException;
 
 use BlueDot\Common\{ ArgumentBag, ArgumentValidator, ValidatorInterface};
-use BlueDot\Database\Scenario\{ UseOption, ForeignKey, ScenarioReturnEntity };
-use BlueDot\Exception\ConfigurationException;
+use BlueDot\Database\Parameter\{ Parameter, ParameterCollection };
+use BlueDot\Database\Scenario\{ UseOption, ForeignKey, ScenarioReturnEntity, Rules };
 
 class Compiler
 {
@@ -27,10 +25,6 @@ class Compiler
      */
     private $configuration;
     /**
-     * @var ImportCollection $imports
-     */
-    private $imports;
-    /**
      * @var ConfigurationValidator $configurationValidator
      */
     private $configurationValidator;
@@ -40,34 +34,23 @@ class Compiler
     private $builtConfiguration = array();
     /**
      * Compiler constructor.
-     * @param string $configSource
      * @param array $configuration
      * @param ValidatorInterface $argumentValidator
      * @param ValidatorInterface $statementValidator
      * @param ConfigurationValidator $configurationValidator
-     * @param ImportCollection $imports
      */
     public function __construct(
-        string $configSource,
         array $configuration,
         ValidatorInterface
         $argumentValidator,
         ValidatorInterface $statementValidator,
-        ConfigurationValidator $configurationValidator,
-        ImportCollection $imports
+        ConfigurationValidator $configurationValidator
     )
     {
         $this->configuration = $configuration;
         $this->argumentValidator = $argumentValidator;
         $this->statementValidator = $statementValidator;
         $this->configurationValidator = $configurationValidator;
-        $this->imports = $imports;
-
-        if (array_key_exists('sql_import', $configuration)) {
-            $path = $this->validateImport($configSource, $configuration['sql_import']);
-
-            $this->imports->addImport(new SqlImport($path));
-        }
 
         if (array_key_exists('simple', $configuration)) {
             $this->builtConfiguration['simple'] = new ArgumentBag();
@@ -137,6 +120,7 @@ class Compiler
                         ->add('resolved_statement_name', 'simple.'.$resolvedName);
 
                     $workConfig = new ArgumentBag();
+
                     $workConfig->add('sql', $statementConfig['sql']);
 
                     $possibleImport = $statementConfig['sql'];
@@ -235,22 +219,13 @@ class Compiler
                         ->add('statement_name', $statementName)
                         ->add('sql', $statementConfig['sql']);
 
-                    if ($this->imports->hasImport('sql_import')) {
-                        $possibleImport = $statementConfig['sql'];
-                        $import = $this->imports->getImport('sql_import');
-
-                        if ($import->hasValue($possibleImport)) {
-                            $scenarioStatement->add('sql', $import->getValue($possibleImport), true);
-                        }
-                    }
-
                     $sql = $scenarioStatement->get('sql');
 
                     preg_match('#(\w+\s)#i', $sql, $matches);
 
                     if (empty($matches)) {
                         throw new CompileException(sprintf(
-                            'Sql syntax could not be determined for statement %s. Sql: %s. This could be because you use sql_import and misspelled this one',
+                            'Sql syntax could not be determined for statement %s. Sql: %s',
                             $resolvedStatementName,
                             $sql
                         ));
@@ -260,10 +235,6 @@ class Compiler
 
                     if ($sqlType === 'create' or $sqlType === 'use' or $sqlType === 'drop') {
                         $sqlType = 'table';
-                    }
-
-                    if ($sqlType === 'modify' or $sqlType === 'alter') {
-                        $sqlType = 'update';
                     }
 
                     $scenarioStatement->add('statement_type', $sqlType);
@@ -359,28 +330,29 @@ class Compiler
         return $foundConfig;
     }
 
-    private function validateImport(string $configSource, string $file) : string
+    private function addSimpleParameters(array $parameters) : ParameterCollection
     {
-        $absolutePath = realpath(sprintf(dirname($configSource).'/%s', $file));
+        $parameterCollection = new ParameterCollection();
 
-        if ($absolutePath === false) {
-            throw new ConfigurationException(
-                sprintf(
-                    'Invalid import file. File %s does not exist or is not readable',
-                    $absolutePath
-                )
-            );
+        foreach ($parameters as $parameter) {
+            $parameterCollection->addParameter(new Parameter($parameter));
         }
 
-        if (!is_readable($absolutePath)) {
-            throw new ConfigurationException(
-                sprintf(
-                    'Invalid import file. File %s does not exist or is not readable',
-                    $absolutePath
-                )
-            );
+        return $parameterCollection;
+    }
+
+    private function addScenarioParameters(array $parameters) : ParameterCollection
+    {
+        $parameterCollection = new ParameterCollection();
+
+        foreach ($parameters as $key => $parameter) {
+            $parameterCollection = new ParameterCollection();
+
+            foreach ($parameters as $parameter) {
+                $parameterCollection->addParameter(new Parameter($parameter));
+            }
         }
 
-        return $absolutePath;
+        return $parameterCollection;
     }
 }

@@ -8,6 +8,7 @@ use BlueDot\Component\ModelConverter;
 use BlueDot\Component\TaskRunner\TaskRunnerFactory;
 use BlueDot\Configuration\Compiler;
 
+use BlueDot\Configuration\Import\ImportCollection;
 use BlueDot\Configuration\Validator\ConfigurationValidator;
 use BlueDot\Database\{
     Connection, ParameterConversion, Validation\Simple\SimpleParametersResolver, Validation\Simple\SimpleStatementParameterValidation, Validation\SimpleStatementTaskRunner
@@ -168,7 +169,7 @@ class BlueDot implements BlueDotInterface
 
         $this->connection = $this->createConnection($parsedConfiguration, $connection);
 
-        $this->compiler = $this->createCompiler($parsedConfiguration);
+        $this->compiler = $this->createCompiler($configSource, $parsedConfiguration);
     }
 
     private function resolveConfiguration(string $configSource)
@@ -191,13 +192,15 @@ class BlueDot implements BlueDotInterface
         return $parsedConfiguration;
     }
 
-    private function createCompiler(array $parsedConfiguration) : Compiler
+    private function createCompiler(string $configSource, array $parsedConfiguration) : Compiler
     {
         return new Compiler(
+            $configSource,
             $parsedConfiguration['configuration'],
             new ArgumentValidator(),
             new StatementValidator(),
-            new ConfigurationValidator($parsedConfiguration)
+            new ConfigurationValidator($parsedConfiguration),
+            new ImportCollection()
         );
     }
 
