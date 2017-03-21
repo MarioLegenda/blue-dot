@@ -655,7 +655,7 @@ use as a dependency injection container. It is best to see it in an example.
             type: object
             name: Some\Namespace\Callable
         
-    class Callable extends BlueDot\Common\AbstractCallable 
+    class MyCallable extends BlueDot\Common\AbstractCallable 
     {
         public function run() 
         {
@@ -680,11 +680,11 @@ use as a dependency injection container. It is best to see it in an example.
     ));
 
 Callable has a *run()* method that **BlueDot** executes. Poupuose of callable
-is to group many scenarios or simple statement together. The return value of a callable
+is to group many scenarios or simple statements together. The return value of a callable
 is anything that *run()* method returns but encapsulated in a Promise. More on promises
 later.
 
-
+## 8. Statement builder
 
 
 
