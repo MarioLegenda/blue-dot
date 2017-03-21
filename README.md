@@ -591,9 +591,9 @@ This is a classic **one-to-one** relationship. *translations* table has a field 
 that accepts an *id* of a word with which we want to connect our translations. In a classic
 usage of PHP PDO, you would execute *create_word* sql query and call *PDOConnection::lastInsertId()*
 method to get the last inserted id of that query. Then, you would execute *create_translations*
-sql query and and bind that *last_insert_id* to parameter *word_id*.
+sql query and bind that *last_insert_id* to parameter *word_id*.
 
-This is a simple example, that it could be tedious work if multiple insert statements are 
+This is a simple example, but it could be tedious work if multiple insert statements are 
 necessary. With scenarios, this is a trivial task. 
 
 First, *create_word* statement is executed and *last_insert_id* is saved internally. Then, 
@@ -601,7 +601,7 @@ execution goes to execute *create_translations* statement. **BlueDot** sees that
 has a *foreign_key* option. The option consists of a statement name and the name of the parameter
 to bind *last_insert_id* to. In the above example, that statement is *create_word* and the parameter
 is *word_id*. If *foreign_key* statement is not executed, **BlueDot** executes it. If it is, it 
-procedes to executed the current statement. In execution, **BlueDot** bind the parameter *word_id*
+proceedes to execute the current statement. In execution, **BlueDot** binds the parameter *word_id*
 of statement *create_translations* to *last_insert_id* of *create_word* statement and executes.
 
 The above example describes a *one-to-one* relationship but you could easily transform this
@@ -619,8 +619,22 @@ relationship to *one-to-many* with the same scenario configuration.
 By changing to parameter type of *create_translations* statement, we have told **BlueDot** to insert
 3 statements with translations to the *last_insert_id* of statement *create_word*.
 
-*foreign_key* option is very flexible but it has one limitation; it has to be an *insert*
-sql query. If you provide some other sql query, **BlueDot** will throw an exception.
+*foreign_key* option is very flexible but it has one limitation; it has to be a single *insert*
+sql query. If you provide some other sql query, **BlueDot** will throw an exception. This means
+that this example will not work...
+
+    $blueDot->execute('scenario.create_word', array(
+        'create_word' => array(
+            'word' => array('word 1', 'word 2'),
+        ),
+        'create_translations' => array(
+            'translations' => array('translation 1', 'translation 2', 'translation 3'),
+        )
+    ));
+    
+Here, you are executing *create_word* statement 2 times. Since there will be 2 *last_insert_ids*,
+**BlueDot** cannot know which id to bind to *create_translations* and throws an exception.
+
 
 
 
