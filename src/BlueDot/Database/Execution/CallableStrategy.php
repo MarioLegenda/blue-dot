@@ -33,7 +33,7 @@ class CallableStrategy implements StrategyInterface
      * @param array $parameters
      * @throws BlueDotRuntimeException
      */
-    public function __construct(ArgumentBag $statement, BlueDotInterface $blueDot, array $parameters)
+    public function __construct(ArgumentBag $statement, BlueDotInterface $blueDot, array $parameters = null)
     {
         $this->statement = $statement;
         $this->blueDot = $blueDot;

@@ -103,6 +103,14 @@ class BlueDot implements BlueDotInterface
         $statement = $this->compiler->compile($name);
 
         if ($statement->get('type') === 'callable') {
+            if (!is_array($parameters) and !is_null($parameters)) {
+                throw new BlueDotRuntimeException(
+                    sprintf(
+                        'Invalid callable parameter. If provided, parameter for callable has to be an array'
+                    )
+                );
+            }
+
             $callableStrategy = new CallableStrategy($statement, $this, $parameters);
 
             $strategy = $callableStrategy->execute();

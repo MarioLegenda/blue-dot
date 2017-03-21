@@ -686,6 +686,33 @@ later.
 
 ## 8. Statement builder
 
+Statement builder is a separate tool for executing oneoff sql statement for which
+you haven't prepared a configuration or which **BlueDot** cannot execute.
+
+    // when using statement builder, you don't need configuration, only connection
+    $blueDot = new BlueDot(null, $connection);
+    
+    $blueDot
+    
+    $this->blueDot
+        ->createStatementBuilder()
+        ->addSql(sprintf('SELECT word_id, translation FROM translations WHERE word_id IN (1, 60, 150, 78, 345)'))
+        ->execute()
+        ->getResult();
+
+Also, *BlueDot::createStatementBuilder()* receives a *BlueDot\Scenario\Connection*
+so you can use it with multiple connection i.e. databases.
+
+Statement builder also supports returning models as a result.
+
+    $this->blueDot
+        ->createStatementBuilder()
+        ->addSql(sprintf('SELECT word_id, translation FROM translations WHERE word_id IN (1, 60, 150, 78, 345)'))
+        ->addModel(Translation::class)
+        ->execute()
+        ->getResult();
+        
+
 
 
 
