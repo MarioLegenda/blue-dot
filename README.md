@@ -23,7 +23,9 @@
 7. Callable statements
 8. Statement builder
 9. Promise interface
-10. Configuration reference
+10. Imports
+11. Conclusion
+12. Configuration reference
 
 ## 1. Introduction
 
@@ -446,7 +448,7 @@ configuration.
      
 There are a couple of things to say about this simple example.
 
-First, the name of this scenario is *create_user*. *find_user_by_username* and
+The name of this scenario is *create_user*. *find_user_by_username* and
 *create_user* are it's statements. Statements are executing in the order in which
 they appear in configuration with an exception of *use*, *foreign_key* and
 *if_exists/if_not_exists* options. Those options are executed before the statement
@@ -460,7 +462,13 @@ which existance it has to check. It then check if the *if_exists* statement is a
 executed. If it is not, it executes it and after that, executes *create_user*.
 
 In our example, when **BlueDot** wants to execute *create_user*, it sees that 
-*if_exists* statement is already executed, skips it's execution and executes *create_user*
+*if_exists* statement is already executed, skips it's execution and executes *create_user*.
+
+You may have noticed the *atomic* option. *atomic* option tells **BlueDot** that all
+the statements are executed in transaction. That means that if one statement fails, 
+the entire scenario *rolls back* and none of the statements affect the database. If you
+set this option to **false**, the statements will be executed one by one and if one fails,
+other would affect the database.
 
 This is a basic example of what scenarios can do. In this example, I introduced
 *if_exists* option. *if_exists/if_not_exists* options check if the statement under
@@ -552,6 +560,67 @@ that it has a *use find_language* statement and that statement bould be executed
 time execution gets to execute *find_language*, it would already be executed and it would be skipped.
 
 #### 6.4 'foreign_key' configuration option
+
+A *foreign_key* option is an option to use when you wish to bind a parameter of a certain
+statement to a *last_insert_id* of an insert statement. It is best to see it in an example.
+
+    scenario:
+        create_word:
+            atomic: true
+            statements:
+                create_word:
+                    sql: "INSERT INTO words (word) VALUES (:word)"
+                    parameters: [word]
+                create_translations:
+                    sql: "INSERT INTO translations (word_id, translation) VALUES (:word_id, :translation)"
+                    parameters: [translation]
+                    foreign_key:
+                        statement_name: create_word
+                        bind_to: word_id
+                    
+    $blueDot->execute('scenario.create_word', array(
+        'create_word' => array(
+            'word' => 'some word',
+        ),
+        'create_translations' => array(
+            'translation' => 'some translation of a word',
+        ),
+    ));
+
+This is a classic **one-to-one** relationship. *translations* table has a field *word_id*
+that accepts an *id* of a word with which we want to connect our translations. In a classic
+usage of PHP PDO, you would execute *create_word* sql query and call *PDOConnection::lastInsertId()*
+method to get the last inserted id of that query. Then, you would execute *create_translations*
+sql query and and bind that *last_insert_id* to parameter *word_id*.
+
+This is a simple example, that it could be tedious work if multiple insert statements are 
+necessary. With scenarios, this is a trivial task. 
+
+First, *create_word* statement is executed and *last_insert_id* is saved internally. Then, 
+execution goes to execute *create_translations* statement. **BlueDot** sees that the statement
+has a *foreign_key* option. The option consists of a statement name and the name of the parameter
+to bind *last_insert_id* to. In the above example, that statement is *create_word* and the parameter
+is *word_id*. If *foreign_key* statement is not executed, **BlueDot** executes it. If it is, it 
+procedes to executed the current statement. In execution, **BlueDot** bind the parameter *word_id*
+of statement *create_translations* to *last_insert_id* of *create_word* statement and executes.
+
+The above example describes a *one-to-one* relationship but you could easily transform this
+relationship to *one-to-many* with the same scenario configuration.
+
+    $blueDot->execute('scenario.create_word', array(
+        'create_word' => array(
+            'word' => 'some-word',
+        ),
+        'create_translations' => array(
+            'translations' => array('translation 1', 'translation 2', 'translation 3'),
+        )
+    ));
+
+By changing to parameter type of *create_translations* statement, we have told **BlueDot** to insert
+3 statements with translations to the *last_insert_id* of statement *create_word*.
+
+*foreign_key* option is very flexible but it has one limitation; it has to be an *insert*
+sql query. If you provide some other sql query, **BlueDot** will throw an exception.
 
 
 
