@@ -773,11 +773,47 @@ You don't have to use *Promises* to access the result of a statement.
         echo $user->get('name');
     }
     
-Remember, PromiseInterface::getResult() returns an Entity object. That object has a Entity::get() 
+Remember, *PromiseInterface::getResult()* returns an Entity object. That object has a Entity::get() 
 method with which you can access result by column name. You can also access is as an plain array.
 
+The *Entity* object has a couple of helper methods to filter the results. If there are multiple
+results returned from your statement, you can use *Entity::findBy()* method to filter the result.
 
+    $user = $blueDot
+                ->execute('simple.select.get_all_users')
+                ->getResult()
+                ->findBy(array(
+                    'id' => 6,
+                ));
+                
+    echo $user[0]['name'];
         
+*$user* variable will contain a zero indexed array of a user with id 6. If you now there is only one 
+user returned from the result, you can use *Entity::normalizeIfOneExists()* method to return
+an associative array with the user.
+  
+    $user = $blueDot
+                ->execute('simple.select.get_all_users')
+                ->getResult()
+                ->findBy(array(
+                    'id' => 6,
+                ))
+                ->normalizeIfOneExists();
+                
+    echo $user['name'];
+    
+There is also an *Entity::find()* method that is used to find only a single result based on its
+column name and column value.
+
+    $user = $blueDot
+                ->execute('simple.select.get_all_users')
+                ->getResult()
+                ->find('id', 6);
+                
+    echo $user['name'];
+    
+If the *Entity::find()* method finds more that one result, it will throw an exception.
+
 
 
 
