@@ -398,12 +398,6 @@ configuration:
                     sql: "CREATE TABLE theory_sounds (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, sound_id INT(6) NOT NULL, theory_id INT(6) NOT NULL, deck_id INT(6) NOT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"
 
     callable:
-        last_words:
+        callable_service:
             type: object
-            name: AppBundle\BlueDotCallable\LastWordsCallable
-        search_callable:
-            type: object
-            name: AppBundle\BlueDotCallable\SearchCallable
-        create_deck_callable:
-            type: object
-            name: AppBundle\BlueDotCallable\CreateDeckCallable
+            name: Test\CallableService

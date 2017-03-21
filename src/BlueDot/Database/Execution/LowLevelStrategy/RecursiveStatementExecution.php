@@ -309,10 +309,10 @@ class RecursiveStatementExecution implements StrategyInterface
 
             $foreignKeyResult = $this->resultReport->get($foreignKeyStatement->get('resolved_statement_name'));
 
-            if (!$foreignKeyResult instanceof InsertQueryResult) {
+            if (!$foreignKeyResult instanceof InsertQueryResult and !$foreignKeyResult instanceof MultipleInsertQueryResult) {
                 throw new BlueDotRuntimeException(sprintf(
                     'Results of \'foreign_key\' statements can only return one row and cannot be empty for statement \'%s\'',
-                    $foreignKeyStatement('resolved_statement_name')
+                    $foreignKeyStatement->get('resolved_statement_name')
                 ));
             }
 

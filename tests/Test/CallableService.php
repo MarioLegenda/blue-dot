@@ -2,34 +2,16 @@
 
 namespace Test;
 
-use BlueDot\BlueDotInterface;
-use BlueDot\Common\CallableInterface;
-use BlueDot\Common\StorageInterface;
+use BlueDot\Common\AbstractCallable;
 use BlueDot\Entity\Entity;
 
-class CallableService implements CallableInterface
+class CallableService extends AbstractCallable
 {
     /**
-     * @var BlueDotInterface $blueDot
-     */
-    private $blueDot;
-    /**
-     * @var array $parameters
-     */
-    private $parameters;
-    /**
-     * @param BlueDotInterface $blueDot
-     * @param array $parameters
-     */
-    public function __construct(BlueDotInterface $blueDot, array $parameters = array())
-    {
-        $this->blueDot = $blueDot;
-        $this->parameters = $parameters;
-    }
-    /**
      * @void
+     * @return Entity
      */
-    public function run() : StorageInterface
+    public function run()
     {
         return new Entity();
     }

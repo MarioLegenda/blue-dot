@@ -19,7 +19,6 @@
     * 'use' configuration option
     * 'foreign_key' configuration option
     * 'if_exists' and 'if_not_exists' configuration option
-    * A complex example
 7. Callable statements
 8. Statement builder
 9. Promise interface
@@ -619,9 +618,7 @@ relationship to *one-to-many* with the same scenario configuration.
 By changing to parameter type of *create_translations* statement, we have told **BlueDot** to insert
 3 statements with translations to the *last_insert_id* of statement *create_word*.
 
-*foreign_key* option is very flexible but it has one limitation; it has to be a single *insert*
-sql query. If you provide some other sql query, **BlueDot** will throw an exception. This means
-that this example will not work...
+*foreign_key* option works even if you execute multiple insert statements. Consider the following example
 
     $blueDot->execute('scenario.create_word', array(
         'create_word' => array(
@@ -632,8 +629,61 @@ that this example will not work...
         )
     ));
     
-Here, you are executing *create_word* statement 2 times. Since there will be 2 *last_insert_ids*,
-**BlueDot** cannot know which id to bind to *create_translations* and throws an exception.
+Here, *create_word* will be executed two times but only the last *last_insert_id* will be used
+in *create_translations* statement. *Don't forget that* because you could get some unexpected
+result that you may not want.
+
+#### 6.5 'if_exists' and 'if_not_exists' configuration option
+
+You have already seen examples of *if_exists* and *if_not_exists* options. These options
+tell **BlueDot** to execute or not to execute a statement if some other statement exists.
+
+Both options can be used with any sql query but there is a catch. In Mysql, if an update does
+not change any information, **BlueDot** cannot know if a statement is executed or not.
+Internally, for *insert*, *update* or *delete* sql queries, it call the *PDOStatement::rowCount()* method to see how many rows have been
+affected. If no rows have been affected, that kind of statement will be considered a nonexistent.
+Don't forget that when you use those sql queries with these options.
+
+## 7. Callable statements
+
+A callable statement is an object that extends *BlueDot\Common\AbstractCallable*.
+In that object, you will have **BlueDot** object and parameters array that you could
+use as a dependency injection container. It is best to see it in an example.
+
+    callable:
+        my_callable:
+            type: object
+            name: Some\Namespace\Callable
+        
+    class Callable extends BlueDot\Common\AbstractCallable 
+    {
+        public function run() 
+        {
+            // fetch some parameter
+            
+            $someParameter = $this->parameters['some-parameter'];
+            
+            // execute some simple statement
+            
+            $this->blueDot->execute('simple.select.some_statement');
+            
+            // execute some scenario
+            
+            $this->blueDot->execute('simple.select.some_scenario');
+        }
+    }
+    
+    $blueDot->execute('callable.my_callable', array(
+        'some-parameter' => new SomeObject(),
+        'other-parameter' => 'some string',
+        'number-parameter' => 6,
+    ));
+
+Callable has a *run()* method that **BlueDot** executes. Poupuose of callable
+is to group many scenarios or simple statement together. The return value of a callable
+is anything that *run()* method returns but encapsulated in a Promise. More on promises
+later.
+
 
 
 

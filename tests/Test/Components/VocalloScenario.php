@@ -31,6 +31,8 @@ class VocalloScenario implements TestComponentInterface
     {
         $this->blueDot = new BlueDot(__DIR__ . '/../config/vocallo_user_db.yml');
 
+        $this->blueDot->execute('callable.callable_service');
+
         $insertWordPromise = $this->blueDot->execute('scenario.insert_word', array(
             'insert_word' => array(
                 'language_id' => 1,

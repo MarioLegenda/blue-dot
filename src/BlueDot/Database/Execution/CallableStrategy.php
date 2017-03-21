@@ -3,6 +3,7 @@
 namespace BlueDot\Database\Execution;
 
 use BlueDot\BlueDotInterface;
+use BlueDot\Common\AbstractCallable;
 use BlueDot\Common\ArgumentBag;
 use BlueDot\Common\StorageInterface;
 use BlueDot\Exception\BlueDotRuntimeException;
@@ -48,7 +49,14 @@ class CallableStrategy implements StrategyInterface
             $object = new $objectName($this->blueDot, $this->parameters);
 
             if (!$object instanceof CallableInterface) {
-                throw new BlueDotRuntimeException('Callable '.$this->statement->get('name').' has to implement '.CallableInterface::class);
+                throw new BlueDotRuntimeException(
+                    sprintf(
+                        'Callable %s has to implement %s or extend %s',
+                        $this->statement->get('name'),
+                        CallableInterface::class,
+                        AbstractCallable::class
+                    )
+                );
             }
 
             $this->result = $object->run();
