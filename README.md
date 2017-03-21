@@ -814,6 +814,24 @@ column name and column value.
     
 If the *Entity::find()* method finds more that one result, it will throw an exception.
 
+Then, there is the *Entity::extract()* method. This method will extract a single columns
+results if multiple results are returned.
+
+    $users = $blueDot
+                 ->execute('simple.select.get_all_users')
+                 ->getResult()
+                 ->extract('id');
+                 
+    // $users now contains an array of ids indexed by an 'id' key
+    
+    $ids = $users['id'];
+    
+    foreach ($ids as $id) {
+        echo $id;
+    }
+    
+There is also a special method for working with *one-to-many* relations.
+
 
 
 
