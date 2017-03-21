@@ -692,8 +692,6 @@ you haven't prepared a configuration or which **BlueDot** cannot execute.
     // when using statement builder, you don't need configuration, only connection
     $blueDot = new BlueDot(null, $connection);
     
-    $blueDot
-    
     $this->blueDot
         ->createStatementBuilder()
         ->addSql(sprintf('SELECT word_id, translation FROM translations WHERE word_id IN (1, 60, 150, 78, 345)'))
@@ -711,6 +709,74 @@ Statement builder also supports returning models as a result.
         ->addModel(Translation::class)
         ->execute()
         ->getResult();
+        
+If you instantiate **BlueDot** without any parameters (without configuration and connection),
+then, you can only use the statement builder if you provide the statement builder with
+a connection.
+
+    $this->blueDot
+        ->createStatementBuilder($connection)
+        ->addSql(sprintf('SELECT word_id, translation FROM translations WHERE word_id IN (1, 60, 150, 78, 345)'))
+        ->addModel(Translation::class)
+        ->execute()
+        ->getResult();
+        
+## 9. Promise interface
+
+So far, you have only seen how to execute sql queries and statements. In this chapter,
+you will learn how to use the Promise interface and manipulate results.
+
+Promise in **BlueDot** work similary as promises in javascript. When a statement is executed,
+it produces a certain result. *insert* statement produce a *last_insert_id* and the number of
+rows affected by the query. *update*, *delete*, *alter* etc. produce only the number of
+affected rows. *select* statements return a result or an empty array if no result was found.
+Based on those data, a promise could be a success or a failure.
+
+Consider this example...
+
+    $promise = $blueDot->execute('simple.select.get_all_users');
+    
+The return value of *BlueDot::execute()* is a *BlueDot\Entity\Promise* object that implement
+*BlueDot\Entity\PromiseInterface*. That interface has *success* and *failure* methods that
+accept an anonymous function that is to be executed if a statement was a success or a failure.
+
+    $promise = $blueDot->execute('simple.select.get_all_users');
+    
+    $promise
+        ->success(function(PromiseInterface $promise) {
+            // this function will execute if the statement retured some results
+        })
+        ->failure(function(PromiseInterface $promise) {
+            // this function will execute if the statement did not produce any result
+        });
+        
+Let's presume that *simple.select.get_all_users* returned all the users of your application.
+You would access the result of that statement in the *success()* anonymous method.
+
+    $blueDot->execute('simple.select.get_all_users')
+        ->success(function(PromiseInterface $promise) {
+            $users = $promise->getResult();
+            
+            foreach ($users as $user) {
+                echo $user['name']
+            }
+        });
+        
+*PromiseInterface::getResult()* method returns a *BlueDot\Entity\Entity* object that acts like
+an array so you can access it like an array. It also has various helper methods for filtering results.
+
+You don't have to use *Promises* to access the result of a statement.
+
+    $users = $blueDot->execute('simple.select.get_all_users')->getResult();
+
+    foreach ($users as $user) {
+        echo $user->get('name');
+    }
+    
+Remember, PromiseInterface::getResult() returns an Entity object. That object has a Entity::get() 
+method with which you can access result by column name. You can also access is as an plain array.
+
+
         
 
 
