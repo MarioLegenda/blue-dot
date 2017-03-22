@@ -68,7 +68,12 @@ class Entity extends AbstractArgumentBag
             $column => $value,
         ));
 
-        if (count($result) > 1 or is_null($result)) {
+
+        if (count($result) === 1) {
+            return (new Entity($result))->normalizeIfOneExists();
+        }
+
+            if (count($result) > 1 or empty($result)) {
             throw new EntityException(sprintf('Invalid return value. Entity::find() can only return one result. %d results found', count($result)));
         }
 

@@ -727,7 +727,7 @@ So far, you have only seen how to execute sql queries and statements. In this ch
 you will learn how to use the Promise interface and manipulate results.
 
 Promise in **BlueDot** work similary as promises in javascript. When a statement is executed,
-it produces a certain result. *insert* statement produce a *last_insert_id* and the number of
+it produces a certain result. *insert* statement produces a *last_insert_id* and the number of
 rows affected by the query. *update*, *delete*, *alter* etc. produce only the number of
 affected rows. *select* statements return a result or an empty array if no result was found.
 Based on those data, a promise could be a success or a failure.
@@ -774,7 +774,7 @@ You don't have to use *Promises* to access the result of a statement.
     }
     
 Remember, *PromiseInterface::getResult()* returns an Entity object. That object has a Entity::get() 
-method with which you can access result by column name. You can also access is as an plain array.
+method with which you can access result by column name. You can also access it as a plain array.
 
 The *Entity* object has a couple of helper methods to filter the results. If there are multiple
 results returned from your statement, you can use *Entity::findBy()* method to filter the result.
@@ -788,9 +788,20 @@ results returned from your statement, you can use *Entity::findBy()* method to f
                 
     echo $user[0]['name'];
         
-*$user* variable will contain a zero indexed array of a user with id 6. If you now there is only one 
-user returned from the result, you can use *Entity::normalizeIfOneExists()* method to return
-an associative array with the user.
+*$user* variable will contain an Entity object of a user with id 6. When using *Entity::findBy()*,
+a new *Entity* object is returned that has a zero indexed array internally. Because of that, this
+won't work...
+
+    echo $user->get('name');
+    
+    // but this will work
+    
+    echo $user[0]['name'];
+    
+Don't forget that when using *Entity::findBy()*.
+
+If you now there is only one user returned from the result, you can use *Entity::normalizeIfOneExists()* 
+method to return an associative array with the user.
   
     $user = $blueDot
                 ->execute('simple.select.get_all_users')
@@ -830,7 +841,41 @@ results if multiple results are returned.
         echo $id;
     }
     
-There is also a special method for working with *one-to-many* relations.
+There is also a special method for working with *one-to-many* relations. In the example
+with words and translations, there is only one word with many translations. If you used an
+*INNER JOIN* to fetch results in one row, you would get many rows with only unique *translation*
+row.
+
+For example...
+
+    SELECT w.id, w.word, t.translation FROM words AS w INNER JOIN translations AS t ON t.word_id = w.id WHERE w.id = 6
+    
+If there are 5 translations of a word, this query would return an array with 5 members. That is not
+the desired format. Desired format would be to return an associative array with with a *translation*
+key under which all the translations would be. For this, you can use *Entity::arrangeMultiples()*.
+
+    $blueDot->execute('simple.select.select_translations', array(
+                  'id' => 6,
+              )
+              ->success(function(PromiseInterface $promise) {
+                  $arrangedResult = $promise->getResult()->arrangeMultiples(array('translations'));
+              });
+
+This method would arrange the array so that *translation* would be a key under which all the translations
+are as an array of values. If there are multiple columns to arrange, you can add another member to the first
+argument of *Entity::arrangeMultiples()*. This method also has more arguments to filter the result.
+
+If some column values don't have to be in the result array, you can add a second argument which is a anonymous
+function that has to return *true* or *false*. If true, evaluated row would be in the result array. If not,
+it would be skipped. This function accepts currently iterated row as an argument.
+
+    $promise
+        ->getResult()
+        ->arrangeMultiples(array('translation'), function($row) {
+            // add a translation of the currenlty iterated row only if 'name' column is not empty
+            return !empty($row['name']);
+        })
+        
 
 
 
