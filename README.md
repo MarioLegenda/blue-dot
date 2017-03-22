@@ -23,7 +23,7 @@
 8. Statement builder
 9. Promise interface
     * Simple statement promise
-    * Scenario promise
+    * Scenario statement promise
     * Callable promise
 10. Imports
 11. Conclusion
@@ -950,6 +950,53 @@ methods to check a statements promise.
     } else if ($promise->isFailure()) {
        // failure code goes here
     }
+    
+#### 9.2 Scenario statement promise
+
+Scenario statement promises work in a similar way as simple statement but with one difference.
+Scenario statement consist of one or more individual statements. Those statements can be any of
+*select*, *insert* or *update* statements. By default, scenario statements do not return
+the result of all *select* statement. You have to tell **BlueDot** which columns of what statement
+to return. For that, there is a special configuration value *return_data* for scenario statements.
+
+    scenario:
+        atomic: true
+        return_data: ['select_user.name', 'select_user.lastname', 'select_user_prefs.purchase_history']
+        select_user_data:
+            statements:
+                select_user:
+                    sql: "SELECT id, name, lastname, username FROM user WHERE user_id = :id"
+                    parameters: [id]
+                select_user_pref:
+                    sql: "SELECT * FROM user_preferences WHERE id = :id"
+                    use:
+                        statement_name:
+                        values: {select_user.id: id}
+                    
+    $blueDot->execute('scenario.select_user_data', array(
+        'select_user' => array(
+            'id' => 6,
+        ),
+    ))
+    ->success(function(PromiseInterface $promise) {
+        $result = $promise->getResult();
+    });
+    
+For this example, we have two tables, *users* and *user_preferences* but we don't need all the
+data from both tables but only specific data. For that reason, we use *return_data* configuration value.
+This configuration value will select only the columns from any select statement in this scenario that
+you specify. You can put as many column values as you wish in *return_data*.
+
+**It is very important to understand that if you don't specify *return_data*, nothing will be returned**
+
+You can also use an alias in *return_data*.
+
+    return_data: ['select_user.name AS user_name', 'select_user.lastname AS user_lastname']
+    
+**BlueDot** would then return the *name* column from *users* table as *user_name* and other columns as
+their aliases also.
+                    
+                   
     
 
 
