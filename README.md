@@ -800,7 +800,7 @@ won't work...
     
 Don't forget that when using *Entity::findBy()*.
 
-If you now there is only one user returned from the result, you can use *Entity::normalizeIfOneExists()* 
+If there is only one user returned from the result, you can use *Entity::normalizeIfOneExists()* 
 method to return an associative array with the user.
   
     $user = $blueDot
@@ -851,7 +851,7 @@ For example...
     SELECT w.id, w.word, t.translation FROM words AS w INNER JOIN translations AS t ON t.word_id = w.id WHERE w.id = 6
     
 If there are 5 translations of a word, this query would return an array with 5 members. That is not
-the desired format. Desired format would be to return an associative array with with a *translation*
+the desired format. Desired format would be to return an associative array with a *translation*
 key under which all the translations would be. For this, you can use *Entity::arrangeMultiples()*.
 
     $blueDot->execute('simple.select.select_translations', array(
@@ -874,7 +874,47 @@ it would be skipped. This function accepts currently iterated row as an argument
         ->arrangeMultiples(array('translation'), function($row) {
             // add a translation of the currenlty iterated row only if 'name' column is not empty
             return !empty($row['name']);
+        });
+        
+There is also a special feature to promises. If you noticed, the *PromiseInterface::getResult()* method
+returns the result of the executed statement. This method holds a special feature when used in 
+anonymous promise function. 
+
+    $result = $promise
+        ->success(function(PromiseInterface $promise) {
+            $normalizedResult = $promise->getResult()->normalizeIfOneExists();
+            
+            return $normalizedResult;
         })
+        ->failure(function() {
+            return 'statement failed';
+        })
+        ->getResult();
+        
+If you remember from the above examples, *Entity::getResult()* would return a result of the executed
+statement. But, if you, for any reason, you would like to return some other result, any return data
+that you return from *success* or *failure* promises would be the actual result. In the above example,
+on success, *Entity::getResult()* would return the return value of *success* callback. On failure, it would
+return a string 'statement failed'. If you which to access the original *Entity* returned from the 
+executing statement, use *Entity::getOriginalEntity()*.
+
+    // if success, $result contains the returned value of *success* callback
+
+    $result = $promise
+        ->success(function(PromiseInterface $promise) {
+            $normalizedResult = $promise->getResult()->normalizeIfOneExists();
+            
+            return $normalizedResult;
+        })
+        ->failure(function() {
+            return 'statement failed';
+        })
+        ->getResult();
+            
+    // $originalResult contains the originaly returned Entity 
+    $originalResult = $promise->getOriginalEntity();
+    
+    
         
 
 
