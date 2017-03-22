@@ -26,8 +26,9 @@
     * Scenario statement promise
     * Callable promise
 10. Imports
-11. Conclusion
-12. Configuration reference
+11. BlueDot internals explained
+12. Conclusion
+13. Configuration reference
 
 ## 1. Introduction
 
@@ -956,7 +957,7 @@ methods to check a statements promise.
 Scenario statement promises work in a similar way as simple statement but with one difference.
 Scenario statement consist of one or more individual statements. Those statements can be any of
 *select*, *insert* or *update* statements. By default, scenario statements do not return
-the result of all *select* statement. You have to tell **BlueDot** which columns of what statement
+the result of all *select* statements. You have to tell **BlueDot** which columns of what statement
 to return. For that, there is a special configuration value *return_data* for scenario statements.
 
     scenario:
