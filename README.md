@@ -22,6 +22,9 @@
 7. Callable statements
 8. Statement builder
 9. Promise interface
+    * Simple statement promise
+    * Scenario promise
+    * Callable promise
 10. Imports
 11. Conclusion
 12. Configuration reference
@@ -723,6 +726,8 @@ a connection.
         
 ## 9. Promise interface
 
+#### 9.1 Simple statement promise
+
 So far, you have only seen how to execute sql queries and statements. In this chapter,
 you will learn how to use the Promise interface and manipulate results.
 
@@ -892,7 +897,7 @@ anonymous promise function.
         ->getResult();
         
 If you remember from the above examples, *Entity::getResult()* would return a result of the executed
-statement. But, if you, for any reason, you would like to return some other result, any return data
+statement. But if you would, for any reason, want to return some other result, any return data
 that you return from *success* or *failure* promises would be the actual result. In the above example,
 on success, *Entity::getResult()* would return the return value of *success* callback. On failure, it would
 return a string 'statement failed'. If you which to access the original *Entity* returned from the 
@@ -913,6 +918,41 @@ executing statement, use *Entity::getOriginalEntity()*.
             
     // $originalResult contains the originaly returned Entity 
     $originalResult = $promise->getOriginalEntity();
+    
+So far, you have only seen fetching results from *select* statements. *insert*, *delete* and
+other statements behave in a similar way. Take a look at an example...
+
+    // there are two fields for insert statements
+    $blueDot->execute('simple.insert.create_user')
+        ->success(function(PromiseInterface $promise) {            
+            echo $promise->getResult()->get('last_insert_id');
+            echo $promise->getResult()->get('row_count');
+        })
+        
+    // but there is only one field for update, delete, modify or alter
+    $blueDot->execute('simple.delete.delete_user')
+        ->success(function(PromiseInterface $promise) {
+            echo $promise->getResult()->get('row_count');
+        });
+    
+*IMPORTANT*
+
+If a *delete*, *update* or some other sql query does not modify any rows (update doesn't update, delete
+does not delete any row), above statement would be a failure. Don't forget that.
+
+For convenience, there are also *PromiseInterface::isSuccess()* and *PromiseInterface::isFailure()*
+methods to check a statements promise.
+
+    $promise = $blueDot->execute('simple.select.get_all_users');
+    
+    if ($promise->isSuccess()) {
+       // success code goes here
+    } else if ($promise->isFailure()) {
+       // failure code goes here
+    }
+    
+
+
     
 
         
