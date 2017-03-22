@@ -914,7 +914,7 @@ executing statement, use *Entity::getOriginalEntity()*.
     // $originalResult contains the originaly returned Entity 
     $originalResult = $promise->getOriginalEntity();
     
-    
+
         
 
 
