@@ -6,32 +6,33 @@ use BlueDot\BlueDotInterface;
 use BlueDot\Entity\PromiseInterface;
 use BlueDot\BlueDot;
 
-class VocalloScenario implements TestComponentInterface
+class VocalloScenario extends AbstractTestComponent
 {
-    /**
-     * @var $phpunit
-     */
-    private $phpunit;
-    /**
-     * @var BlueDotInterface $blueDot
-     */
-    private $blueDot;
-    /**
-     * VocalloScenario constructor.
-     * @param \PHPUnit_Framework_Assert $phpunit
-     * @param BlueDotInterface $blueDot
-     */
-    public function __construct(\PHPUnit_Framework_Assert $phpunit, BlueDotInterface $blueDot)
-    {
-        $this->phpunit = $phpunit;
-        $this->blueDot = $blueDot;
-    }
-
     public function run()
     {
         $this->blueDot = new BlueDot(__DIR__ . '/../config/vocallo_user_db.yml');
 
         $this->blueDot->execute('callable.callable_service');
+
+        $this->blueDot->execute('scenario.only_selects', array(
+            'select_first_language' => array('id' => 1),
+            'select_second_language' => array('id' => 1),
+        ))
+            ->success(function(PromiseInterface $promise) {
+                $result = $promise->getResult()->toArray();
+
+                $this->phpunit->assertArrayHasKey('select_first_language', $result, 'scenario.only_selects should have select_first_language');
+                $this->phpunit->assertArrayHasKey('select_second_language', $result, 'scenario.only_selects should have select_second_language');
+
+                $firstLanguage = $result['select_first_language'];
+                $secondLanguage = $result['select_second_language'];
+
+                $this->phpunit->assertNotEmpty($firstLanguage, 'select_first_language should not be empty');
+                $this->phpunit->assertNotEmpty($secondLanguage, 'select_second_language should not be empty');
+            })
+            ->failure(function() {
+                die("failure");
+            });
 
         $insertWordPromise = $this->blueDot->execute('scenario.insert_word', array(
             'insert_word' => array(

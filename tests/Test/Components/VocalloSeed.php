@@ -10,27 +10,8 @@ use Test\Model\Category;
 
 require_once __DIR__.'/../../../vendor/fzaninotto/faker/src/autoload.php';
 
-class VocalloSeed implements TestComponentInterface
+class VocalloSeed extends AbstractTestComponent
 {
-    /**
-     * @var \PHPUnit_Framework_Assert $phpunit
-     */
-    private $phpunit;
-    /**
-     * @var BlueDotInterface $blueDot
-     */
-    private $blueDot;
-    /**
-     * VocalloScenario constructor.
-     * @param \PHPUnit_Framework_Assert $phpunit
-     * @param BlueDotInterface $blueDot
-     */
-    public function __construct(\PHPUnit_Framework_Assert $phpunit, BlueDotInterface $blueDot)
-    {
-        $this->phpunit = $phpunit;
-        $this->blueDot = $blueDot;
-    }
-
     public function run()
     {
         $blueDot = $this->blueDot;
@@ -39,7 +20,7 @@ class VocalloSeed implements TestComponentInterface
 
         $connection = new Connection();
         $connection
-            ->setDatabaseName('')
+            ->setDatabaseName('vocallo')
             ->setHost('127.0.0.1')
             ->setPassword('root')
             ->setUser('root');
@@ -47,10 +28,6 @@ class VocalloSeed implements TestComponentInterface
         $connection->connect();
 
         $blueDot->setConnection($connection);
-
-        $blueDot->execute('scenario.database');
-
-        $blueDot->execute('scenario.seed');
 
         $languages = array(
             'croatian',

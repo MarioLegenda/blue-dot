@@ -7,6 +7,7 @@ use BlueDot\Entity\Entity;
 use BlueDot\Result\DeleteQueryResult;
 use BlueDot\Result\MultipleInsertQueryResult;
 use BlueDot\Result\NullQueryResult;
+use BlueDot\Result\SelectQueryResult;
 use BlueDot\Result\UpdateQueryResult;
 
 class CreateRegularComponent
@@ -64,6 +65,12 @@ class CreateRegularComponent
                 $info->add('row_count', null);
 
                 $entity->add($name, $info);
+            }
+
+            if ($report instanceof SelectQueryResult) {
+                $info = new ArgumentBag();
+
+                $entity->add($name, $report->getQueryResult());
             }
         }
 

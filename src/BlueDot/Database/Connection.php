@@ -77,16 +77,6 @@ class Connection
         return $this;
     }
     /**
-     * @param bool $persistent
-     * @return Connection
-     */
-    public function setPersistent(bool $persistent) : Connection
-    {
-        $this->dsn['persistent'] = $persistent;
-
-        return $this;
-    }
-    /**
      * @param $attribute
      * @param $value
      * @return Connection

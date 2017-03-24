@@ -132,6 +132,12 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
             $entity->add('rows_affected', $rowsAffected);
 
             return $entity;
+        } else {
+            $entity = new Entity();
+
+            $entity->add('rows_affected', 0);
+
+            return $entity;
         }
     }
 
@@ -237,6 +243,10 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
                     $pdoStatement->rowCount()
                 );
             }
+        } else {
+            $resolvedStatementName = $this->statement->get('resolved_statement_name');
+
+            $this->resultReport->add($resolvedStatementName, 'Database or table query executed');
         }
     }
 }

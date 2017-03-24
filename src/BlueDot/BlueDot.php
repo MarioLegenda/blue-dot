@@ -130,6 +130,10 @@ class BlueDot implements BlueDotInterface
      */
     public function setConnection(Connection $connection) : BlueDotInterface
     {
+        if ($this->connection instanceof Connection) {
+            $this->connection->close();
+        }
+
         $this->connection = $connection;
 
         return $this;

@@ -956,9 +956,19 @@ methods to check a statements promise.
 
 Scenario statement promises work in a similar way as simple statement but with one difference.
 Scenario statement consist of one or more individual statements. Those statements can be any of
-*select*, *insert* or *update* statements. By default, scenario statements do not return
-the result of all *select* statements. You have to tell **BlueDot** which columns of what statement
-to return. For that, there is a special configuration value *return_data* for scenario statements.
+*select*, *insert* or *update* statements. By default, scenario statements return information about
+every executed statement.
+
+*insert* statements return *last_insert_id* and *row_count*. *row_count* holds the number or rows 
+inserted. *update* and *delete* only return *row_count*. Also, every result of *select* statements
+would be returned.
+
+**IMPORTANT**
+
+*update* **and** *delete* **statements that do not change data on the database are regarded as a 
+failure and do not return any data**
+
+There is a special configuration value *return_data* for scenario statements.
 
     scenario:
         atomic: true
@@ -988,14 +998,20 @@ data from both tables but only specific data. For that reason, we use *return_da
 This configuration value will select only the columns from any select statement in this scenario that
 you specify. You can put as many column values as you wish in *return_data*.
 
-**It is very important to understand that if you don't specify *return_data*, nothing will be returned**
-
 You can also use an alias in *return_data*.
 
     return_data: ['select_user.name AS user_name', 'select_user.lastname AS user_lastname']
     
 **BlueDot** would then return the *name* column from *users* table as *user_name* and other columns as
-their aliases also.
+their aliases also. 
+
+**IMPORTANT**
+
+**If you specify** *return_data* **option, only that data will be returned.**
+
+
+
+
                     
                    
     

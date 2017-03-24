@@ -367,6 +367,16 @@ configuration:
                     sql: "SELECT id, theory_id FROM theory_decks WHERE id = :deck_id"
                     parameters: [deck_id]
 
+        only_selects:
+            atomic: true
+            statements:
+                select_first_language:
+                    sql: "SELECT * FROM languages WHERE id = :id"
+                    parameters: [id]
+                select_second_language:
+                    sql: "SELECT * FROM languages WHERE id = :id"
+                    parameters: [id]
+
         seed:
             atomic: true
             statements:

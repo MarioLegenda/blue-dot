@@ -8,27 +8,8 @@ use Test\Model\Language;
 use BlueDot\BlueDot;
 use Test\Model\Word;
 
-class VocalloSimple implements TestComponentInterface
+class VocalloSimple extends AbstractTestComponent
 {
-    /**
-     * @var \PHPUnit_Framework_Assert $phpunit
-     */
-    private $phpunit;
-    /**
-     * @var BlueDotInterface $blueDot
-     */
-    private $blueDot;
-    /**
-     * VocalloScenario constructor.
-     * @param \PHPUnit_Framework_Assert $phpunit
-     * @param BlueDotInterface $blueDot
-     */
-    public function __construct(\PHPUnit_Framework_Assert $phpunit, BlueDotInterface $blueDot)
-    {
-        $this->phpunit = $phpunit;
-        $this->blueDot = $blueDot;
-    }
-
     public function run()
     {
         $this->blueDot = new BlueDot(__DIR__ . '/../config/vocallo_user_db.yml');
