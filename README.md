@@ -959,8 +959,9 @@ Scenario statement consist of one or more individual statements. Those statement
 *select*, *insert* or *update* statements. By default, scenario statements return information about
 every executed statement.
 
-*insert* statements return *last_insert_id* and *row_count*. *row_count* holds the number or rows 
-inserted. *update* and *delete* only return *row_count*. Also, every result of *select* statements
+*insert* statements return *last_insert_id* and *row_count*. *row_count* holds the number of rows 
+inserted. If multiple insert sql queries are executed, all of their last inserted ids will be return
+together with last inserted id. *update* and *delete* only return *row_count*. Also, every result of *select* statements
 would be returned.
 
 **IMPORTANT**
