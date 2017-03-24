@@ -1010,6 +1010,77 @@ their aliases also.
 
 **If you specify** *return_data* **option, only that data will be returned.**
 
+#### 9.3 Callable promises
+
+If you remember, callable is an object in which you can execute any number of statements. The only
+thing about returning data from callables is that anything that you return from a callable
+*run()* method will be the result. Based on that result, callable statement would be a *success* or 
+a *failure*. If you return **null** from a callable, that callable would be regarded as a failure.
+
+## 10. Imports
+
+Imports are a way of centralizing all your sql queries into one .yml file. Path to that file is injected
+via *sql_import* configuration option.
+
+    sql_import: sqls.yml
+    
+That file must be a relative path relative to given configuration value. The file should look like this...
+
+    your_unique_name: "some sql"
+
+    some_unique_namespace:
+        another_unique_namespace:
+            yet_another_unique_namespace:
+                sql_1: "some_sql"
+                sql_2: "some_sql"
+                
+You specify the import with its name separated with a dot under the *sql* config option. To return to the previous
+example
+
+    sql_import: relative_path_config.yml
+
+    scenario:
+        atomic: true
+        return_data: ['select_user.name', 'select_user.lastname', 'select_user_prefs.purchase_history']
+        select_user_data:
+            statements:
+                select_user:
+                    sql: "SELECT id, name, lastname, username FROM user WHERE user_id = :id"
+                    parameters: [id]
+                select_user_pref:
+                    sql: "SELECT * FROM user_preferences WHERE id = :id"
+                    use:
+                        statement_name:
+                        values: {select_user.id: id}
+                        
+sql queries could be represented like this...
+
+    my_scenarious:
+        user_queries:
+            select_user: "SELECT id, name, lastname, username FROM user WHERE user_id = :id"
+            select_user_prefs: "SELECT * FROM user_preferences WHERE id = :id"
+            
+In configuration, this import would look like this...
+
+    sql_import: relative_path_config.yml
+
+    scenario:
+        atomic: true
+        return_data: ['select_user.name', 'select_user.lastname', 'select_user_prefs.purchase_history']
+        select_user_data:
+            statements:
+                select_user:
+                    sql: my_scenarious.user_queries.select_user
+                    parameters: [id]
+                select_user_pref:
+                    sql: my_scenarious.user_queries.select_user_prefs
+                    use:
+                        statement_name:
+                        values: {select_user.id: id}
+                        
+                        
+                
+
 
 
 
