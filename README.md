@@ -1077,9 +1077,24 @@ In configuration, this import would look like this...
                     use:
                         statement_name:
                         values: {select_user.id: id}
-                        
-                        
-                
+                     
+## 11. Conclusion
+
+Although **BlueDot** makes executing sql queries, it is not here to replace Doctrine or similar tools.
+I recommend using **BlueDot** when you have to make complex sql queries when using a DBAL would be an overhead.
+**BlueDot** can be used to create complete application but not every application should be using **BlueDot**
+exclusivly. For example, if you have an application that has a lot of forms that need to be inserted and updated,
+**BlueDot** is probably not for you. But, if you have a complex search feature that selects a lot of data
+from many tables, use it. 
+
+You can also use **BlueDot** together with Doctrine or similar tools. Doctrine creates its own PDO connection.
+If you leave out *connection* configuration values, you can init **BlueDot** with doctrines connection and you 
+it together with **BlueDot**. 
+
+    $blueDotConnection = new BlueDot\Database\Connection();
+    $blueDotConnection->setPDO($connection->getWrappedConnection());
+    
+    $blueDot = new BlueDot('path/to/config.yml', $blueDotConnection);
 
 
 
