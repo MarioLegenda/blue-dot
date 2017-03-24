@@ -26,9 +26,7 @@
     * Scenario statement promise
     * Callable promise
 10. Imports
-11. BlueDot internals explained
-12. Conclusion
-13. Configuration reference
+11. Conclusion
 
 ## 1. Introduction
 
