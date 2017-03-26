@@ -2,6 +2,7 @@
 
 namespace BlueDot;
 
+use BlueDot\Cache\CacheStorage;
 use BlueDot\Common\{ ArgumentValidator, StatementValidator };
 
 use BlueDot\Component\ModelConverter;
@@ -118,11 +119,13 @@ class BlueDot implements BlueDotInterface
             return new Promise($strategy->getResult());
         }
 
-        $statement->add('connection', $this->connection);
+        if (!$statement->has('connection')) {
+            $statement->add('connection', $this->connection);
+        }
 
-        $strategy = (new ExecutionContext($statement, $parameters))->getStrategy();
+        $context = new ExecutionContext($statement, $parameters);
 
-        return new Promise($strategy->execute()->getResult());
+        return $context->runTasks()->createPromise();
     }
     /**
      * @param Connection $connection

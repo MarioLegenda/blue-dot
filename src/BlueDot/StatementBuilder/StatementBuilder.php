@@ -137,9 +137,9 @@ class StatementBuilder
 
         $this->statement->add('connection', $this->connection);
 
-        $strategy = (new ExecutionContext($this->statement))->getStrategy();
+        $context = new ExecutionContext($this->statement);
 
-        return new Promise($strategy->execute()->getResult());
+        return $context->runTasks()->createPromise();
     }
 
     private function resolveSqlType(string $sql) : string

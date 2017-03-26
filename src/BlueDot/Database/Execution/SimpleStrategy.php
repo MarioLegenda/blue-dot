@@ -2,6 +2,7 @@
 
 namespace BlueDot\Database\Execution;
 
+use BlueDot\Cache\CacheStorage;
 use BlueDot\Common\ArgumentBag;
 use BlueDot\Common\StorageInterface;
 use BlueDot\Database\Parameter\Parameter;
@@ -78,52 +79,9 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
         }
 
         if ($statementType === 'insert') {
-            $entity = new Entity();
-            $resultCount = count($result);
-
-            if ($resultCount === 1) {
-                $entity->add('inserted_ids', $result);
-                $entity->add('last_insert_id', $result[0]);
-
-                return $entity;
-            }
-
-            if ($resultCount > 1) {
-                $entity->add('inserted_ids', $result);
-                $entity->add('last_insert_id', $result[$resultCount - 1]);
-
-                return $entity;
-            }
-
-            return $entity;
+            return $this->createInsertResult();
         } else if ($statementType === 'select') {
-            if ($this->statement->has('model')) {
-                $modelConverter = new ModelConverter($this->statement->get('model'), $result->toArray()[0]);
-
-                $converted = $modelConverter->convertIntoModel();
-
-                if (is_array($converted)) {
-                    return new Entity($converted);
-                }
-
-                return $converted;
-            }
-
-            $temp = array();
-
-            if (count($result[0]) > 1) {
-                foreach ($result as $rows) {
-                    foreach ($rows as $key => $row) {
-                        $temp[] = $row;
-                    }
-                }
-
-                return new Entity($temp);
-            }
-
-            if (count($result[0]) === 1) {
-                return new Entity($result[0]);
-            }
+            return $this->createSelectResult();
         } else if ($statementType === 'update' or $statementType === 'delete') {
             $rowsAffected = $result[0];
 
@@ -174,6 +132,7 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
 
             $bindParameter = array_keys($parameters)[0];
             $values = $parameters[$bindParameter];
+
 
             foreach ($values as $value) {
                 $this->pdoStatement = $this->connection->getPDO()->prepare($this->statement->get('sql'));
@@ -247,6 +206,93 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
             $resolvedStatementName = $this->statement->get('resolved_statement_name');
 
             $this->resultReport->add($resolvedStatementName, 'Database or table query executed');
+        }
+    }
+
+    private function createInsertResult() : Entity
+    {
+        $result = $this->resultReport->get($this->statement->get('resolved_statement_name'));
+
+        $entity = new Entity();
+        $resultCount = count($result);
+
+        if ($resultCount === 1) {
+            $entity->add('inserted_ids', $result);
+            $entity->add('last_insert_id', $result[0]);
+
+            return $entity;
+        }
+
+        if ($resultCount > 1) {
+            $entity->add('inserted_ids', $result);
+            $entity->add('last_insert_id', $result[$resultCount - 1]);
+
+            return $entity;
+        }
+
+        return $entity;
+    }
+
+    private function createSelectResult()
+    {
+        $result = $this->resultReport->get($this->statement->get('resolved_statement_name'));
+
+        if ($this->statement->has('model')) {
+            $this->saveInCache($result->toArray()[0]);
+
+            $modelConverter = new ModelConverter($this->statement->get('model'), $result->toArray()[0]);
+
+            $converted = $modelConverter->convertIntoModel();
+
+            if (is_array($converted)) {
+                $entity = new Entity($converted);
+
+                $this->saveInCache($entity);
+
+                return new Entity($converted);
+            }
+
+            return $converted;
+        }
+
+        $temp = array();
+
+        if (count($result[0]) > 1) {
+            foreach ($result as $rows) {
+                foreach ($rows as $key => $row) {
+                    $temp[] = $row;
+                }
+            }
+
+            $this->saveInCache($temp);
+
+            $entity = new Entity($temp);
+
+            $this->saveInCache($entity);
+
+            return $entity;
+        }
+
+        if (count($result[0]) === 1) {
+            $this->saveInCache($result[0]);
+
+            $entity = new Entity($result[0]);
+
+            $this->saveInCache($entity);
+
+            return $entity;
+        }
+    }
+
+    private function saveInCache($result)
+    {
+        if ($this->statement->has('cache')) {
+            $cache = CacheStorage::getInstance();
+            $cache->getHashTable()->add($this->statement);
+
+            if (!$cache->has($this->statement)) {
+                $cache->put($this->statement, $result);
+            }
         }
     }
 }

@@ -2,6 +2,7 @@
 
 namespace BlueDot\Configuration;
 
+use BlueDot\Cache\CacheStorage;
 use BlueDot\Configuration\Import\ImportCollection;
 use BlueDot\Configuration\Import\SqlImport;
 use BlueDot\Configuration\Validator\ConfigurationValidator;
@@ -135,6 +136,31 @@ class Compiler
                         ->add('statement_type', $type)
                         ->add('statement_name', $statementName)
                         ->add('resolved_statement_name', 'simple.'.$resolvedName);
+
+                    if (array_key_exists('cache', $statementConfig)) {
+                        $cache = $statementConfig['cache'];
+
+                        if ($cache === true) {
+                            $type = $builtStatement->get('statement_type');
+
+                            if ($type !== 'select') {
+                                throw new ConfigurationException(
+                                    sprintf(
+                                        'Invalid simple statement cache. Cache can only be applied to \'select\' sql queries'
+                                    )
+                                );
+                            }
+
+                            $builtStatement->add('cache', true, true);
+                        } else if ($cache === false) {
+                            $storage = CacheStorage::getInstance();
+                            $resolvedStatementName = $builtStatement->get('resolved_statement_name');
+
+                            if ($storage->has($resolvedStatementName)) {
+                                $storage->remove($resolvedStatementName);
+                            }
+                        }
+                    }
 
                     $workConfig = new ArgumentBag();
                     $workConfig->add('sql', $statementConfig['sql']);

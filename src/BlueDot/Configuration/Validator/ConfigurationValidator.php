@@ -97,6 +97,7 @@ class ConfigurationValidator
                             ->cannotBeEmpty('sql')
                             ->isString('sql')
                             ->isArrayIfExists('parameters')
+                            ->isBooleanIfExists('cache')
                             ->isArrayIfExists('model')
                             ->cannotBeEmptyIfExists('model')
                             ->stepIntoIfExists('model')

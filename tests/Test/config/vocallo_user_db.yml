@@ -13,6 +13,7 @@ configuration:
             find_language:
                 sql: "SELECT language FROM languages WHERE language = :language"
                 parameters: [language]
+                cache: true
             find_all_languages:
                 sql: "SELECT * FROM languages"
 
