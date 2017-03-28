@@ -19,11 +19,11 @@ class ComponentTest extends \PHPUnit_Framework_TestCase
         $componentRunner = new ComponentRunner($this, $blueDot);
 
         $componentRunner
-            ->addComponent(VocalloDatabase::class, false)
-            ->addComponent(VocalloSeed::class, false)
+            ->addComponent(VocalloDatabase::class)
+            ->addComponent(VocalloSeed::class)
             ->addComponent(VocalloSimple::class)
-            ->addComponent(VocalloConnection::class, false)
-            ->addComponent(VocalloScenario::class, false);
+            ->addComponent(VocalloConnection::class)
+            ->addComponent(VocalloScenario::class);
 
         $componentRunner->run();
     }

@@ -130,6 +130,7 @@ class StatementBuilder
         $this->statement->add('resolved_name', $resolvedName);
         $this->statement->add('statement_name', $name);
         $this->statement->add('resolved_statement_name', $resolvedStatementName);
+        $this->statement->add('cache', false);
 
         if (!empty($this->configParameters)) {
             $this->statement->add('config_parameters', $this->configParameters);
@@ -137,7 +138,7 @@ class StatementBuilder
 
         $this->statement->add('connection', $this->connection);
 
-        $context = new ExecutionContext($this->statement);
+        $context = new ExecutionContext($this->statement, null, false);
 
         return $context->runTasks()->createPromise();
     }
