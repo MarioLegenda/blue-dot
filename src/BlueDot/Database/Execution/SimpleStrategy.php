@@ -238,7 +238,7 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
         $result = $this->resultReport->get($this->statement->get('resolved_statement_name'));
 
         if ($this->statement->has('model')) {
-            $this->saveInCache($result->toArray()[0]);
+            $this->saveInCache($result->toArray());
 
             $modelConverter = new ModelConverter($this->statement->get('model'), $result->toArray()[0]);
 
@@ -247,9 +247,9 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
             if (is_array($converted)) {
                 $entity = new Entity($converted);
 
-                $this->saveInCache($entity);
+                $this->saveInCache($converted);
 
-                return new Entity($converted);
+                return $entity;
             }
 
             return $converted;
@@ -268,8 +268,6 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
 
             $entity = new Entity($temp);
 
-            $this->saveInCache($entity);
-
             return $entity;
         }
 
@@ -278,20 +276,20 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
 
             $entity = new Entity($result[0]);
 
-            $this->saveInCache($entity);
-
             return $entity;
         }
     }
 
     private function saveInCache($result)
     {
-        if ($this->statement->has('cache')) {
-            $cache = CacheStorage::getInstance();
-            $cache->getHashTable()->add($this->statement);
+        if ($this->statement->has('cache') and $this->statement->get('cache') === true) {
+            if (CacheStorage::getInstance()->canBeCached($this->statement)) {
+                $cache = CacheStorage::getInstance();
+                $name = $cache->createName($this->statement);
 
-            if (!$cache->has($this->statement)) {
-                $cache->put($this->statement, $result);
+                if (!$cache->has($name)) {
+                    $cache->put($name, $result);
+                }
             }
         }
     }

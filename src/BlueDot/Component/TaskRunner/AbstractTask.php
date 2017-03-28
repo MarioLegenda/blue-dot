@@ -15,6 +15,10 @@ abstract class AbstractTask implements TaskInterface
      */
     protected $options = array();
     /**
+     * @var mixed $returnData
+     */
+    protected $returnData = null;
+    /**
      * @param string $key
      * @param $argument
      * @return TaskInterface

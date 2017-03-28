@@ -11,9 +11,10 @@ interface BlueDotInterface
     /**
      * @param string $name
      * @param array $parameters
+     * @param bool $cache
      * @return PromiseInterface
      */
-    public function execute(string $name, $parameters = array()) : PromiseInterface;
+    public function execute(string $name, $parameters = array(), bool $cache) : PromiseInterface;
     /**
      * @param Connection $connection
      * @return BlueDotInterface

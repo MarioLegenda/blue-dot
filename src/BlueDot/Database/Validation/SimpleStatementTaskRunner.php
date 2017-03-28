@@ -6,6 +6,7 @@ use BlueDot\Common\ArgumentBag;
 use BlueDot\Component\ModelConverter;
 use BlueDot\Component\TaskRunner\AbstractTaskRunner;
 use BlueDot\Component\TaskRunner\TaskInterface;
+use BlueDot\Component\TaskRunner\TaskReturnData;
 use BlueDot\Database\Validation\Simple\SimpleParametersResolver;
 use BlueDot\Database\Validation\Simple\SimpleStatementParameterValidation;
 
@@ -61,6 +62,9 @@ class SimpleStatementTaskRunner extends AbstractTaskRunner
         return $this;
     }
 
+    /**
+     * @void
+     */
     public function doTasks()
     {
         $previousOptions = array();

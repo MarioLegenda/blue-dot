@@ -58,7 +58,7 @@ class XmlCache implements CacheInterface
      * @param string $value
      * @throws CacheException
      */
-    public function put(string $name, string $value)
+    public function put(string $name, $value)
     {
         if ($this->has($name)) {
             throw new CacheException(
@@ -87,7 +87,7 @@ class XmlCache implements CacheInterface
         if ($this->has($name)) {
             $element = $this->dom->getElementById($name);
 
-            $this->dom->removeChild($element);
+            $this->dom->documentElement->removeChild($element);
 
             $this->dom->saveXML();
 

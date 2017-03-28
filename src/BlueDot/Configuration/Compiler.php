@@ -153,13 +153,10 @@ class Compiler
 
                             $builtStatement->add('cache', true, true);
                         } else if ($cache === false) {
-                            $storage = CacheStorage::getInstance();
-                            $resolvedStatementName = $builtStatement->get('resolved_statement_name');
-
-                            if ($storage->has($resolvedStatementName)) {
-                                $storage->remove($resolvedStatementName);
-                            }
+                            $builtStatement->add('cache', false, true);
                         }
+                    } else {
+                        $builtStatement->add('cache', false, true);
                     }
 
                     $workConfig = new ArgumentBag();

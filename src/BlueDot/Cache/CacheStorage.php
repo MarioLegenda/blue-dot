@@ -7,7 +7,7 @@ use BlueDot\Cache\Xml\XmlCache;
 use BlueDot\Exception\CacheException;
 use BlueDot\Common\ArgumentBag;
 
-class CacheStorage
+class CacheStorage implements CacheInterface
 {
     /**
      * @var static Cache $instance
@@ -17,10 +17,6 @@ class CacheStorage
      * @var CacheInterface $cache
      */
     private $cache;
-    /**
-     * @var HashTable $hashTable
-     */
-    private $hashTable;
     /**
      * @return CacheStorage
      * @throws CacheException
@@ -44,8 +40,6 @@ class CacheStorage
 
         self::$instance = new self();
 
-        self::$instance->hashTable = new HashTable();
-
         $dom = new \DOMDocument();
         $dom->validateOnParse = true;
         $dom->load($cacheFile);
@@ -55,30 +49,70 @@ class CacheStorage
         return self::$instance;
     }
 
-    public function has(ArgumentBag $statement) : bool
+    /**
+     * @param string $name
+     * @return bool
+     */
+    public function has(string $name) : bool
     {
-        return $this->cache->has($this->hashTable->get($statement));
-    }
-
-    public function get(ArgumentBag $statement)
-    {
-        return $this->cache->get($this->hashTable->get($statement));
-    }
-
-    public function put(ArgumentBag $statement, $value)
-    {
-        $this->cache->put($this->hashTable->get($statement), serialize($value));
-    }
-
-    public function remove(ArgumentBag $statement) : bool
-    {
-        return $this->cache->remove($this->hashTable->get($statement));
+        return $this->cache->has($name);
     }
     /**
-     * @return HashTable
+     * @param string $name
+     * @return mixed
      */
-    public function getHashTable() : HashTable
+    public function get(string $name)
     {
-        return $this->hashTable;
+        return $this->cache->get($name);
+    }
+    /**
+     * @param string $name
+     * @param $value
+     */
+    public function put(string $name, $value)
+    {
+        $this->cache->put($name, serialize($value));
+    }
+    /**
+     * @param string $name
+     * @return bool
+     */
+    public function remove(string $name) : bool
+    {
+        return $this->cache->remove($name);
+    }
+    /**
+     * @param ArgumentBag $statement
+     * @return bool
+     */
+    public function canBeCached(ArgumentBag $statement) : bool
+    {
+        if ($statement->has('resolved_statement_name')) {
+            if ($statement->get('statement_type') === 'select') {
+                return true;
+            }
+        }
+
+        return false;
+    }
+    /**
+     * @param ArgumentBag $statement
+     * @return string
+     */
+    public function createName(ArgumentBag $statement) : string
+    {
+        $resolvedStatementName = $statement->get('resolved_statement_name');
+
+        if ($statement->has('parameters')) {
+            $parameters = $statement->get('parameters');
+            $imploded = '';
+            foreach ($parameters as $key => $value) {
+                $imploded.=$key.'_'.$value;
+            }
+
+            $resolvedStatementName.='_'.$imploded;
+        }
+
+        return $resolvedStatementName;
     }
 }
