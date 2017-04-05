@@ -129,6 +129,15 @@ class RecursiveStatementExecution implements StrategyInterface
                 }
             }
 
+            if (!$this->statement->has('query_strategy')) {
+                throw new BlueDotRuntimeException(
+                    sprintf(
+                        'Invalid query strategy. Query strategy for %s could not been determined. This is a bug. Please, contact whitepostmail@gmail.com or post an issue on Github',
+                        $this->statement->get('resolved_statement_name')
+                    )
+                );
+            }
+            
             $insertType = $this->statement->get('query_strategy');
 
             switch ($insertType) {

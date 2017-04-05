@@ -106,6 +106,15 @@ class ScenarioParametersResolver extends AbstractTask
             $statement->add('query_strategy', 'individual_strategy', true);
         }
 
+        if (!$statement->has('query_strategy')) {
+            throw new BlueDotRuntimeException(
+                sprintf(
+                    'Invalid query strategy. Query strategy for %s could not been determined. This is a bug. Please, contact whitepostmail@gmail.com or post an issue on Github',
+                    $statement->get('resolved_statement_name')
+                )
+            );
+        }
+
         $statement->add('parameters', $userParameters, true);
     }
 }

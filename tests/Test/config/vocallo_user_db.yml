@@ -258,7 +258,7 @@ configuration:
                         bind_to: word_id
                 insert_word_image:
                     sql: scenario.insert_word.insert_word_image
-                    parameters: [:relative_path, :absolute_path, :file_name, :absolute_full_path, :relative_full_path]
+                    parameters: [relative_path, absolute_path, file_name, absolute_full_path, relative_full_path]
                     foreign_key:
                         statement_name: insert_word
                         bind_to: word_id

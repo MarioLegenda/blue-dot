@@ -117,6 +117,15 @@ class ScenarioStatementParametersValidation extends AbstractTask
             $resolvedStatementName = $statement->get('resolved_statement_name');
 
             if ($statement->has('config_parameters')) {
+                $configParams = $statement->get('config_parameters');
+
+                $validatedConfigParams = array();
+                foreach ($configParams as $configParam) {
+                    $validatedConfigParams[] = ltrim($configParam, ':');
+                }
+
+                $statement->add('config_parameters', $validatedConfigParams, true);
+
                 if (!array_key_exists($statementName, $parameters)) {
                     throw new BlueDotRuntimeException(
                         sprintf(

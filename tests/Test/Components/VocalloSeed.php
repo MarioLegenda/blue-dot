@@ -101,7 +101,13 @@ class VocalloSeed extends AbstractTestComponent
                             'word' => $faker->word,
                             'type' => $faker->company,
                         ),
-                        'insert_word_image' => null,
+                        'insert_word_image' => array(
+                            'relative_path' => 'relative_path',
+                            'absolute_path' => 'absolute_path',
+                            'file_name' => 'file_name',
+                            'absolute_full_path' => 'absolute_full_path',
+                            'relative_full_path' => 'relative_full_path',
+                        ),
                         'insert_translation' => array(
                             'translation' => $faker->words(rand(1, 25)),
                         ),

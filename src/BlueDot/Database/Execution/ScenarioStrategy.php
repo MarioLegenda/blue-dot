@@ -89,6 +89,12 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
                 }
 
                 throw new BlueDotRuntimeException('A PDOException has been thrown for statement '.$statement->get('resolved_statement_name').' with message \''.$e->getMessage().'\'');
+            } catch (BlueDotRuntimeException $e) {
+                if ($this->connection->getPDO()->inTransaction()) {
+                    $this->connection->getPDO()->rollBack();
+                }
+
+                throw new BlueDotRuntimeException($e->getMessage());
             }
         }
 
