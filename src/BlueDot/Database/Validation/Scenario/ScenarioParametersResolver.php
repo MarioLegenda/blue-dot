@@ -50,6 +50,16 @@ class ScenarioParametersResolver extends AbstractTask
                 }
 
                 if (is_array($userParameter)) {
+                    if (empty($userParameter)) {
+                        throw new BlueDotRuntimeException(
+                            sprintf(
+                                'Invalid parameters. You specified a \'%s\' configuration parameter but provided an empty array for statement %s',
+                                $configParameter,
+                                $statement->get('resolved_statement_name')
+                            )
+                        );
+                    }
+
                     if ($individualInsert === true) {
                         throw new BlueDotRuntimeException(sprintf(
                             'If you chose to use multi insert parameters, then you cannot use individual insert parameters for statement \'%s\'',

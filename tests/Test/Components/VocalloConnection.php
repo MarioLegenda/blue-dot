@@ -38,7 +38,7 @@ class VocalloConnection implements TestComponentInterface
 
         $connection
             ->setHost('127.0.0.1')
-            ->setDatabaseName('vocallo')
+            ->setDatabaseName('langland')
             ->setUser('root')
             ->setPassword('root');
 

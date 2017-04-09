@@ -20,7 +20,7 @@ class VocalloSeed extends AbstractTestComponent
 
         $connection = new Connection();
         $connection
-            ->setDatabaseName('vocallo')
+            ->setDatabaseName('langland')
             ->setHost('127.0.0.1')
             ->setPassword('root')
             ->setUser('root');
@@ -56,6 +56,17 @@ class VocalloSeed extends AbstractTestComponent
             'hardware',
             'software',
         );
+
+        $this->blueDot->execute('scenario.create_sentence', array(
+            'create_sentence' => array('sentence' => 'Some sentence'),
+            'create_lesson_sentence' => array(
+                'internal_name' => 'internal name',
+                'lesson_id' => 5,
+            ),
+            'create_lesson_sentence_translations' => array(
+                'translation' => $faker->words(rand(1, 25)),
+            ),
+        ));
 
         $inserts = 0;
         $start = time();

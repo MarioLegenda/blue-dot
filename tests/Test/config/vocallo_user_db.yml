@@ -1,14 +1,18 @@
 configuration:
     connection:
         host: 127.0.0.1
-        database_name: 'vocallo'
+        database_name: 'langland'
         user: 'root'
         password: 'root'
 
-    sql_import: sql_import.yml
-
     simple:
         select:
+            # user
+            find_user_by_username:
+                sql: "SELECT * FROM users WHERE username = :username"
+                parameters: [username]
+                model:
+                    object: ArmorBundle\Entity\User
             # languages
             find_language:
                 sql: "SELECT language FROM languages WHERE language = :language"
@@ -49,11 +53,10 @@ configuration:
                 sql: "SELECT * FROM words WHERE word = :word"
                 parameters: [word]
             find_word_by_id:
-                sql: "SELECT * FROM words WHERE id = :id"
-                parameters: [id]
+                sql: "SELECT * FROM words WHERE id = :word_id"
+                parameters: [word_id]
                 model:
                     object: Test\Model\Word
-                    properties: { find_word_by_id.language_id: language }
 
             #images
             find_image_by_word:
@@ -110,7 +113,7 @@ configuration:
                 sql: "SELECT id FROM theories WHERE name = :name AND lesson_id = :lesson_id"
                 parameters: [name, lesson_id]
                 model:
-                    object: AppBundle\Entity\Theory
+                    object: AdminBundle\Entity\Theory
             find_all_theories_by_lesson:
                 sql: "SELECT * FROM theories WHERE lesson_id = :lesson_id"
                 parameters: [lesson_id]
@@ -124,7 +127,7 @@ configuration:
                 sql: "SELECT * FROM theory_decks WHERE theory_id = :theory_id AND internal_name = :internal_name"
                 parameters: [theory_id, internal_name]
                 model:
-                    object: AppBundle\Entity\TheoryDeck
+                    object: AdminBundle\Entity\TheoryDeck
             find_deck_by_id:
                 sql: "SELECT * FROM theory_decks WHERE id = :deck_id"
                 parameters: [deck_id]
@@ -133,10 +136,22 @@ configuration:
             find_sound_by_filename:
                 sql: "SELECT * FROM sounds WHERE file_name = :file_name"
                 parameters: [file_name]
+            find_sounds_by_deck:
+                sql: "SELECT s.relative_full_path, s.client_original_name FROM sounds AS s INNER JOIN theory_sounds AS ts ON s.id = ts.sound_id WHERE ts.deck_id = :deck_id"
+                parameters: [deck_id]
+
+            #sentences
+            find_sentence_by_internal_name:
+                sql: "SELECT * FROM lesson_sentences WHERE internal_name = :internal_name AND lesson_id = :lesson_id"
+                parameters: [internal_name, lesson_id]
 
         insert:
+            create_user:
+                sql: "INSERT INTO users (name, lastname, username, password, gender, roles) VALUES (:name, :lastname, :username, :password, :gender, :roles)"
+                parameters: [name, lastname, username, password, gender, roles]
+
             create_language:
-                sql: simple.insert.create_language
+                sql: "INSERT INTO languages (language) VALUES (:language)"
                 parameters: [language]
 
             create_category:
@@ -198,11 +213,12 @@ configuration:
             atomic: true
             statements:
                 drop_database:
-                    sql: "DROP DATABASE IF EXISTS vocallo"
+                    sql: "DROP DATABASE IF EXISTS langland"
+                    sql_type: database
                 create_database:
-                    sql: "CREATE DATABASE IF NOT EXISTS vocallo CHARACTER SET = 'utf8' COLLATE = 'utf8_general_ci'"
+                    sql: "CREATE DATABASE IF NOT EXISTS langland CHARACTER SET = 'utf8' COLLATE = 'utf8_general_ci'"
                 use_database:
-                    sql: "USE vocallo"
+                    sql: "USE langland"
 
         create_category:
             atomic: true
@@ -240,30 +256,34 @@ configuration:
 
         insert_word:
             atomic: true
+            rules: { return_entity: false }
+            return_entity: []
             statements:
                 insert_word:
-                    sql: scenario.insert_word.insert_word
+                    sql: "INSERT INTO words (language_id, word, type) VALUES (:language_id, :word, :type)"
                     parameters: [language_id, word, type]
                 insert_translation:
-                    sql: scenario.insert_word.insert_translation
+                    sql: "INSERT INTO translations (word_id, translation) VALUES(:word_id, :translation)"
                     parameters: [translation]
                     foreign_key:
                         statement_name: insert_word
                         bind_to: word_id
                 insert_word_category:
-                    sql: scenario.insert_word.insert_word_category
+                    sql: "INSERT INTO word_category (word_id, category_id) VALUES (:word_id, :category_id)"
                     parameters: [category_id]
                     foreign_key:
                         statement_name: insert_word
                         bind_to: word_id
                 insert_word_image:
-                    sql: scenario.insert_word.insert_word_image
+                    sql: "INSERT INTO word_images (word_id, relative_path, absolute_path, file_name, absolute_full_path, relative_full_path) VALUES (:word_id, :relative_path, :absolute_path, :file_name, :absolute_full_path, :relative_full_path)"
                     parameters: [relative_path, absolute_path, file_name, absolute_full_path, relative_full_path]
                     foreign_key:
                         statement_name: insert_word
                         bind_to: word_id
         remove_word:
             atomic: true
+            rules: { return_entity: false }
+            return_entity: []
             statements:
                 remove_translations:
                     sql: "DELETE t FROM translations AS t INNER JOIN words AS w WHERE t.word_id = :word_id AND t.word_id = w.id AND w.schedule_removal = 1"
@@ -311,15 +331,19 @@ configuration:
                 select_sounds:
                     sql: "SELECT s.absolute_full_path FROM sounds AS s INNER JOIN theory_sounds AS ts ON s.id = ts.sound_id AND ts.deck_id = :deck_id"
                     parameters: [deck_id]
+                    can_be_empty_result: true
                 remove_deck_sounds:
                     sql: "DELETE s.* FROM sounds AS s INNER JOIN theory_sounds AS ts ON s.id = ts.sound_id AND ts.deck_id = :deck_id"
                     parameters: [deck_id]
+                    can_be_empty_result: true
                 remove_theory_sounds:
                     sql: "DELETE FROM theory_sounds WHERE deck_id = :deck_id"
                     parameters: [deck_id]
+                    can_be_empty_result: true
                 update_theory_deck:
                     sql: "UPDATE theory_decks SET internal_name = :internal_name, deck_data = :deck_data, internal_description = :internal_description, show_on_page = :show_on_page, ordering = :ordering WHERE id = :deck_id"
                     parameters: [deck_id, internal_name, deck_data, internal_description, show_on_page, ordering]
+                    can_be_empty_result: true
                 create_sounds:
                     sql: "INSERT INTO sounds (relative_path, absolute_path, file_name, absolute_full_path, relative_full_path, client_original_name) VALUES (:relative_path, :absolute_path, :file_name, :absolute_full_path, :relative_full_path, :client_original_name)"
                     parameters: [relative_path, absolute_path, file_name, absolute_full_path, relative_full_path, client_original_name]
@@ -336,50 +360,32 @@ configuration:
                     sql: "SELECT id, theory_id FROM theory_decks WHERE id = :deck_id"
                     parameters: [deck_id]
 
-        update_theory_deck_no_return_data:
+        create_sentence:
             atomic: true
             statements:
-                select_sounds:
-                    sql: "SELECT s.absolute_full_path FROM sounds AS s INNER JOIN theory_sounds AS ts ON s.id = ts.sound_id AND ts.deck_id = :deck_id"
-                    parameters: [deck_id]
-                remove_deck_sounds:
-                    sql: "DELETE s.* FROM sounds AS s INNER JOIN theory_sounds AS ts ON s.id = ts.sound_id AND ts.deck_id = :deck_id"
-                    parameters: [deck_id]
-                remove_theory_sounds:
-                    sql: "DELETE FROM theory_sounds WHERE deck_id = :deck_id"
-                    parameters: [deck_id]
-                update_theory_deck:
-                    sql: "UPDATE theory_decks SET internal_name = :internal_name, deck_data = :deck_data, internal_description = :internal_description, show_on_page = :show_on_page, ordering = :ordering WHERE id = :deck_id"
-                    parameters: [deck_id, internal_name, deck_data, internal_description, show_on_page, ordering]
-                create_sounds:
-                    sql: "INSERT INTO sounds (relative_path, absolute_path, file_name, absolute_full_path, relative_full_path, client_original_name) VALUES (:relative_path, :absolute_path, :file_name, :absolute_full_path, :relative_full_path, :client_original_name)"
-                    parameters: [relative_path, absolute_path, file_name, absolute_full_path, relative_full_path, client_original_name]
-                create_deck_sound:
-                    sql: "INSERT INTO theory_sounds (sound_id, theory_id, deck_id) VALUES (:sound_id, :theory_id, :deck_id)"
-                    if_exists: create_sounds
+                create_sentence:
+                    sql: "INSERT INTO sentences (sentence) VALUES (:sentence)"
+                    parameters: [sentence]
+                create_lesson_sentence:
+                    sql: "INSERT INTO lesson_sentences (internal_name, sentence_id, lesson_id) VALUES (:internal_name, :sentence_id, :lesson_id)"
+                    parameters: [internal_name, lesson_id]
                     foreign_key:
-                        statement_name: create_sounds
-                        bind_to: sound_id
-                    use:
-                        statement_name: select_deck
-                        values: {select_deck.id: deck_id, select_deck.theory_id: theory_id }
-                select_deck:
-                    sql: "SELECT id, theory_id FROM theory_decks WHERE id = :deck_id"
-                    parameters: [deck_id]
-
-        only_selects:
-            atomic: true
-            statements:
-                select_first_language:
-                    sql: "SELECT * FROM languages WHERE id = :id"
-                    parameters: [id]
-                select_second_language:
-                    sql: "SELECT * FROM languages WHERE id = :id"
-                    parameters: [id]
+                        statement_name: create_sentence
+                        bind_to: sentence_id
+                create_lesson_sentence_translations:
+                    sql: "INSERT INTO lesson_sentences_translations (lesson_sentence_id, translation) VALUES (:lesson_sentence_id, :translation)"
+                    parameters: [translation]
+                    foreign_key:
+                        statement_name: create_lesson_sentence
+                        bind_to: lesson_sentence_id
 
         seed:
             atomic: true
+            rules: { return_entity: false }
+            return_entity: []
             statements:
+                create_users_table:
+                    sql: "CREATE TABLE users (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) NOT NULL, lastname VARCHAR(255) NOT NULL, username VARCHAR(255) NOT NULL, gender CHAR(6) NOT NULL, password VARCHAR(255) NOT NULL, roles TEXT, account_confirmation VARCHAR(255) NULL, enabled TINYINT NOT NULL, created_at TIMESTAMP)"
                 create_languages_table:
                     sql: "CREATE TABLE languages (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, working_language TINYINT DEFAULT 0, language VARCHAR(256) NOT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"
                 create_word_table:
@@ -406,8 +412,20 @@ configuration:
                     sql: "CREATE TABLE sounds (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, relative_path VARCHAR(255) NOT NULL, absolute_path VARCHAR(255) NOT NULL, file_name VARCHAR(255) NOT NULL, absolute_full_path VARCHAR(255) NOT NULL, relative_full_path VARCHAR(255) NOT NULL, client_original_name VARCHAR(255) NOT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"
                 create_theory_sounds_table:
                     sql: "CREATE TABLE theory_sounds (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, sound_id INT(6) NOT NULL, theory_id INT(6) NOT NULL, deck_id INT(6) NOT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"
+                create_sentences_table:
+                    sql: "CREATE TABLE sentences (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, sentence VARCHAR(255) NOT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"
+                create_lesson_sentence_table:
+                    sql: "CREATE TABLE lesson_sentences (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, internal_name VARCHAR(255) NOT NULL, sentence_id INT(6) NOT NULL, lesson_id INT(6) NOT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"
+                create_lesson_sentence_translation_table:
+                    sql: "CREATE TABLE lesson_sentences_translations (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, lesson_sentence_id VARCHAR(255) NOT NULL, translation VARCHAR(255) NOT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"
 
     callable:
-        callable_service:
+        last_words:
             type: object
-            name: Test\CallableService
+            name: AdminBundle\BlueDotCallable\LastWordsCallable
+        search_callable:
+            type: object
+            name: AdminBundle\BlueDotCallable\SearchCallable
+        create_deck_callable:
+            type: object
+            name: AdminBundle\BlueDotCallable\CreateDeckCallable
