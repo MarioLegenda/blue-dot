@@ -81,7 +81,7 @@ class BlueDot implements BlueDotInterface
     }
     /**
      * @param string $name
-     * @param array $parameters
+     * @param array|mixed $parameters
      * @param bool $cache
      * @return PromiseInterface
      * @throws BlueDotRuntimeException
