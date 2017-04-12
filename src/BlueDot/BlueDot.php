@@ -232,6 +232,10 @@ class BlueDot implements BlueDotInterface
             return new Connection($parsedConfiguration['configuration']['connection']);
         }
 
+        if ($this->connection instanceof Connection) {
+            return $this->connection;
+        }
+
         return null;
     }
 }

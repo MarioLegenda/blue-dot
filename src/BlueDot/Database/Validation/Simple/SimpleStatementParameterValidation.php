@@ -61,10 +61,11 @@ class SimpleStatementParameterValidation extends AbstractTask
 
                 if (!method_exists($parameters, $method)) {
                     throw new BlueDotRuntimeException(
-                        sprintf('Invalid parameter. Method %s does not exist in object %s that is to be bound to config parameter %s',
+                        sprintf('Invalid parameter. Method %s does not exist in object %s that is to be bound to config parameter %s in statement %s',
                             $method,
                             get_class($parameters),
-                            $configParameter
+                            $configParameter,
+                            $statement->get('resolved_statement_name')
                         )
                     );
                 }

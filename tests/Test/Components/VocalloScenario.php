@@ -2,7 +2,6 @@
 
 namespace Test\Components;
 
-use BlueDot\BlueDotInterface;
 use BlueDot\Entity\PromiseInterface;
 use BlueDot\BlueDot;
 
@@ -16,7 +15,7 @@ class VocalloScenario extends AbstractTestComponent
 
         $this->blueDot->execute('scenario.only_selects', array(
             'select_first_language' => array('id' => 1),
-            'select_second_language' => array('id' => 1),
+            'select_second_language' => array('id' => 2),
         ))
             ->success(function(PromiseInterface $promise) {
                 $result = $promise->getResult()->toArray();
