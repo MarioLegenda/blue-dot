@@ -1,0 +1,8 @@
+configuration:
+    simple:
+        select:
+            find_language:
+                sql: "SELECT language FROM languages WHERE language = :language"
+                parameters: [language]
+            find_all_languages:
+                sql: "SELECT * FROM languages"

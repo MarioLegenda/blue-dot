@@ -1,0 +1,12 @@
+configuration:
+    simple:
+        select:
+            find_category:
+                sql: "SELECT category FROM categories WHERE category = :category AND language_id = :language_id"
+                parameters: [category, language_id]
+            find_all_categories:
+                sql: "SELECT id, category FROM categories WHERE language_id = :language_id"
+                parameters: [language_id]
+            find_category_by_word:
+                sql: "SELECT s.category FROM categories AS s INNER JOIN word_category AS ws WHERE s.id = ws.category_id AND ws.word_id = :word_id"
+                parameters: [word_id]

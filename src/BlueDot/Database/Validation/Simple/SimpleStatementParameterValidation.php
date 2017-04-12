@@ -79,7 +79,7 @@ class SimpleStatementParameterValidation extends AbstractTask
         if ($statement->has('config_parameters') and empty($parameters)) {
             throw new BlueDotRuntimeException(
                 sprintf(
-                    'Invalid parameters. Config parameters are provided user parameters are not in statement \'%s\'',
+                    'Invalid parameters. Config parameters are provided but user parameters are not in statement \'%s\'',
                     $statement->get('resolved_statement_name')
                 )
             );

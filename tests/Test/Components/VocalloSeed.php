@@ -27,7 +27,9 @@ class VocalloSeed extends AbstractTestComponent
 
         $connection->connect();
 
-        $blueDot->setConnection($connection);
+        $blueDot
+            ->setConnection($connection)
+            ->useApi('vocallo_user_db');
 
         $languages = array(
             'croatian',

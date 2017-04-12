@@ -54,6 +54,19 @@ class SimpleParametersResolver extends AbstractTask
         $multiInsert = false;
 
         foreach ($configParameters as $configParameter) {
+            if (is_string(array_keys($parameters)[0])) {
+                if (!array_key_exists($configParameter, $parameters)) {
+                    throw new BlueDotRuntimeException(
+                        sprintf(
+                            'Invalid parameters. Config parameters are provided but some user parameters are missing for statement %s. Config parameters are: %s. User parameters are: %s',
+                            $statement->get('resolved_statement_name'),
+                            implode(', ', $configParameters),
+                            implode(', ', array_keys($parameters))
+                        )
+                    );
+                }
+            }
+
             foreach ($parameters as $key => $userParameter) {
                 if (!is_int($userParameter) and !is_array($userParameter) and !is_string($userParameter) and !is_null($userParameter) and !is_bool($userParameter)) {
                     throw new BlueDotRuntimeException(sprintf(
@@ -123,6 +136,17 @@ class SimpleParametersResolver extends AbstractTask
             $statement->add('query_strategy', 'individual_multi_strategy', true);
         } else if ($individualInsert === true) {
             $statement->add('query_strategy', 'individual_strategy', true);
+        }
+    }
+
+    private function validateEquals(ArgumentBag $statement, array $parameters)
+    {
+        $configParameters = $statement->get('config_parameters');
+        $userParameters = array_keys($parameters);
+
+        $diff = array_diff($configParameters, $userParameters);
+
+        if (!empty($diff)) {
         }
     }
 }

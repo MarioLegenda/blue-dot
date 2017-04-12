@@ -2,25 +2,20 @@
 
 namespace BlueDot;
 
-use BlueDot\Cache\CacheStorage;
 use BlueDot\Common\{ ArgumentValidator, StatementValidator };
 
-use BlueDot\Component\ModelConverter;
-use BlueDot\Component\TaskRunner\TaskRunnerFactory;
 use BlueDot\Configuration\Compiler;
 
 use BlueDot\Configuration\Import\ImportCollection;
 use BlueDot\Configuration\Validator\ConfigurationValidator;
-use BlueDot\Database\{
-    Connection, ParameterConversion, Validation\Simple\SimpleParametersResolver, Validation\Simple\SimpleStatementParameterValidation, Validation\SimpleStatementTaskRunner
-};
+use BlueDot\Database\Connection;
 
 use BlueDot\Database\Execution\{ CallableStrategy, ExecutionContext };
 
 use BlueDot\Entity\Promise;
 use BlueDot\Entity\PromiseInterface;
 use BlueDot\Exception\{
-    BlueDotRuntimeException, ConnectionException, ConfigurationException
+    APIException, BlueDotRuntimeException, ConnectionException, ConfigurationException
 };
 
 use BlueDot\StatementBuilder\StatementBuilder;
@@ -40,6 +35,10 @@ class BlueDot implements BlueDotInterface
      * @var Connection $connection
      */
     private $connection;
+    /**
+     * @var API $api
+     */
+    private $api = array();
     /**
      * @param string $configSource
      * @param Connection|null $connection
@@ -76,6 +75,8 @@ class BlueDot implements BlueDotInterface
 
             return $this;
         }
+
+        $this->api()->putAPI($configSource);
 
         $this->initBlueDot($configSource, $connection);
     }
@@ -175,6 +176,39 @@ class BlueDot implements BlueDotInterface
         }
 
         return new StatementBuilder($this->connection);
+    }
+    /**
+     * @return API
+     */
+    public function api() : API
+    {
+        if ($this->api instanceof API) {
+            return $this->api;
+        }
+
+        $this->api = new API();
+
+        return $this->api;
+    }
+    /**
+     * @param string $apiName
+     * @return BlueDotInterface
+     * @throws APIException
+     */
+    public function useApi(string $apiName) : BlueDotInterface
+    {
+        if (!$this->api instanceof API) {
+            throw new APIException(
+                sprintf(
+                    'Invalid API. No API has been created. Create a new api with %s::api() method',
+                    BlueDotInterface::class
+                )
+            );
+        }
+
+        $this->initBlueDot($this->api->useAPI($apiName));
+
+        return $this;
     }
 
     private function initBlueDot($configSource = null, Connection $connection = null)
