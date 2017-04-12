@@ -57,17 +57,6 @@ class VocalloSeed extends AbstractTestComponent
             'software',
         );
 
-        $this->blueDot->execute('scenario.create_sentence', array(
-            'create_sentence' => array('sentence' => 'Some sentence'),
-            'create_lesson_sentence' => array(
-                'internal_name' => 'internal name',
-                'lesson_id' => 5,
-            ),
-            'create_lesson_sentence_translations' => array(
-                'translation' => $faker->words(rand(1, 25)),
-            ),
-        ));
-
         $inserts = 0;
         $start = time();
         foreach ($languageModels as $languageModel) {
@@ -137,6 +126,17 @@ class VocalloSeed extends AbstractTestComponent
                 }
             }
         }
+
+        $this->blueDot->execute('scenario.create_sentence', array(
+            'create_sentence' => array('sentence' => 'Some sentence'),
+            'create_lesson_sentence' => array(
+                'internal_name' => 'internal name',
+                'lesson_id' => 5,
+            ),
+            'create_lesson_sentence_translations' => array(
+                'translation' => $faker->words(rand(1, 25)),
+            ),
+        ));
 
         $finish = time() - $start;
 

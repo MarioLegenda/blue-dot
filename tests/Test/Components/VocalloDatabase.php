@@ -1,13 +1,6 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: mario
- * Date: 24.03.17.
- * Time: 11:05
- */
 
 namespace Test\Components;
-
 
 use BlueDot\BlueDot;
 use BlueDot\Database\Connection;
