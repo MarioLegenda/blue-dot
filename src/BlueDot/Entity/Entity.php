@@ -200,7 +200,11 @@ class Entity extends AbstractArgumentBag
     public function normalizeIfOneExists() : Entity
     {
         if (count($this->arguments) === 1) {
-            $this->arguments = $this->arguments[0];
+            $firstKey = array_keys($this->arguments)[0];
+
+            if (is_int($firstKey)) {
+                $this->arguments = $this->arguments[0];
+            }
         }
 
         return $this;
