@@ -30,6 +30,31 @@ class VocalloApi implements TestComponentInterface
 
     public function run()
     {
+        $dirs = $this->blueDot->api()->getDirs();
+
+        $validDirs = array(
+            __DIR__.'/../config/api'
+        );
+
+        foreach ($dirs as $dir) {
+            if (in_array($dir, $validDirs) === false) {
+                $this->phpunit->fail(sprintf('Directory %s not found in BlueDot API interface but it should have been', $dir));
+            }
+        }
+
+        $files = new \DirectoryIterator(__DIR__.'/../config/api');
+        $validFiles = array('language.yml', 'user.yml', 'kreten.yml');
+
+        foreach ($files as $file) {
+            if ($file->getFilename() === '.' or $file->getFilename() === '..') {
+                continue;
+            }
+
+            if (in_array($file->getFilename(), $validFiles) === false) {
+                $this->phpunit->fail(sprintf('File %s not found in BlueDot API interface but it should have been', $file->getFilename()));
+            }
+        }
+
         $this->blueDot
             ->useApi('language')
             ->execute('simple.select.find_all_languages')

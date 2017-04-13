@@ -4,8 +4,16 @@ namespace BlueDot;
 
 use BlueDot\Exception\APIException;
 
-class API
+class API implements APIInterface
 {
+    /**
+     * @var array $files
+     */
+    private $files = array();
+    /**
+     * @var array $dirs
+     */
+    private $dirs = array();
     /**
      * @var array $api
      */
@@ -56,6 +64,20 @@ class API
         return $this->api;
     }
     /**
+     * @return array
+     */
+    public function getFiles() : array
+    {
+        return $this->files;
+    }
+    /**
+     * @return array
+     */
+    public function getDirs() : array
+    {
+        return $this->dirs;
+    }
+    /**
      * @param \SplFileInfo $resource
      * @return API
      * @throws APIException
@@ -74,7 +96,11 @@ class API
             );
         }
 
-        $this->api[$apiName] = realpath($resource->getPathname());
+        $path = realpath($resource->getPathname());
+
+        $this->files[] = $path;
+
+        $this->api[$apiName] = $path;
 
         return $this;
     }
@@ -96,6 +122,8 @@ class API
                 $this->putFile($resource);
             }
         }
+
+        $this->dirs[] = $dir;
 
         return $this;
     }
