@@ -31,9 +31,9 @@ interface BlueDotInterface
      */
     public function setConfiguration(string $configSource) : BlueDotInterface;
     /**
-     * @return API
+     * @return APIInterface
      */
-    public function api() : API;
+    public function api() : APIInterface;
     /**
      * @param string $apiName
      * @return BlueDotInterface

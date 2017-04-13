@@ -20,10 +20,10 @@ class API implements APIInterface
     private $api = array();
     /**
      * @param string $resource
-     * @return API
+     * @return APIInterface
      * @throws APIException
      */
-    public function putAPI(string $resource) : API
+    public function putAPI(string $resource) : APIInterface
     {
         if (!is_file($resource) and !is_dir($resource)) {
             throw new APIException(
