@@ -178,9 +178,9 @@ class BlueDot implements BlueDotInterface
         return new StatementBuilder($this->connection);
     }
     /**
-     * @return API
+     * @return APIInterface
      */
-    public function api() : API
+    public function api() : APIInterface
     {
         if ($this->api instanceof API) {
             return $this->api;

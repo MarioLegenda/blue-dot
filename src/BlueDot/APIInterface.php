@@ -15,6 +15,11 @@ interface APIInterface
      */
     public function useAPI(string $apiName) : string;
     /**
+     * @param string $apiName
+     * @return bool
+     */
+    public function hasAPI(string $apiName) : bool;
+    /**
      * @return array
      */
     public function getWorkingAPIs() : array;

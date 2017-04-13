@@ -57,6 +57,14 @@ class API implements APIInterface
         return $this->api[$apiName];
     }
     /**
+     * @param string $apiName
+     * @return bool
+     */
+    public function hasAPI(string $apiName) : bool
+    {
+        return array_key_exists($apiName, $this->api);
+    }
+    /**
      * @return array
      */
     public function getWorkingAPIs() : array
