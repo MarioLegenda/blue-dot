@@ -7,11 +7,9 @@ use BlueDot\Database\Connection;
 use BlueDot\Common\ArgumentBag;
 
 use BlueDot\Exception\BlueDotRuntimeException;
-use BlueDot\Entity\Entity;
 use BlueDot\Database\Parameter\Parameter;
 use BlueDot\Result\InsertQueryResult;
 use BlueDot\Result\MultipleInsertQueryResult;
-use BlueDot\Result\NullQueryResult;
 use BlueDot\Result\ResultReportContext;
 
 class RecursiveStatementExecution implements StrategyInterface
@@ -108,6 +106,8 @@ class RecursiveStatementExecution implements StrategyInterface
                     );
 
                     $recursiveStatementExecution->execute($statements);
+
+                    unset($recursiveStatementExecution);
                 }
 
                 $result = $this->resultReport->get($foreignKeyStatement->get('resolved_statement_name'));
@@ -276,6 +276,8 @@ class RecursiveStatementExecution implements StrategyInterface
 
                 $result = $recursiveStatementExecution->execute($statements)->getResult();
 
+                unset($recursiveStatementExecution);
+
                 $this->resultReport->add($useStatement->get('resolved_statement_name'), $result, true);
             }
 
@@ -312,6 +314,8 @@ class RecursiveStatementExecution implements StrategyInterface
                 );
 
                 $result = $recursiveStatementExecution->execute($statements)->getResult();
+
+                unset($recursiveStatementExecution);
 
                 $this->resultReport->add($foreignKeyStatement->get('resolved_statement_name'), $result, true);
             }

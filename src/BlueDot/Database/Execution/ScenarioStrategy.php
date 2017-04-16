@@ -50,6 +50,8 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
                         );
 
                         $recursiveStatementExecution->execute($this->statements);
+
+                        unset($recursiveStatementExecution);
                     }
 
                     $existsResult = $this->resultReport->get($existsStatement->get('resolved_statement_name'));
@@ -82,6 +84,8 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
                 );
 
                 $recursiveStatementExecution->execute($this->statements);
+
+                unset($recursiveStatementExecution);
 
             } catch (\PDOException $e) {
                 if ($this->connection->getPDO()->inTransaction()) {
