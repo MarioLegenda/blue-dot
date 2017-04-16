@@ -16,7 +16,7 @@ abstract class AbstractImport implements ImportInterface
      */
     public function __construct(string $file)
     {
-        $parsed = Yaml::parse($file);
+        $parsed = Yaml::parse(file_get_contents($file));
 
         if (!is_array($parsed)) {
             return;
