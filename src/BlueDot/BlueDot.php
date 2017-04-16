@@ -10,7 +10,9 @@ use BlueDot\Configuration\Import\ImportCollection;
 use BlueDot\Configuration\Validator\ConfigurationValidator;
 use BlueDot\Database\Connection;
 
-use BlueDot\Database\Execution\{ CallableStrategy, ExecutionContext };
+use BlueDot\Database\Execution\{
+    CallableStrategy, ExecutionContext, PreparedExecution
+};
 
 use BlueDot\Entity\Promise;
 use BlueDot\Entity\PromiseInterface;
@@ -35,6 +37,10 @@ class BlueDot implements BlueDotInterface
      * @var Connection $connection
      */
     private $connection;
+    /**
+     * @var PreparedExecution $preparedExecution
+     */
+    private $preparedExecution;
     /**
      * @var API $api
      */
@@ -90,18 +96,7 @@ class BlueDot implements BlueDotInterface
      */
     public function execute(string $name, $parameters = array(), bool $cache = true) : PromiseInterface
     {
-        if (!$this->connection instanceof Connection) {
-            throw new ConnectionException(
-                sprintf('No connection present. If you constructed BlueDot without configuration, then you have to provide a connection object with %s that accepts an %s object',
-                    BlueDotInterface::class,
-                    Connection::class
-                )
-            );
-        }
-
-        if (!$this->compiler instanceof Compiler) {
-            throw new BlueDotRuntimeException('Configuration does not exist. You have not constructed BlueDot with a configuration file. Only statement builder can be used at this point');
-        }
+        $this->doBasicExecutionCheck();
 
         $statement = $this->compiler->compile($name);
 
@@ -118,7 +113,11 @@ class BlueDot implements BlueDotInterface
 
             $strategy = $callableStrategy->execute();
 
-            return new Promise($strategy->getResult());
+            $promise = new Promise($strategy->getResult());
+
+            $promise->setName($statement->get('resolved_statement_name'));
+
+            return $promise;
         }
 
         if (!$statement->has('connection')) {
@@ -127,7 +126,10 @@ class BlueDot implements BlueDotInterface
 
         $context = new ExecutionContext($statement, $parameters, $cache);
 
-        return $context->runTasks()->createPromise();
+        return $context
+            ->runTasks()
+            ->executeStrategy()
+            ->getPromise();
     }
     /**
      * @param Connection $connection
@@ -210,6 +212,55 @@ class BlueDot implements BlueDotInterface
 
         return $this;
     }
+    /**
+     * @param string $name
+     * @param array $parameters
+     * @param bool $cache
+     * @return BlueDotInterface
+     * @throws BlueDotRuntimeException
+     */
+    public function prepareExecution(string $name, $parameters = array(), bool $cache = true) : BlueDotInterface
+    {
+        $this->doBasicExecutionCheck();
+
+        $statement = $this->compiler->compile($name);
+
+        if ($statement->get('type') !== 'simple') {
+            throw new BlueDotRuntimeException(
+                sprintf(
+                    'Invalid prepared execution statement \'%s\'. Only simple statements can be prepared for execution',
+                    $statement->get('resolved_statement_name')
+                )
+            );
+        }
+
+        if (!$this->preparedExecution instanceof PreparedExecution) {
+            $this->preparedExecution = $this->createPreparedExecution();
+        }
+
+        if (!$statement->has('connection')) {
+            $statement->add('connection', $this->connection);
+        }
+
+        $executionContext = new ExecutionContext($statement, $parameters, $cache);
+
+        $executionContext->runTasks();
+
+        $this->preparedExecution->addStrategy($name, $executionContext->getStrategy());
+
+        return $this;
+    }
+    /**
+     * @return array
+     */
+    public function executePrepared() : array
+    {
+        $promises = $this->preparedExecution->execute()->getPromises();
+
+        $this->preparedExecution->clear();
+
+        return $promises;
+    }
 
     private function initBlueDot($configSource = null, Connection $connection = null)
     {
@@ -271,5 +322,26 @@ class BlueDot implements BlueDotInterface
         }
 
         return null;
+    }
+
+    private function doBasicExecutionCheck()
+    {
+        if (!$this->connection instanceof Connection) {
+            throw new ConnectionException(
+                sprintf('No connection present. If you constructed BlueDot without configuration, then you have to provide a connection object with %s that accepts an %s object',
+                    BlueDotInterface::class,
+                    Connection::class
+                )
+            );
+        }
+
+        if (!$this->compiler instanceof Compiler) {
+            throw new BlueDotRuntimeException('Configuration does not exist. You have not constructed BlueDot with a configuration file. Only statement builder can be used at this point');
+        }
+    }
+
+    private function createPreparedExecution() : PreparedExecution
+    {
+        return new PreparedExecution($this->connection);
     }
 }

@@ -7,6 +7,7 @@ use Test\Components\ComponentRunner;
 use Test\Components\VocalloApi;
 use Test\Components\VocalloConnection;
 use Test\Components\VocalloDatabase;
+use Test\Components\VocalloPreparedExecution;
 use Test\Components\VocalloScenario;
 use Test\Components\VocalloSeed;
 use Test\Components\VocalloSimple;
@@ -22,6 +23,7 @@ class ComponentTest extends \PHPUnit_Framework_TestCase
         $componentRunner
             ->addComponent(VocalloDatabase::class)
             ->addComponent(VocalloSeed::class)
+            ->addComponent(VocalloPreparedExecution::class)
             ->addComponent(VocalloApi::class)
             ->addComponent(VocalloSimple::class)
             ->addComponent(VocalloConnection::class)

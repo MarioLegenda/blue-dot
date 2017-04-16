@@ -5,6 +5,10 @@ namespace BlueDot\Entity;
 class Promise implements PromiseInterface
 {
     /**
+     * @var string $name
+     */
+    private $name;
+    /**
      * @var Entity|object|null $entity
      */
     private $entity;
@@ -83,6 +87,21 @@ class Promise implements PromiseInterface
         }
 
         return $this;
+    }
+    /**
+     * @param string $name
+     * @return string
+     */
+    public function setName(string $name)
+    {
+        return $this->name;
+    }
+    /**
+     * @return string|null
+     */
+    public function getName()
+    {
+        return $this->name;
     }
     /**
      * @return bool

@@ -33,6 +33,14 @@ class ExecutionContext
      */
     private $cache;
     /**
+     * @var StrategyInterface $strategy
+     */
+    private $strategy;
+    /**
+     * @var PromiseInterface
+     */
+    private $promise;
+    /**
      * @var Entity $result
      */
     private $result;
@@ -90,21 +98,99 @@ class ExecutionContext
             }
         }
 
-        $strategy = $this->createStrategy();
+        return $this;
+    }
+    /**
+     * @return ExecutionContext
+     */
+    public function createStrategy() : ExecutionContext
+    {
+        if (!$this->strategy instanceof StrategyInterface) {
+            $this->strategy = $this->doCreateStrategy();
+        }
 
-        $this->result = $strategy->execute()->getResult();
+        return $this;
+    }
+    /**
+     * @return StrategyInterface
+     */
+    public function getStrategy() : StrategyInterface
+    {
+        if (!$this->strategy instanceof StrategyInterface) {
+            $this->createStrategy();
+        }
+
+        return $this->strategy;
+    }
+    /**
+     * @return ExecutionContext
+     * @throws BlueDotRuntimeException
+     */
+    public function createPromise() : ExecutionContext
+    {
+        if (is_null($this->result)) {
+            throw new BlueDotRuntimeException(
+                sprintf(
+                    'Invalid execution context. Statement %s has not been executed promise cannot be constructed. This is a bug. Please, contact whitepostmail@gmail.com or post an issue on Github',
+                    $this->statement->get('resolved_statement_name')
+                )
+            );
+        }
+
+        if (!$this->promise instanceof PromiseInterface) {
+            $this->promise = $this->doCreatePromise();
+        }
 
         return $this;
     }
     /**
      * @return PromiseInterface
      */
-    public function createPromise() : PromiseInterface
+    public function getPromise() : PromiseInterface
     {
-        return new Promise($this->result);
+        if (!$this->promise instanceof PromiseInterface) {
+            $this->createPromise();
+        }
+
+        return $this->promise;
     }
 
-    private function createStrategy() : StrategyInterface
+    public function executeStrategy() : ExecutionContext
+    {
+        $this->createStrategy();
+
+        if (!$this->strategy instanceof StrategyInterface) {
+            throw new BlueDotRuntimeException(
+                sprintf(
+                    'Invalid execution context. Strategy for statement %s has not been constructed. This is a bug. Please, contact whitepostmail@gmail.com or post an issue on Github',
+                    $this->statement->get('resolved_statement_name')
+                )
+            );
+        }
+
+        $this->result = $this->strategy->execute()->getResult();
+
+        return $this;
+    }
+
+    private function doCreatePromise() : PromiseInterface
+    {
+        $promise = new Promise($this->result);
+
+        $resolvedStatementName = null;
+
+        if ($this->statement->get('type') === 'scenario') {
+            $resolvedStatementName = sprintf('scenario.%s', $this->statement->get('root_config')->get('scenario_name'));
+        } else {
+            $resolvedStatementName = $this->statement->get('resolved_statement_name');
+        }
+
+        $promise->setName($resolvedStatementName);
+
+        return $promise;
+    }
+
+    private function doCreateStrategy() : StrategyInterface
     {
         $type = $this->statement->get('type');
 

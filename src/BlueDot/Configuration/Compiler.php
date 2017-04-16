@@ -369,7 +369,8 @@ class Compiler
                 $subConfig
                     ->add('type', 'callable')
                     ->add('data_type', $config['type'])
-                    ->add('name', $config['name']);
+                    ->add('name', $config['name'])
+                    ->add('resolved_statement_name', sprintf('callable.%s', $config['name']));
 
                 $callableConfig->add('callable.'.$key, $subConfig);
 

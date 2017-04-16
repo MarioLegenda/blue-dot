@@ -140,7 +140,12 @@ class StatementBuilder
 
         $context = new ExecutionContext($this->statement, null, false);
 
-        return $context->runTasks()->createPromise();
+        return $context
+            ->runTasks()
+            ->createStrategy()
+            ->executeStrategy()
+            ->createPromise()
+            ->getPromise();
     }
 
     private function resolveSqlType(string $sql) : string

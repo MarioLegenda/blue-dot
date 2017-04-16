@@ -4,11 +4,8 @@ namespace BlueDot\Database\Execution;
 
 use BlueDot\Cache\CacheStorage;
 use BlueDot\Common\ArgumentBag;
-use BlueDot\Common\StorageInterface;
 use BlueDot\Database\Parameter\Parameter;
-use BlueDot\Database\Parameter\ParameterCollection;
 use BlueDot\Entity\Entity;
-use BlueDot\Entity\EntityCollection;
 use BlueDot\Entity\ModelConverter;
 use BlueDot\Exception\BlueDotRuntimeException;
 
@@ -29,10 +26,6 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
 
             $insertType = $this->statement->get('query_strategy');
 
-            if (!$this->connection->getPDO()->inTransaction()) {
-                $this->connection->getPDO()->beginTransaction();
-            }
-
             switch ($insertType) {
                 case 'individual_strategy':
                     $this->individualStatement();
@@ -44,17 +37,9 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
                     $this->multiStrategyStatement();
             }
 
-            if ($this->connection->getPDO()->inTransaction()) {
-                $this->connection->getPDO()->commit();
-            }
-
             return $this;
         } catch (\PDOException $e) {
             $message = sprintf('A PDOException was thrown for statement %s with message \'%s\'', $this->statement->get('resolved_statement_name'), $e->getMessage());
-
-            if ($this->connection->getPDO()->inTransaction()) {
-                $this->connection->getPDO()->rollBack();
-            }
 
             throw new BlueDotRuntimeException($message);
         }

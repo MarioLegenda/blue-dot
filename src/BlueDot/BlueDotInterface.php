@@ -39,4 +39,15 @@ interface BlueDotInterface
      * @return BlueDotInterface
      */
     public function useApi(string $apiName) : BlueDotInterface;
+    /**
+     * @param string $name
+     * @param array $parameters
+     * @param bool $cache
+     * @return BlueDotInterface
+     */
+    public function prepareExecution(string $name, $parameters = array(), bool $cache = true) :  BlueDotInterface;
+    /**
+     * @return array
+     */
+    public function executePrepared() : array;
 }
