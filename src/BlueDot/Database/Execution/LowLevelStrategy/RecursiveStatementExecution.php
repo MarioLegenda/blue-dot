@@ -11,6 +11,7 @@ use BlueDot\Database\Parameter\Parameter;
 use BlueDot\Result\InsertQueryResult;
 use BlueDot\Result\MultipleInsertQueryResult;
 use BlueDot\Result\ResultReportContext;
+use BlueDot\Result\SelectQueryResult;
 
 class RecursiveStatementExecution implements StrategyInterface
 {
@@ -283,9 +284,19 @@ class RecursiveStatementExecution implements StrategyInterface
 
             $useOptionResult = $this->resultReport->get($useStatement->get('resolved_statement_name'));
 
+            if (!$useOptionResult instanceof SelectQueryResult) {
+                throw new BlueDotRuntimeException(
+                    sprintf(
+                        'Invalid use option result in statement \'%s\' that has use option statement \'%s\'. A use option query can only be a select query, cannot be empty and can only return a single row result. In cases where you don\'t know if the result will exist, add an \'if_exists\' option',
+                        $this->statement->get('resolved_statement_name'),
+                        $useStatement->get('resolved_statement_name')
+                    )
+                );
+            }
+
             if (!$useOptionResult->getMetadata()->isOneRow()) {
                 throw new BlueDotRuntimeException(sprintf(
-                    'Results of \'use\' statements can only return one row and cannot be empty for statement \'%s\'',
+                    'Invalid use option result. Results of \'use\' statements can only return one row and cannot be empty for statement \'%s\'',
                     $useStatement->get('resolved_statement_name')
                 ));
             }
