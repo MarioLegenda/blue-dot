@@ -27,6 +27,10 @@ class SelectContext implements ContextInterface
     {
         $queryResult = $this->pdoStatement->fetchAll(\PDO::FETCH_ASSOC);
 
+        if (empty($queryResult)) {
+            return new NullQueryResult();
+        }
+
         return new SelectQueryResult($queryResult, new RowMetadata($queryResult));
     }
 }

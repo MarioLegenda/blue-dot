@@ -36,7 +36,9 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
             try {
                 if ($statement->has('if_exists') or $statement->has('if_not_exists')) {
 
-                    $existsStatement = $this->statements->get($statement->get('scenario_name').'.'.$statement->get('if_exists'));
+                    $existsType = ($statement->has('if_exists')) ? 'if_exists' : 'if_not_exists';
+
+                    $existsStatement = $this->statements->get($statement->get('scenario_name').'.'.$statement->get($existsType));
 
                     if ($existsStatement->has('has_to_execute')) {
                         continue;
@@ -98,7 +100,7 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
                     $this->connection->getPDO()->rollBack();
                 }
 
-                throw new BlueDotRuntimeException($e->getMessage());
+                throw new BlueDotRuntimeException($e->getMessage().' Stack trace: '.$e->getTraceAsString());
             }
         }
 

@@ -13,6 +13,20 @@ class VocalloScenario extends AbstractTestComponent
 
         $this->blueDot->execute('callable.callable_service');
 
+        $promise = $this->blueDot->execute('scenario.update_working_language', array(
+            'find_working_language' => array(
+                'user_id' => 1,
+            ),
+            'create_working_language' => array(
+                'user_id' => 1,
+                'language_id' => 1,
+            ),
+            'update_working_language' => array(
+                'user_id' => 1,
+                'language_id' => 1,
+            ),
+        ));
+
         $this->blueDot->execute('scenario.only_selects', array(
             'select_first_language' => array('id' => 1),
             'select_second_language' => array('id' => 2),
@@ -85,19 +99,6 @@ class VocalloScenario extends AbstractTestComponent
             $this->phpunit->assertEquals(2, $result->get('remove_translations')->get('row_count'), 'scenario.remove_word.remove_translation should only remove 2 rows');
             $this->phpunit->assertEquals(1, $result->get('remove_word')->get('row_count'), 'scenario.remove_word.remove_word should only remove 1 row');
         }
-
-        $this->blueDot->execute('scenario.create_course', array(
-            'create_course' => array(
-                'name' => 'Some name',
-            ),
-        ))->success(function(PromiseInterface $promise) {
-            $result = $promise->getResult();
-
-            $this->phpunit->assertInternalType('int', $result->get('create_course')->get('last_insert_id'), 'scenario.create_course.create_course should have inserted a row. Invalid last_insert_id returned');
-            $this->phpunit->assertEquals(1, $result->get('create_course')->get('row_count'), 'scenario.create_course.create_course should have only inserted only 1 row');
-        })->failure(function() {
-            $this->phpunit->fail('scenario.create_course failed');
-        });
 
         $translations = $this->blueDot
             ->createStatementBuilder()

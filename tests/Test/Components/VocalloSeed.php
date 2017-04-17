@@ -139,14 +139,5 @@ class VocalloSeed extends AbstractTestComponent
                 'translation' => $faker->words(rand(1, 25)),
             ),
         ));
-
-        $finish = time() - $start;
-
-        $inserts++;
-
-        $blueDot->execute('simple.update.update_working_language', array(
-            'working_language' => 1,
-            'id' => 1,
-        ));
     }
 }
