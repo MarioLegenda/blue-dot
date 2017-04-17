@@ -100,7 +100,7 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
                     $this->connection->getPDO()->rollBack();
                 }
 
-                throw new BlueDotRuntimeException($e->getMessage().' Stack trace: '.$e->getTraceAsString());
+                throw new BlueDotRuntimeException($e->getMessage());
             }
         }
 
