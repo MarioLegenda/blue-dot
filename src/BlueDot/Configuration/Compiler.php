@@ -103,8 +103,9 @@ class Compiler
         } else if (!array_key_exists($type, $this->builtConfiguration)) {
             throw new CompileException(
                 sprintf(
-                    'Statement \'%s\' could not be found',
-                    $name
+                    'Statement \'%s\' could not be found. You haven\'t provided any configuration for %s statements',
+                    $name,
+                    $type
                 )
             );
         }
