@@ -471,6 +471,18 @@ configuration:
                     sql: "CREATE TABLE lesson_sentences (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, internal_name VARCHAR(255) NOT NULL, sentence_id INT(6) NOT NULL, lesson_id INT(6) NOT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"
                 create_lesson_sentence_translation_table:
                     sql: "CREATE TABLE lesson_sentences_translations (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, lesson_sentence_id VARCHAR(255) NOT NULL, translation VARCHAR(255) NOT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"
+        find_words:
+            atomic: true
+            return_data: [select_all_words]
+            statements:
+                find_working_language:
+                    sql: "SELECT language_id FROM user_working_languages WHERE user_id = :user_id AND working_language = 1"
+                    parameters: [user_id]
+                select_all_words:
+                    sql: "SELECT * FROM words WHERE language_id = :language_id"
+                    use:
+                        statement_name: find_working_language
+                        values: { find_working_language.language_id: language_id }
 
     callable:
         callable_service:

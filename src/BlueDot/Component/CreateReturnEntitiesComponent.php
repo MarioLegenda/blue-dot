@@ -42,6 +42,9 @@ class CreateReturnEntitiesComponent
     {
         $entity = new Entity();
 
+        /**
+         *  $return entity is BlueDot\Database\Scenario\ReturnData
+         */
         foreach ($this->returnEntities as $returnEntity) {
             $statementName = $returnEntity->getStatementName();
             $resolvedStatementName = 'scenario.'.$this->scenarioName.'.'.$statementName;
@@ -54,7 +57,7 @@ class CreateReturnEntitiesComponent
                 }
 
                 if (!$returnEntity->hasColumnName()) {
-                    $entity->add($statementName, $query);
+                    $entity->add($statementName, $query->getQueryResult());
 
                     continue;
                 }
