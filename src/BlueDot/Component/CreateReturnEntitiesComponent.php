@@ -58,6 +58,7 @@ class CreateReturnEntitiesComponent
 
                 if (!$returnEntity->hasColumnName()) {
                     $entity->add($statementName, $query->getQueryResult());
+                    $entity->add('metadata', $query->getMetadata());
 
                     continue;
                 }

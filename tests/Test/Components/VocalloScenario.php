@@ -13,12 +13,6 @@ class VocalloScenario extends AbstractTestComponent
 
         $this->blueDot->execute('callable.callable_service');
 
-        $promise = $this->blueDot->execute('scenario.find_words', array(
-            'find_working_language' => array(
-                'user_id' => 1,
-            ),
-        ));
-
         $promise = $this->blueDot->execute('scenario.update_working_language', array(
             'find_working_language' => array(
                 'user_id' => 1,
