@@ -7,6 +7,7 @@ use BlueDot\Configuration\Import\ImportCollection;
 use BlueDot\Configuration\Import\SqlImport;
 use BlueDot\Configuration\Validator\ConfigurationValidator;
 use BlueDot\Entity\Model;
+use BlueDot\Exception\BlueDotRuntimeException;
 use BlueDot\Exception\CompileException;
 
 use BlueDot\Common\{ ArgumentBag, ArgumentValidator, ValidatorInterface};
@@ -95,8 +96,17 @@ class Compiler
 
         $type = $this->argumentValidator->getType();
 
-        if ($this->builtConfiguration[$type]->has($name)) {
-            return $this->builtConfiguration[$type]->get($name);
+        if (array_key_exists($type, $this->builtConfiguration)) {
+            if ($this->builtConfiguration[$type]->has($name)) {
+                return $this->builtConfiguration[$type]->get($name);
+            }
+        } else if (!array_key_exists($type, $this->builtConfiguration)) {
+            throw new CompileException(
+                sprintf(
+                    'Statement \'%s\' could not be found',
+                    $name
+                )
+            );
         }
 
         $method = 'compile'.ucfirst($type).'Statement';
