@@ -2,6 +2,7 @@
 
 namespace Test\Components;
 
+use BlueDot\Entity\Entity;
 use BlueDot\Entity\PromiseInterface;
 use BlueDot\BlueDot;
 
@@ -13,7 +14,22 @@ class VocalloScenario extends AbstractTestComponent
 
         $this->blueDot->execute('callable.callable_service');
 
-        $promise = $this->blueDot->execute('scenario.update_working_language', array(
+        $entity = $this->blueDot->execute('scenario.find_words', array(
+            'find_working_language' => array(
+                'user_id' => 1,
+            ),
+            'select_all_words' => array(
+                'language_id' => 1,
+            ),
+        ))->getResult();
+
+        $entity = new Entity($entity->get('select_all_words'));
+
+
+
+
+
+        $entity = $this->blueDot->execute('scenario.update_working_language', array(
             'find_working_language' => array(
                 'user_id' => 1,
             ),
@@ -25,7 +41,7 @@ class VocalloScenario extends AbstractTestComponent
                 'user_id' => 1,
                 'language_id' => 1,
             ),
-        ));
+        ))->getResult();
 
         $this->blueDot->execute('scenario.only_selects', array(
             'select_first_language' => array('id' => 1),

@@ -8,198 +8,62 @@ use BlueDot\Exception\EntityException;
 class Entity extends AbstractArgumentBag
 {
     /**
-     * @param array $findBy
-     * @return Entity|null
+     * @param string $column
+     * @param mixed $value
+     * @return array
      * @throws EntityException
+     *
+     * Finds multiple results by column and value and returns a an array
      */
-    public function findBy(array $findBy)
+    public function findBy(string $column, $value) : array
     {
-        $keys = array_keys($findBy);
-
-        foreach ($keys as $key) {
-            if (!is_string($key)) {
-                throw new EntityException(sprintf(
-                    'Invalid argument for Entity::findBy(). Argument should be a association array, not numeric array'
-                ));
-            }
-        }
-
-        foreach ($this->arguments as $argument) {
-            if (is_object($argument)) {
-                $resolvedArgument = array();
-
-                foreach ($findBy as $property => $value) {
-                    $method = 'get'.ucfirst($property);
-
-                    if (!method_exists($argument, $method)) {
-                        throw new EntityException(
-                            sprintf('Possible invalid model method. If you choose to return a specific model from a query, that model has to gave a \'get\' method for the property(s) which you specified in the findBy() method. For example, if you which to find by an id, the the model should have a getId() method')
-                        );
-                    }
-
-                    $resolvedArgument[$property] = $argument->{$method}();
-                }
-
-                $result = array_intersect_assoc($findBy, $resolvedArgument);
-
-                if (!empty($result) and count($findBy) === count($result)) {
-                    return $argument;
-                }
-            }
-
-            $result = array_intersect_assoc($findBy, $argument);
-
-            if (!empty($result) and count($findBy) === count($result)) {
-                return new Entity(array($argument));
-            }
-        }
-
-        return null;
+        return $this->doFindBy($column, $value);
     }
     /**
      * @param string $column
-     * @param string $value
+     * @param $value
+     * @throws EntityException
      * @return mixed
-     * @throws EntityException
+     *
+     * Finds a single result from an array of result by its value and returns a new Entity
      */
-    public function find(string $column, string $value)
+    public function find(string $column, $value)
     {
-        $result = $this->findBy(array(
-            $column => $value,
-        ));
-
-
-        if (count($result) === 1) {
-            return (new Entity($result))->normalizeIfOneExists();
-        }
-
-            if (count($result) > 1 or empty($result)) {
-            throw new EntityException(sprintf('Invalid return value. Entity::find() can only return one result. %d results found', count($result)));
-        }
-
-        return new Entity($result[0]);
+        return $this->doFind($column, $value);
     }
     /**
      * @param string $column
-     * @param \Closure|null $evaluation
      * @param string|null $alias
-     * @return Entity|null
+     * @return array
      * @throws EntityException
      */
-    public function extract(string $column, \Closure $evaluation = null, string $alias = null)
+    public function extractColumn(string $column, string $alias = null) : array
     {
-        $columns = array();
-        foreach ($this->arguments as $argument) {
-            if (is_object($argument)) {
-                $method = 'get'.ucfirst($column);
-
-                if (!method_exists($argument, $method)) {
-                    throw new EntityException(
-                        sprintf('Possible invalid model method. If you choose to extract values from a specific model from a query, that model has to gave a \'get\' method for the property(s) which you specified in the findBy() method. For example, if you which to find by an id, the the model should have a getId() method')
-                    );
-                }
-
-                $columns[$column][] = $argument->{$method}();
-
-                continue;
-            }
-
-            if (array_key_exists($column, $argument)) {
-                if ($evaluation instanceof \Closure) {
-                    if ($evaluation->__invoke($argument) === true) {
-                        $value = $argument[$column];
-
-                        if (is_object($argument)) {
-                            $method = 'get'.ucfirst($column);
-
-                            if (!method_exists($argument, $method)) {
-                                throw new EntityException(
-                                    sprintf('Possible invalid model method. If you choose to extract values from a specific model from a query, that model has to gave a \'get\' method for the property(s) which you specified in the findBy() method. For example, if you which to find by an id, the the model should have a getId() method')
-                                );
-                            }
-
-                            $value = $argument->{$method}();
-                        }
-
-                        if (is_string($alias)) {
-                            $columns[$alias][] = $value;
-                        } else {
-                            $columns[$column][] = $value;
-                        }
-                    }
-
-                    continue;
-                }
-
-                $columns[$column][] = $argument[$column];
-            }
-        }
-
-        if (empty($columns)) {
-            return null;
-        }
-
-        return new Entity($columns);
+        return $this->doExtractColumn($column, $alias);
     }
     /**
-     * @param array $arrangeColumns
-     * @param \Closure|null $evaluation
-     * @param string|null $alias
-     * @return $this|Entity
+     * @param array $grouping
+     * @param string $scenarioName
+     * @return array
      * @throws EntityException
      */
-    public function arrangeMultiples(array $arrangeColumns, \Closure $evaluation = null, string $alias = null)
+    public function normalizeJoinedResult(array $grouping, string $scenarioName = null)
     {
-        if (empty($arrangeColumns)) {
-            return $this;
-        }
-
-        $temp = array();
-        $arranged = false;
-        foreach ($this->arguments as $argument) {
-            $argumentKeys = array_keys($argument);
-
-            if (!$arranged) {
-                foreach ($argumentKeys as $argumentKey) {
-                    if (in_array($argumentKey, $arrangeColumns) === false) {
-                        $temp[$argumentKey] = $argument[$argumentKey];
-                    }
-                }
-
-                $arranged = true;
-            }
-
-            foreach ($arrangeColumns as $column) {
-                if (array_key_exists($column, $argument)) {
-                    if ($evaluation instanceof \Closure) {
-                        if ($evaluation->invoke($argument) === true) {
-                            if (is_string($alias)) {
-                                $temp[$alias][] = $argument[$column];
-                            } else {
-                                $temp[$column][] = $argument[$column];
-                            }
-                        }
-
-                        continue;
-                    }
-
-                    $temp[$column][] = $argument[$column];
-                }
-            }
-        }
-
-        if (empty($temp)) {
-            return null;
-        }
-
-        return new Entity($temp);
+        return $this->doNormalizedJoinedResult($grouping, $scenarioName);
     }
     /**
      * @return Entity
+     * @throws EntityException
      */
     public function normalizeIfOneExists() : Entity
     {
         if (count($this->arguments) === 1) {
+            if (is_object($this->arguments[0])) {
+                throw new EntityException(
+                    sprintf('Invalid argument. You cannot normalize an object in Entity::normalizeIfOneExists()')
+                );
+            }
+
             $firstKey = array_keys($this->arguments)[0];
 
             if (is_int($firstKey)) {
@@ -208,5 +72,164 @@ class Entity extends AbstractArgumentBag
         }
 
         return $this;
+    }
+
+    private function doExtractColumn(string $column, string $alias = null, array $replacementResult = null)
+    {
+        $result = array();
+
+        $arguments = $this->arguments;
+        if (!empty($replacementResult)) {
+            $arguments = $replacementResult;
+        }
+
+        foreach ($arguments as $argument) {
+            if (is_object($argument)) {
+                $method = 'get'.str_replace('_', '', ucwords($column, '_'));
+
+                if (!method_exists($argument, $method)) {
+                    throw new EntityException(
+                        sprintf(
+                            'Invalid method. Method \'s\' does not exist on object %s in Entity::extractColumn()',
+                            $method,
+                            get_class($argument)
+                        )
+                    );
+                }
+
+                $value = $argument->{$method}();
+
+                if (is_string($alias)) {
+                    $result[$alias][] = $value;
+                } else {
+                    $result[$column][] = $value;
+                }
+
+                continue;
+            }
+
+            if (array_key_exists($column, $argument)) {
+                if (is_string($alias)) {
+                    $result[$alias][] = $argument[$column];
+                } else {
+                    $result[$column][] = $argument[$column];
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    private function doFindBy(string $column, $value, array $replacementResult = null)
+    {
+        $arguments = $this->arguments;
+        if (!empty($replacementResult)) {
+            $arguments = $replacementResult;
+        }
+
+        $results = array();
+        foreach ($arguments as $argument) {
+            if (is_object($argument)) {
+                $method = 'get'.str_replace('_', '', ucwords($column, '_'));
+
+                if (!method_exists($argument, $method)) {
+                    throw new EntityException(
+                        sprintf(
+                            'Invalid method. Method \'s\' does not exist on object %s in Entity::findBy()',
+                            $method,
+                            get_class($argument)
+                        )
+                    );
+                }
+
+                $argValue = $argument->{$method}();
+
+                if ($argValue == $value) {
+                    $results[] = $argument;
+                }
+            }
+
+            if (array_key_exists($column, $argument)) {
+                $argValue = $argument[$column];
+
+                if ($argValue == $value) {
+                    $results[] = $argument;
+                }
+            }
+        }
+
+        return $results;
+    }
+
+    private function doNormalizedJoinedResult(array $grouping, string $scenarioName = null)
+    {
+        $arguments = $this->arguments;
+        if (!is_null($scenarioName)) {
+            $arguments = $this->get($scenarioName);
+        }
+
+        $grouping = new Grouping($grouping);
+
+        $traversedValues = array();
+        $result = array();
+        $temp = array();
+        foreach ($arguments as $argument) {
+            if (array_key_exists($grouping->getLinkingColumn(), $argument)) {
+                $linkingColumn = $grouping->getLinkingColumn();
+                $columnValue = $argument[$linkingColumn];
+                $columns = $grouping->getColumns();
+
+                if (in_array($columnValue, $traversedValues) === true) {
+                    continue;
+                }
+
+                $foundResults = $this->doFindBy($linkingColumn, $columnValue, $arguments);
+                $extracted = array();
+
+                foreach ($columns as $column) {
+                    $extractedColumnValues = $this->doExtractColumn($column, null, $foundResults);
+
+                    if (!empty($extractedColumnValues)) {
+                        $extracted[$column] = array($column => array_unique($extractedColumnValues[$column]));
+                    }
+                }
+
+                $argumentKeys = array_keys($argument);
+                $diff = array_diff($argumentKeys, $columns);
+
+                foreach ($diff as $c) {
+                    $temp[$c] = $argument[$c];
+                }
+
+                foreach ($extracted as $c => $e) {
+                    $temp[$c] = $e[$c];
+                }
+
+                $result[] = $temp;
+
+                $traversedValues[] = $columnValue;
+            }
+        }
+
+        return $result;
+    }
+
+    private function doFind(string $column, $value)
+    {
+        $result = $this->findBy($column, $value);
+
+        if (count($result) !== 1) {
+            throw new EntityException(
+                sprintf(
+                    'Invalid entity result. Entity::find() can only return a single result'
+                )
+            );
+        }
+
+        if (is_object($result[0])) {
+            return $result[0];
+        }
+
+        return $result;
     }
 }

@@ -54,29 +54,42 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
         $result = $this->resultReport->get($this->statement->get('resolved_statement_name'));
 
         if ($result instanceof Entity) {
+            $result->setName('simple');
             return $result;
         }
 
         $statementType = $this->statement->get('statement_type');
 
         if (is_null($result)) {
-            return new Entity();
+            return new Entity(null, 'simple');
         }
 
         if ($statementType === 'insert') {
-            return $this->createInsertResult();
+            $entity = $this->createInsertResult();
+
+            $entity->setName('simple');
+
+            return $entity;
         } else if ($statementType === 'select') {
-            return $this->createSelectResult();
+            $entity = $this->createSelectResult();
+
+            $entity->setName('simple');
+
+            return $entity;
         } else if ($statementType === 'update' or $statementType === 'delete') {
             $rowsAffected = $result[0];
 
             $entity = new Entity();
+
+            $entity->setName('simple');
 
             $entity->add('rows_affected', $rowsAffected);
 
             return $entity;
         } else {
             $entity = new Entity();
+
+            $entity->setName('simple');
 
             $entity->add('rows_affected', 0);
 

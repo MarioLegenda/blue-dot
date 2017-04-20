@@ -1,20 +1,44 @@
 <?php
 
-namespace Test\Components;
+namespace Test;
 
-use BlueDot\BlueDotInterface;
+use BlueDot\BlueDot;
 use BlueDot\Database\Connection;
 use Test\Model\Language;
 use BlueDot\Entity\PromiseInterface;
 use Test\Model\Category;
 
-require_once __DIR__.'/../../../vendor/fzaninotto/faker/src/autoload.php';
-
-class VocalloSeed extends AbstractTestComponent
+class Seed
 {
-    public function run()
+    /**
+     * @var Seed $instance
+     */
+    private static $instance;
+    /**
+     * @var bool $hasSeeded
+     */
+    private $hasSeeded = false;
+    /**
+     * @return Seed
+     */
+    public static function instance()
     {
-        $blueDot = $this->blueDot;
+        self::$instance = (self::$instance instanceof self) ? self::$instance : new self();
+
+        return self::$instance;
+    }
+
+    public function seed()
+    {
+        if ($this->hasSeeded === false) {
+            $this->hasSeeded = true;
+        }
+
+        if ($this->hasSeeded === true) {
+            return null;
+        }
+
+        $blueDot = new BlueDot(__DIR__.'/config/vocallo_user_db.yml');
 
         $faker = \Faker\Factory::create();
 
@@ -75,31 +99,32 @@ class VocalloSeed extends AbstractTestComponent
                         return $promise->getResult()->get('last_insert_id');
                     })->getResult();
 
-                $inserts++;
-
                 for ($i = 0; $i < 10; $i++) {
-                    $blueDot->execute('scenario.insert_word', array(
-                        'insert_word' => array(
-                            'language_id' => $languageId,
+                    $blueDot->execute('scenario.create_word', array(
+                        'find_working_language' => array(
+                            'user_id' => 1,
+                        ),
+                        'create_word' => array(
                             'word' => $faker->word,
                             'type' => $faker->company,
                         ),
-                        'insert_word_image' => array(
+                        'create_image' => array(
                             'relative_path' => 'relative_path',
                             'absolute_path' => 'absolute_path',
                             'file_name' => 'file_name',
                             'absolute_full_path' => 'absolute_full_path',
                             'relative_full_path' => 'relative_full_path',
                         ),
-                        'insert_translation' => array(
-                            'translation' => $faker->words(rand(1, 25)),
-                        ),
-                        'insert_word_category' => array(
+                        'create_word_categories' => array(
                             'category_id' => $categoryId,
+                        ),
+                        'create_translations' => array(
+                            'translation' => $faker->words(rand(1, 25)),
                         ),
                     ));
                 }
             }
         }
     }
+
 }

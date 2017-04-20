@@ -41,6 +41,7 @@ class CreateReturnEntitiesComponent
     public function createEntity() : Entity
     {
         $entity = new Entity();
+        $entity->setName('scenario');
 
         /**
          *  $return entity is BlueDot\Database\Scenario\ReturnData

@@ -1,35 +1,50 @@
 <?php
 
-namespace Test\Components;
+namespace Test;
 
-use BlueDot\BlueDotInterface;
 use BlueDot\Database\Connection;
-use Test\Model\Language;
 use BlueDot\Entity\PromiseInterface;
+use BlueDot\BlueDot;
+use Test\Model\Language;
 use Test\Model\Category;
 
-require_once __DIR__.'/../../../vendor/fzaninotto/faker/src/autoload.php';
-
-class VocalloSeed extends AbstractTestComponent
+class AbstractBlueDotTest extends \PHPUnit_Framework_TestCase
 {
-    public function run()
-    {
-        $blueDot = $this->blueDot;
+    protected $blueDot;
 
-        $faker = \Faker\Factory::create();
+    public function setUp()
+    {
+        $blueDot = new BlueDot(__DIR__.'/config/vocallo_user_db.yml');
 
         $connection = new Connection();
-        $connection
-            ->setDatabaseName('langland')
-            ->setHost('127.0.0.1')
-            ->setPassword('root')
-            ->setUser('root');
 
-        $connection->connect();
+        $connection
+            ->setUser('root')
+            ->setPassword('root')
+            ->setHost('127.0.0.1')
+            ->setDatabaseName('');
 
         $blueDot
-            ->setConnection($connection)
-            ->useApi('vocallo_user_db');
+            ->createStatementBuilder($connection)
+            ->addSql('DROP DATABASE IF EXISTS langland')
+            ->execute();
+
+        $blueDot
+            ->createStatementBuilder($connection)
+            ->addSql('CREATE DATABASE IF NOT EXISTS langland CHARACTER SET = \'utf8\' COLLATE = \'utf8_general_ci\'')
+            ->execute();
+
+        $blueDot->setConfiguration(__DIR__ . '/config/vocallo_user_db.yml');
+        $connection
+            ->close()
+            ->setDatabaseName('langland')
+            ->connect();
+
+        $blueDot->setConnection($connection);
+
+        $blueDot->execute('scenario.seed');
+
+        $faker = \Faker\Factory::create();
 
         $languages = array(
             'croatian',
@@ -75,31 +90,33 @@ class VocalloSeed extends AbstractTestComponent
                         return $promise->getResult()->get('last_insert_id');
                     })->getResult();
 
-                $inserts++;
-
                 for ($i = 0; $i < 10; $i++) {
-                    $blueDot->execute('scenario.insert_word', array(
-                        'insert_word' => array(
-                            'language_id' => $languageId,
+                    $blueDot->execute('scenario.create_word', array(
+                        'find_working_language' => array(
+                            'user_id' => 1,
+                        ),
+                        'create_word' => array(
                             'word' => $faker->word,
                             'type' => $faker->company,
                         ),
-                        'insert_word_image' => array(
+                        'create_image' => array(
                             'relative_path' => 'relative_path',
                             'absolute_path' => 'absolute_path',
                             'file_name' => 'file_name',
                             'absolute_full_path' => 'absolute_full_path',
                             'relative_full_path' => 'relative_full_path',
                         ),
-                        'insert_translation' => array(
-                            'translation' => $faker->words(rand(1, 25)),
-                        ),
-                        'insert_word_category' => array(
+                        'create_word_categories' => array(
                             'category_id' => $categoryId,
+                        ),
+                        'create_translations' => array(
+                            'translation' => $faker->words(rand(1, 25)),
                         ),
                     ));
                 }
             }
         }
+
+        $this->blueDot = $blueDot;
     }
 }

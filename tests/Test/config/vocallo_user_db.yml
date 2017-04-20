@@ -484,6 +484,37 @@ configuration:
                         statement_name: find_working_language
                         values: { find_working_language.language_id: language_id }
 
+        create_word:
+            atomic: true
+            statements:
+                find_working_language:
+                    sql: "SELECT language_id FROM user_working_languages WHERE user_id = :user_id AND working_language = 1"
+                    parameters: [user_id]
+                create_word:
+                    sql: "INSERT INTO words (language_id, word, type) VALUES (:language_id, :word, :type)"
+                    parameters: [word, type]
+                    use:
+                        statement_name: find_working_language
+                        values: { find_working_language.language_id: language_id }
+                create_image:
+                    sql: "INSERT INTO word_images (word_id, relative_path, absolute_path, file_name, absolute_full_path, relative_full_path) VALUES (:word_id, :relative_path, :absolute_path, :file_name, :absolute_full_path, :relative_full_path)"
+                    parameters: [relative_path, absolute_path, file_name, absolute_full_path, relative_full_path]
+                    foreign_key:
+                        statement_name: create_word
+                        bind_to: word_id
+                create_word_categories:
+                    sql: "INSERT INTO word_category (word_id, category_id) VALUES (:word_id, :category_id)"
+                    parameters: [category_id]
+                    foreign_key:
+                        statement_name: create_word
+                        bind_to: word_id
+                create_translations:
+                    sql: "INSERT INTO translations (word_id, translation) VALUES (:word_id, :translation)"
+                    parameters: [translation]
+                    foreign_key:
+                        statement_name: create_word
+                        bind_to: word_id
+
     callable:
         callable_service:
             type: object

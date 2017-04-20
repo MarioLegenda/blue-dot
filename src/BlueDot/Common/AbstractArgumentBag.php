@@ -32,6 +32,23 @@ abstract class AbstractArgumentBag implements StorageInterface, \IteratorAggrega
         }
     }
     /**
+     * @param string $name
+     * @return StorageInterface
+     */
+    public function setName(string $name) : StorageInterface
+    {
+        $this->name = $name;
+
+        return $this;
+    }
+    /**
+     * @return string|mixed
+     */
+    public function getName()
+    {
+        return $this->name;
+    }
+    /**
      * @param StorageInterface $storage
      * @param bool|false $overwrite
      */

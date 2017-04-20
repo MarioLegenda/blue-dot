@@ -1,8 +1,47 @@
 configuration:
+
+    sql_import: imports/language.yml
+
     simple:
         select:
-            find_language:
-                sql: "SELECT language FROM languages WHERE language = :language"
+            find_language_by_language:
+                sql: find_language_by_language
                 parameters: [language]
             find_all_languages:
-                sql: "SELECT * FROM languages"
+                sql: find_all_languages
+            find_language_by_id:
+                sql: find_language_by_id
+                parameters: [language_id]
+            find_working_language_by_user:
+                sql: find_working_language_by_user
+                parameters: [user_id]
+
+        insert:
+            create_language:
+                sql: create_language
+                parameters: [language]
+
+        update:
+            update_language_name:
+                sql: update_language_name
+                parameters: [language_id, language]
+
+    scenario:
+        update_working_language:
+            atomic: true
+            statements:
+                find_working_language:
+                    sql: scenario.update_working_language.find_working_language
+                    parameters: [user_id]
+                create_working_language:
+                    sql: scenario.update_working_language.create_working_language
+                    parameters: [user_id, language_id]
+                    if_not_exists: find_working_language
+                remove_working_language:
+                    sql: scenario.update_working_language.remove_working_language
+                    parameters: [user_id]
+                    if_exists: find_working_language
+                update_working_language:
+                    sql: scenario.update_working_language.update_working_language
+                    parameters: [user_id, language_id]
+                    if_exists: find_working_language
