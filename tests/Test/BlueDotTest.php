@@ -6,6 +6,11 @@ use BlueDot\Entity\PromiseInterface;
 
 class BlueDotTest extends AbstractBlueDotTest
 {
+    public function testSimpleStatements()
+    {
+        Seed::instance()->seed();
+    }
+
     public function testPreparedExecutions()
     {
         Seed::instance()->seed();

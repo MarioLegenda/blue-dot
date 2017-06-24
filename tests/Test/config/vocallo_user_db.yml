@@ -1,10 +1,4 @@
 configuration:
-    connection:
-        host: 127.0.0.1
-        database_name: 'langland'
-        user: 'root'
-        password: 'root'
-
     simple:
         select:
             # user

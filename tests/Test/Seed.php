@@ -30,14 +30,6 @@ class Seed
 
     public function seed()
     {
-        if ($this->hasSeeded === false) {
-            $this->hasSeeded = true;
-        }
-
-        if ($this->hasSeeded === true) {
-            return null;
-        }
-
         $blueDot = new BlueDot(__DIR__.'/config/vocallo_user_db.yml');
 
         $faker = \Faker\Factory::create();
