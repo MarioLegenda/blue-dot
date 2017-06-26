@@ -1,0 +1,116 @@
+configuration:
+    connection:
+        host: 127.0.0.1
+        user: 'root'
+        password: 'root'
+        database_name: 'blue_dot_test'
+
+    sql_import: 'import/import.yml'
+
+    simple:
+        select:
+            find_word:
+                sql: 'SELECT w.*, t.translation FROM words AS w INNER JOIN translations AS t ON w.id = t.word_id AND w.id = :word_id'
+                parameters: [word_id]
+
+        insert:
+            create_user:
+                sql: user.create_user
+                parameters: ['name', 'lastname', 'username']
+            create_language:
+                sql: language.create_language
+                parameters: [language]
+
+    scenario:
+        drop:
+            atomic: true
+            statements:
+                drop_users:
+                    sql: drop.users
+                drop_languages:
+                    sql: drop.languages
+                drop_word:
+                    sql: drop.words
+                drop_translation:
+                    sql: drop.translations
+        seed:
+            atomic: true
+            statements:
+                create_users_table:
+                    sql: "CREATE TABLE users (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) NOT NULL, lastname VARCHAR(255) NOT NULL, username VARCHAR(255) NOT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"
+                create_languages_table:
+                    sql: "CREATE TABLE languages (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, language VARCHAR(256) NOT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"
+                create_word_table:
+                    sql: "CREATE TABLE words (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, user_id INT NOT NULL, language_id INT(6) NOT NULL, word VARCHAR(256) NOT NULL, type VARCHAR(256) DEFAULT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"
+                create_translations_table:
+                    sql: "CREATE TABLE translations (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, word_id INT(6) NOT NULL, translation VARCHAR(256) NOT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"
+
+        create_user_if_exists:
+            atomic: true
+            statements:
+                find_user:
+                    sql: 'SELECT * FROM users WHERE id = :user_id'
+                    parameters: [user_id]
+                    # no need for supplying parameters entry because parameters are resolved in use option
+                create_user:
+                    sql: 'INSERT INTO users (name, lastname, username) VALUES (:name, :lastname, :username)'
+                    if_exists: find_user
+                    use:
+                        statement_name: find_user
+                        values: { find_user.name: name, find_user.lastname: lastname, find_user.username: username }
+
+        create_user_if_not_exists:
+            atomic: true
+            statements:
+                find_user:
+                    sql: 'SELECT * FROM users WHERE id = :user_id'
+                    parameters: [user_id]
+                    # no need for supplying parameters entry because parameters are resolved in use option
+                create_user:
+                    sql: 'INSERT INTO users (name, lastname, username) VALUES (:name, :lastname, :username)'
+                    parameters: [name, lastname, username]
+                    if_not_exists: find_user
+
+        create_word:
+            atomic: true
+            statements:
+                find_user:
+                    sql: 'SELECT * FROM users WHERE id = :user_id'
+                    parameters: [user_id]
+                create_language:
+                    sql: 'INSERT INTO languages (language) VALUES (:language)'
+                    parameters: [language]
+                create_word:
+                    sql: 'INSERT INTO words (user_id, language_id, word, type) VALUES (:user_id, :language_id, :word, :type)'
+                    parameters: [word, type]
+                    use:
+                        statement_name: find_user
+                        values: { find_user.id: user_id }
+                    foreign_key:
+                        statement_name: create_language
+                        bind_to: language_id
+
+        create_word_translation:
+            atomic: true
+            statements:
+                find_user:
+                    sql: 'SELECT * FROM users WHERE id = :user_id'
+                    parameters: [user_id]
+                create_language:
+                    sql: 'INSERT INTO languages (language) VALUES (:language)'
+                    parameters: [language]
+                create_word:
+                    sql: 'INSERT INTO words (user_id, language_id, word, type) VALUES (:user_id, :language_id, :word, :type)'
+                    parameters: [word, type]
+                    use:
+                        statement_name: find_user
+                        values: { find_user.id: user_id }
+                    foreign_key:
+                        statement_name: create_language
+                        bind_to: language_id
+                create_translation:
+                    sql: 'INSERT INTO translations (word_id, translation) VALUES (:word_id, :translation)'
+                    parameters: [translation]
+                    foreign_key:
+                        statement_name: create_word
+                        bind_to: word_id

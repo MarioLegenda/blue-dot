@@ -1,0 +1,50 @@
+configuration:
+    connection:
+        host: 127.0.0.1
+        user: 'root'
+        password: 'root'
+        database_name: 'blue_dot_test'
+
+    simple:
+        select:
+            find_user:
+                sql: 'SELECT * FROM users WHERE id = :user_id'
+                parameters: [user_id]
+            find_user_by_model:
+                sql: 'SELECT * FROM users WHERE id = :user_id'
+                parameters: [user_id]
+                model:
+                    object: Test\Model\User
+        insert:
+            create_user:
+                sql: 'INSERT INTO users (name, lastname, username) VALUES (:name, :lastname, :username)'
+                parameters: ['name', 'lastname', 'username']
+
+        update:
+            update_user:
+                sql: 'UPDATE users SET name = :name, lastname = :lastname, username = :username WHERE id = :user_id'
+                parameters: [name, lastname, username]
+
+    scenario:
+        drop:
+            atomic: true
+            statements:
+                drop_users:
+                    sql: "DROP TABLE IF EXISTS users"
+                drop_languages:
+                    sql: "DROP TABLE IF EXISTS languages"
+                drop_word:
+                    sql: "DROP TABLE IF EXISTS words"
+                drop_translation:
+                    sql: "DROP TABLE IF EXISTS translations"
+        seed:
+            atomic: true
+            statements:
+                create_users_table:
+                    sql: "CREATE TABLE users (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) NOT NULL, lastname VARCHAR(255) NOT NULL, username VARCHAR(255) NOT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"
+                create_languages_table:
+                    sql: "CREATE TABLE languages (id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY, language VARCHAR(256) NOT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"
+                create_word_table:
+                    sql: "CREATE TABLE words (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, language_id INT(6) NOT NULL, image_id INT(6) DEFAULT NULL, word VARCHAR(256) NOT NULL, type VARCHAR(256) DEFAULT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"
+                create_translations_table:
+                    sql: "CREATE TABLE translations (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, word_id INT(6) NOT NULL, translation VARCHAR(256) NOT NULL) CHARACTER SET utf8 COLLATE utf8_general_ci"

@@ -2,46 +2,70 @@
 
 namespace Test;
 
-use BlueDot\Database\Connection;
-use BlueDot\Entity\PromiseInterface;
 use BlueDot\BlueDot;
-use Test\Model\Language;
-use Test\Model\Category;
+use BlueDot\BlueDotInterface;
+use BlueDot\Database\Connection;
 
 class AbstractBlueDotTest extends \PHPUnit_Framework_TestCase
 {
-    protected $blueDot;
-
-    public function setUp()
+    public function testBase()
     {
-        $blueDot = new BlueDot(__DIR__.'/config/vocallo_user_db.yml');
+        $this->configurationConnectionTest();
+        $this->bareConnectionTest();
+    }
 
+    private function configurationConnectionTest()
+    {
+        $blueDot = $this->createEmptyBlueDot();
+
+        $blueDot->setConfiguration(__DIR__.'/config/connection_configuration.yml');
+
+        $this->assertInstanceOf(Connection::class, $blueDot->getConnection());
+
+        $connection = $blueDot->getConnection();
+
+        $connection->connect();
+
+        $this->assertInstanceOf(\PDO::class, $connection->getPDO());
+
+        $connection->close();
+    }
+
+    private function bareConnectionTest()
+    {
         $connection = new Connection();
-
         $connection
+            ->setHost('127.0.0.1')
             ->setUser('root')
             ->setPassword('root')
-            ->setHost('127.0.0.1')
             ->setDatabaseName('');
 
-        $blueDot
-            ->createStatementBuilder($connection)
-            ->addSql('DROP DATABASE IF EXISTS langland')
-            ->execute();
+        $blueDot = new BlueDot(null, $connection);
 
-        $blueDot
-            ->createStatementBuilder($connection)
-            ->addSql('CREATE DATABASE IF NOT EXISTS langland CHARACTER SET = \'utf8\' COLLATE = \'utf8_general_ci\'')
-            ->execute();
+        $this->assertInstanceOf(Connection::class, $blueDot->getConnection());
 
-        $blueDot->setConfiguration(__DIR__ . '/config/vocallo_user_db.yml');
-        $connection
-            ->close()
-            ->setDatabaseName('langland')
-            ->connect();
+        $connection->connect();
 
-        $blueDot->setConnection($connection);
+        $this->assertInstanceOf(\PDO::class, $connection->getPDO());
 
-        $this->blueDot = $blueDot;
+        $connection->close();
+    }
+
+    private function singletonTest()
+    {
+        $blueDot = BlueDot::instance(__DIR__.'/config/connection_configuration.yml');
+
+        $this->assertInstanceOf(BlueDot::class, $blueDot);
+
+        $blueDotSecond = BlueDot::instance(__DIR__.'/config/connection_configuration.yml');
+
+        $this->assertSame($blueDotSecond, $blueDot);
+
+        $blueDot->getConnection()->close();
+    }
+
+    private function createEmptyBlueDot() : BlueDotInterface
+    {
+        return new BlueDot();
     }
 }

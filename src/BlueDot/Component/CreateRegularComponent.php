@@ -68,9 +68,9 @@ class CreateRegularComponent
             }
 
             if ($report instanceof SelectQueryResult) {
-                $info = new ArgumentBag();
+                $info = new Entity($report->getQueryResult());
 
-                $entity->add($name, $report->getQueryResult());
+                $entity->add($name, $info);
             }
         }
 

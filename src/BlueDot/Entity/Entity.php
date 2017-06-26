@@ -49,7 +49,7 @@ class Entity extends AbstractArgumentBag
      */
     public function normalizeJoinedResult(array $grouping, string $scenarioName = null)
     {
-        return $this->doNormalizedJoinedResult($grouping, $scenarioName);
+        return $this->doNormalizeJoinedResult($grouping, $scenarioName);
     }
     /**
      * @return Entity
@@ -161,7 +161,7 @@ class Entity extends AbstractArgumentBag
         return $results;
     }
 
-    private function doNormalizedJoinedResult(array $grouping, string $scenarioName = null)
+    private function doNormalizeJoinedResult(array $grouping, string $scenarioName = null)
     {
         $arguments = $this->arguments;
         if (!is_null($scenarioName)) {

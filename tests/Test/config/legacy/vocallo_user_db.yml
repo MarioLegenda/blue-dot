@@ -185,7 +185,7 @@ configuration:
                 sql: "UPDATE languages SET working_language = :working_language AND id = :id"
                 parameters: [working_language, id]
             remove_working_language:
-                sql: "UPDATE languages SET working_language = 0 WHERE working_language = 1"
+                sql: "UPDATE user_working_languages SET working_language = 0 WHERE working_language = 1"
             schedule_word_removal:
                 sql: "UPDATE words SET schedule_removal = 1 WHERE id = :word_id"
                 parameters: [word_id]
@@ -412,17 +412,16 @@ configuration:
             atomic: true
             statements:
                 find_working_language:
-                    sql: "SELECT * FROM user_working_languages WHERE user_id = :user_id AND working_language = 1"
-                    parameters: [user_id]
+                    sql: "SELECT * FROM user_working_languages WHERE user_id = :user_id AND language_id = :language_id"
+                    parameters: [user_id, language_id]
                 create_working_language:
                     sql: "INSERT INTO user_working_languages (user_id, language_id, working_language) VALUES (:user_id, :language_id, 1)"
                     parameters: [user_id, language_id]
                     if_not_exists: find_working_language
                 update_working_language:
-                    sql: "UPDATE user_working_languages SET working_language = 5 WHERE user_id = :user_id AND language_id = :language_id"
+                    sql: "UPDATE user_working_languages SET working_language = 1 WHERE user_id = :user_id AND language_id = :language_id"
                     parameters: [user_id, language_id]
                     if_exists: find_working_language
-
 
         seed:
             atomic: true
