@@ -21,6 +21,10 @@ interface BlueDotInterface
      */
     public function setConnection(Connection $connection) : BlueDotInterface;
     /**
+     * @return Connection|null
+     */
+    public function getConnection();
+    /**
      * @param Connection|null $connection
      * @return StatementBuilder
      */

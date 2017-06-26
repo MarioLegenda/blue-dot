@@ -31,4 +31,8 @@ interface APIInterface
      * @return array
      */
     public function getDirs() : array;
+    /**
+     * @return string|null
+     */
+    public function getCurrentlyUsingAPI();
 }

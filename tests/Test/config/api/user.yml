@@ -1,0 +1,14 @@
+configuration:
+    connection:
+        host: 127.0.0.1
+        user: 'root'
+        password: 'root'
+        database_name: 'blue_dot_test'
+
+    sql_import: '../import/import.yml'
+
+    simple:
+        insert:
+            create_user:
+                sql: user.create_user
+                parameters: ['name', 'lastname', 'username']

@@ -84,6 +84,10 @@ class BlueDot implements BlueDotInterface
 
         $this->api()->putAPI($configSource);
 
+        $apiName = explode('.', (new \SplFileInfo($configSource))->getFilename())[0];
+
+        $this->api()->useAPI($apiName);
+
         $this->initBlueDot($configSource, $connection);
     }
     /**

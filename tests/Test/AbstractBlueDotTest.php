@@ -2,121 +2,70 @@
 
 namespace Test;
 
-use BlueDot\Database\Connection;
-use BlueDot\Entity\PromiseInterface;
 use BlueDot\BlueDot;
-use Test\Model\Language;
-use Test\Model\Category;
+use BlueDot\BlueDotInterface;
+use BlueDot\Database\Connection;
 
 class AbstractBlueDotTest extends \PHPUnit_Framework_TestCase
 {
-    protected $blueDot;
-
-    public function setUp()
+    public function testBase()
     {
-        $blueDot = new BlueDot(__DIR__.'/config/vocallo_user_db.yml');
+        $this->configurationConnectionTest();
+        $this->bareConnectionTest();
+    }
 
+    private function configurationConnectionTest()
+    {
+        $blueDot = $this->createEmptyBlueDot();
+
+        $blueDot->setConfiguration(__DIR__.'/config/connection_configuration.yml');
+
+        $this->assertInstanceOf(Connection::class, $blueDot->getConnection());
+
+        $connection = $blueDot->getConnection();
+
+        $connection->connect();
+
+        $this->assertInstanceOf(\PDO::class, $connection->getPDO());
+
+        $connection->close();
+    }
+
+    private function bareConnectionTest()
+    {
         $connection = new Connection();
-
         $connection
+            ->setHost('127.0.0.1')
             ->setUser('root')
             ->setPassword('root')
-            ->setHost('127.0.0.1')
             ->setDatabaseName('');
 
-        $blueDot
-            ->createStatementBuilder($connection)
-            ->addSql('DROP DATABASE IF EXISTS langland')
-            ->execute();
+        $blueDot = new BlueDot(null, $connection);
 
-        $blueDot
-            ->createStatementBuilder($connection)
-            ->addSql('CREATE DATABASE IF NOT EXISTS langland CHARACTER SET = \'utf8\' COLLATE = \'utf8_general_ci\'')
-            ->execute();
+        $this->assertInstanceOf(Connection::class, $blueDot->getConnection());
 
-        $blueDot->setConfiguration(__DIR__ . '/config/vocallo_user_db.yml');
-        $connection
-            ->close()
-            ->setDatabaseName('langland')
-            ->connect();
+        $connection->connect();
 
-        $blueDot->setConnection($connection);
+        $this->assertInstanceOf(\PDO::class, $connection->getPDO());
 
-        $blueDot->execute('scenario.seed');
+        $connection->close();
+    }
 
-        $faker = \Faker\Factory::create();
+    private function singletonTest()
+    {
+        $blueDot = BlueDot::instance(__DIR__.'/config/connection_configuration.yml');
 
-        $languages = array(
-            'croatian',
-            'english',
-            'french',
-            'spanish',
-            'german',
-            'italian',
-        );
+        $this->assertInstanceOf(BlueDot::class, $blueDot);
 
-        $languageModels = array();
+        $blueDotSecond = BlueDot::instance(__DIR__.'/config/connection_configuration.yml');
 
-        foreach ($languages as $language) {
-            $languageModels[] = (new Language())->setLanguage($language);
-        }
+        $this->assertSame($blueDotSecond, $blueDot);
 
-        $categories = array(
-            'nature',
-            'house',
-            'road',
-            'city',
-            'construction',
-            'programming',
-            'medicine',
-            'history',
-            'hardware',
-            'software',
-        );
+        $blueDot->getConnection()->close();
+    }
 
-        foreach ($languageModels as $languageModel) {
-            $languageId = $blueDot->execute('simple.insert.create_language', $languageModel)
-                ->success(function(PromiseInterface $promise) {
-                    return $promise->getResult()->get('last_insert_id');
-                })->getResult();
-
-            for ($a = 0; $a < 10; $a++) {
-                $category = new Category();
-                $category->setCategory($categories[$a]);
-                $category->setLanguageId($languageId);
-
-                $categoryId = $blueDot->execute('simple.insert.create_category', $category)
-                    ->success(function(PromiseInterface $promise) {
-                        return $promise->getResult()->get('last_insert_id');
-                    })->getResult();
-
-                for ($i = 0; $i < 10; $i++) {
-                    $blueDot->execute('scenario.create_word', array(
-                        'find_working_language' => array(
-                            'user_id' => 1,
-                        ),
-                        'create_word' => array(
-                            'word' => $faker->word,
-                            'type' => $faker->company,
-                        ),
-                        'create_image' => array(
-                            'relative_path' => 'relative_path',
-                            'absolute_path' => 'absolute_path',
-                            'file_name' => 'file_name',
-                            'absolute_full_path' => 'absolute_full_path',
-                            'relative_full_path' => 'relative_full_path',
-                        ),
-                        'create_word_categories' => array(
-                            'category_id' => $categoryId,
-                        ),
-                        'create_translations' => array(
-                            'translation' => $faker->words(rand(1, 25)),
-                        ),
-                    ));
-                }
-            }
-        }
-
-        $this->blueDot = $blueDot;
+    private function createEmptyBlueDot() : BlueDotInterface
+    {
+        return new BlueDot();
     }
 }

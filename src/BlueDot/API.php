@@ -15,6 +15,10 @@ class API implements APIInterface
      */
     private $dirs = array();
     /**
+     * @var null $currentlyUsingApi
+     */
+    private $currentlyUsingApi = null;
+    /**
      * @var array $api
      */
     private $api = array();
@@ -54,6 +58,8 @@ class API implements APIInterface
             );
         }
 
+        $this->currentlyUsingApi = $apiName;
+
         return $this->api[$apiName];
     }
     /**
@@ -84,6 +90,13 @@ class API implements APIInterface
     public function getDirs() : array
     {
         return $this->dirs;
+    }
+    /**
+     * @return string|null
+     */
+    public function getCurrentlyUsingAPI()
+    {
+        return $this->currentlyUsingApi;
     }
     /**
      * @param \SplFileInfo $resource

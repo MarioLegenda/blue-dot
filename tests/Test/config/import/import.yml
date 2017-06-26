@@ -1,0 +1,8 @@
+user.create_user: 'INSERT INTO users (name, lastname, username) VALUES (:name, :lastname, :username)'
+language.create_language: 'INSERT INTO languages (language) VALUES (:language)'
+
+drop:
+    users: "DROP TABLE IF EXISTS users"
+    languages: "DROP TABLE IF EXISTS languages"
+    words: "DROP TABLE IF EXISTS words"
+    translations: "DROP TABLE IF EXISTS translations"

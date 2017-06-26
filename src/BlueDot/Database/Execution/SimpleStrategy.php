@@ -73,7 +73,9 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
         } else if ($statementType === 'select') {
             $entity = $this->createSelectResult();
 
-            $entity->setName('simple');
+            if ($entity instanceof Entity) {
+                $entity->setName('simple');
+            }
 
             return $entity;
         } else if ($statementType === 'update' or $statementType === 'delete') {
@@ -215,15 +217,27 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
         $resultCount = count($result);
 
         if ($resultCount === 1) {
-            $entity->add('inserted_ids', $result);
-            $entity->add('last_insert_id', $result[0]);
+
+            if (is_numeric($result[0])) {
+                $result[0] = (int) $result[0];
+
+                $entity->add('inserted_ids', $result);
+                $entity->add('last_insert_id', (int) $result[0]);
+            } else {
+                $entity->add('inserted_ids', $result);
+                $entity->add('last_insert_id', $result[0]);
+            }
 
             return $entity;
         }
 
         if ($resultCount > 1) {
+            foreach ($result as $key => $value) {
+                $result[$key] = (int) $value;
+            }
+
             $entity->add('inserted_ids', $result);
-            $entity->add('last_insert_id', $result[$resultCount - 1]);
+            $entity->add('last_insert_id', (int) $result[$resultCount - 1]);
 
             return $entity;
         }

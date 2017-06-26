@@ -116,24 +116,22 @@ class Compiler
             throw new CompileException($name.' statement not found');
         }
 
-        $foundConfig = $this->$method($name);
+        $createdStatement = $this->$method($name);
 
-        if ($foundConfig === false) {
+        if (!$createdStatement instanceof ArgumentBag) {
             throw new CompileException($name.' statement not found');
         }
 
-        $statement = $this->builtConfiguration[$type]->get($name);
+        $this->statementValidator->setValidationArgument($createdStatement)->validate();
 
-        $this->statementValidator->setValidationArgument($statement)->validate();
-
-        return $statement;
+        return $createdStatement;
     }
 
-    private function compileSimpleStatement(string $name) : bool
+    private function compileSimpleStatement(string $name)
     {
         $builtSimpleConfiguration = $this->builtConfiguration['simple'];
 
-        $foundConfig = false;
+        $createdStatement = null;
 
         foreach ($this->configuration['simple'] as $type => $typeConfig) {
             foreach ($typeConfig as $statementName => $statementConfig) {
@@ -210,29 +208,27 @@ class Compiler
 
                     $builtStatement->mergeStorage($workConfig);
 
-                    $builtSimpleConfiguration->add('simple.'.$builtStatement->get('resolved_name'), $builtStatement);
-
-                    $foundConfig = true;
+                    $createdStatement = $builtStatement;
 
                     break;
                 }
             }
 
-            if ($foundConfig === true) {
+            if ($createdStatement instanceof ArgumentBag) {
                 break;
             }
         }
 
-        return $foundConfig;
+        return $createdStatement;
     }
 
-    private function compileScenarioStatement(string $name) : bool
+    private function compileScenarioStatement(string $name)
     {
         $mainScenario = $this->builtConfiguration['scenario'];
 
         $scenarioConfiguration = $this->configuration['scenario'];
 
-        $foundConfig = false;
+        $createdStatement = null;
 
         foreach ($scenarioConfiguration as $scenarioName => $scenarioConfigs) {
             $scenarioStatements = $scenarioConfigs['statements'];
@@ -349,19 +345,17 @@ class Compiler
                 $builtScenarioConfiguration->add('root_config', $rootConfig);
                 $builtScenarioConfiguration->add('statements', $statemens);
 
-                $mainScenario->add($resolvedScenarioName, $builtScenarioConfiguration);
-
-                $foundConfig = true;
+                $createdStatement = $builtScenarioConfiguration;
 
                 break;
             }
 
-            if ($foundConfig === true) {
+            if ($createdStatement instanceof ArgumentBag) {
                 break;
             }
         }
 
-        return $foundConfig;
+        return $createdStatement;
     }
 
     private function compileCallableStatement(string $name) : bool

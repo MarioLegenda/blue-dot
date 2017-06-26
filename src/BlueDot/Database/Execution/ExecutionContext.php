@@ -154,7 +154,10 @@ class ExecutionContext
 
         return $this->promise;
     }
-
+    /**
+     * @return ExecutionContext
+     * @throws BlueDotRuntimeException
+     */
     public function executeStrategy() : ExecutionContext
     {
         $this->createStrategy();
