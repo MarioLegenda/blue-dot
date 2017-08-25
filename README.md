@@ -45,7 +45,7 @@ covered in *Chapter 9: Promise interface*
 
 Install it with [composer](https://getcomposer.org/)
 
-    composer require mario-legenda/blue-dot 1.0.0
+    composer require mario-legenda/blue-dot 1.3
     
 ## 3. The basics
 
