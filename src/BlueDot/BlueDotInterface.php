@@ -5,6 +5,7 @@ namespace BlueDot;
 use BlueDot\Database\Connection;
 use BlueDot\Entity\PromiseInterface;
 use BlueDot\StatementBuilder\StatementBuilder;
+use BlueDot\Repository\RepositoryInterface;
 
 interface BlueDotInterface
 {
@@ -31,14 +32,14 @@ interface BlueDotInterface
      */
     public function setConfiguration(string $configSource) : BlueDotInterface;
     /**
-     * @return APIInterface
+     * @return RepositoryInterface
      */
-    public function api() : APIInterface;
+    public function repository() : RepositoryInterface;
     /**
      * @param string $apiName
      * @return BlueDotInterface
      */
-    public function useApi(string $apiName) : BlueDotInterface;
+    public function useRepository(string $apiName) : BlueDotInterface;
     /**
      * @param string $name
      * @param array $parameters

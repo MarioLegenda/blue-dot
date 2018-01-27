@@ -18,11 +18,13 @@ use BlueDot\Database\Execution\{
 use BlueDot\Entity\Promise;
 use BlueDot\Entity\PromiseInterface;
 use BlueDot\Exception\{
-    APIException, BlueDotRuntimeException, ConnectionException, ConfigurationException
+    RepositoryException, BlueDotRuntimeException, ConnectionException, ConfigurationException
 };
 
 use BlueDot\StatementBuilder\StatementBuilder;
 use Symfony\Component\Yaml\Yaml;
+use BlueDot\Repository\RepositoryInterface;
+use BlueDot\Repository\Repository;
 
 class BlueDot implements BlueDotInterface
 {
@@ -43,10 +45,9 @@ class BlueDot implements BlueDotInterface
      */
     private $preparedExecution;
     /**
-     * @var API $api
+     * @var RepositoryInterface $repository
      */
-    private $api = array();
-
+    private $repository = array();
     /**
      * BlueDot constructor.
      * @param string|null $configSource
@@ -65,7 +66,7 @@ class BlueDot implements BlueDotInterface
         }
 
         if (is_file($configSource)) {
-            $this->api()->putAPI($configSource);
+            $this->repository()->putRepository($configSource);
 
             $this->initBlueDot($configSource);
         }
@@ -167,37 +168,37 @@ class BlueDot implements BlueDotInterface
         return new StatementBuilder($this->connection);
     }
     /**
-     * @return APIInterface
+     * @return RepositoryInterface
      */
-    public function api() : APIInterface
+    public function repository() : RepositoryInterface
     {
-        if ($this->api instanceof API) {
-            return $this->api;
+        if ($this->repository instanceof RepositoryInterface) {
+            return $this->repository;
         }
 
-        $this->api = new API();
+        $this->repository = new Repository();
 
-        return $this->api;
+        return $this->repository;
     }
     /**
-     * @param string $apiName
+     * @param string $repository
      * @return BlueDotInterface
-     * @throws APIException
+     * @throws RepositoryException
      * @throws ConfigurationException
      * @throws ConnectionException
      */
-    public function useApi(string $apiName) : BlueDotInterface
+    public function useRepository(string $repository) : BlueDotInterface
     {
-        if (!$this->api instanceof API) {
-            throw new APIException(
+        if (!$this->repository instanceof Repository) {
+            throw new RepositoryException(
                 sprintf(
-                    'Invalid API. No API has been created. Create a new api with %s::api() method',
+                    'Invalid repository. No repository has been created. Create a new repository with %s::repository() method',
                     BlueDotInterface::class
                 )
             );
         }
 
-        $this->initBlueDot($this->api->useAPI($apiName));
+        $this->initBlueDot($this->repository->useRepository($repository));
 
         return $this;
     }

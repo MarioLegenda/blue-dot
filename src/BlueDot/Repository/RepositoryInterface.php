@@ -1,28 +1,28 @@
 <?php
 
-namespace BlueDot;
+namespace BlueDot\Repository;
 
-interface APIInterface
+interface RepositoryInterface
 {
     /**
      * @param string $resource
-     * @return APIInterface
+     * @return RepositoryInterface
      */
-    public function putAPI(string $resource) : APIInterface;
+    public function putRepository(string $resource) : RepositoryInterface;
     /**
      * @param string $apiName
      * @return string
      */
-    public function useAPI(string $apiName) : string;
+    public function useRepository(string $apiName) : string;
     /**
      * @param string $apiName
      * @return bool
      */
-    public function hasAPI(string $apiName) : bool;
+    public function hasRepository(string $apiName) : bool;
     /**
      * @return array
      */
-    public function getWorkingAPIs() : array;
+    public function getWorkingRepositories() : array;
     /**
      * @return array
      */
@@ -34,5 +34,5 @@ interface APIInterface
     /**
      * @return string|null
      */
-    public function getCurrentlyUsingAPI();
+    public function getCurrentlyUsingRepository();
 }
