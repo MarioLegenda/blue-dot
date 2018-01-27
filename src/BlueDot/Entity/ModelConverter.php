@@ -38,12 +38,15 @@ class ModelConverter
 
         return new Entity($modelCollection);
     }
-
+    /**
+     * @param array $result
+     * @return object
+     */
     private function arrayToModel(array $result)
     {
-        $object = $this->model->getName();
+        $class = $this->model->getName();
 
-        $object = new $object();
+        $object = (new \ReflectionClass($class))->newInstanceWithoutConstructor();
 
         foreach ($result as $column => $value) {
             $property = $this->findProperty($column);

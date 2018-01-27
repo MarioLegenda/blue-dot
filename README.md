@@ -237,7 +237,7 @@ If you provide the same parameter as in previous example, this statement
 will be executed only once.
 
     $blueDot->execute('simple.insert.create_users', array(
-        'id': 6,
+        'name': 'Peter',
     ));
     
 But if you provide multiple parameters as multiple arrays, then this statement

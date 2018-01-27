@@ -4,7 +4,7 @@ namespace BlueDot;
 
 use BlueDot\Exception\APIException;
 
-class API implements APIInterface
+class API implements APIInterface, \Countable
 {
     /**
      * @var array $files
@@ -98,6 +98,14 @@ class API implements APIInterface
     {
         return $this->currentlyUsingApi;
     }
+    /**
+     * @return int
+     */
+    public function count(): int
+    {
+        return count($this->api);
+    }
+
     /**
      * @param \SplFileInfo $resource
      * @return API
