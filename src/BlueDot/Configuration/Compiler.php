@@ -48,6 +48,7 @@ class Compiler
      * @param ValidatorInterface $statementValidator
      * @param ConfigurationValidator $configurationValidator
      * @param ImportCollection $imports
+     * @throws ConfigurationException
      */
     public function __construct(
         string $configSource,
@@ -126,7 +127,13 @@ class Compiler
 
         return $createdStatement;
     }
-
+    /**
+     * @param string $name
+     * @return ArgumentBag|null
+     * @throws BlueDotRuntimeException
+     * @throws CompileException
+     * @throws ConfigurationException
+     */
     private function compileSimpleStatement(string $name)
     {
         $builtSimpleConfiguration = $this->builtConfiguration['simple'];
@@ -227,7 +234,13 @@ class Compiler
 
         return $createdStatement;
     }
-
+    /**
+     * @param string $name
+     * @return ArgumentBag|null
+     * @throws BlueDotRuntimeException
+     * @throws CompileException
+     * @throws ConfigurationException
+     */
     private function compileScenarioStatement(string $name)
     {
         $mainScenario = $this->builtConfiguration['scenario'];
@@ -363,7 +376,11 @@ class Compiler
 
         return $createdStatement;
     }
-
+    /**
+     * @param string $name
+     * @return mixed
+     * @throws BlueDotRuntimeException
+     */
     private function compileCallableStatement(string $name)
     {
         $callableConfig = $this->builtConfiguration['callable'];
@@ -389,7 +406,12 @@ class Compiler
 
         return $callableConfig;
     }
-
+    /**
+     * @param string $configSource
+     * @param string $file
+     * @return string
+     * @throws ConfigurationException
+     */
     private function validateImport(string $configSource, string $file) : string
     {
         $absolutePath = realpath(sprintf(dirname($configSource).'/%s', $file));

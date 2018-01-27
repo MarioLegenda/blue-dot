@@ -10,6 +10,7 @@ use BlueDot\Configuration\Import\ImportCollection;
 use BlueDot\Configuration\Validator\ConfigurationValidator;
 use BlueDot\Database\Connection;
 
+use BlueDot\Database\ConnectionFactory;
 use BlueDot\Database\Execution\{
     CallableStrategy, ExecutionContext, PreparedExecution
 };
@@ -26,9 +27,9 @@ use Symfony\Component\Yaml\Yaml;
 class BlueDot implements BlueDotInterface
 {
     /**
-     * @var BlueDot $singletonInstance
+     * @var string $configSource
      */
-    private static $singletonInstance;
+    private $configSource;
     /**
      * @var Compiler $compiler
      */
@@ -45,58 +46,73 @@ class BlueDot implements BlueDotInterface
      * @var API $api
      */
     private $api = array();
-    /**
-     * @param string $configSource
-     * @param Connection|null $connection
-     * @return BlueDot
-     */
-    public static function instance(string $configSource = null, Connection $connection = null)
-    {
-        self::$singletonInstance =
-            (self::$singletonInstance instanceof self) ?
-                self::$singletonInstance :
-                new self($configSource, $connection);
 
-        return self::$singletonInstance;
-    }
     /**
      * BlueDot constructor.
-     * @param string $configSource
-     * @param Connection|null $connection
+     * @param string|null $configSource
      * @throws ConfigurationException
      * @throws ConnectionException
+     *
+     * It is valid to construct BlueDot with empty parameters, but
+     * when BlueDot::execute() is called, $configSource and $connection have
+     * to be set. This allows querying multiple databases with one instance
+     * of BlueDot
      */
-    public function __construct(string $configSource = null, Connection $connection = null)
+    public function __construct(string $configSource = null)
     {
-        if (is_null($configSource) and is_null($connection)) {
+        if (is_null($configSource)) {
             return $this;
         }
 
-        if (!is_null($connection)) {
-            if ($this->connection instanceof Connection) {
-                $this->connection->close();
-            }
-
-            $this->connection = $connection;
-        }
-
-        $this->api()->putAPI($configSource);
-
         if (is_file($configSource)) {
-            $this->initBlueDot($configSource, $connection);
+            $this->api()->putAPI($configSource);
+
+            $this->initBlueDot($configSource);
         }
     }
     /**
+     * @param Connection $connection
+     * @return BlueDotInterface
+     */
+    public function setConnection(Connection $connection) : BlueDotInterface
+    {
+        if ($this->connection instanceof Connection) {
+            $this->connection->close();
+        }
+
+        $this->connection = $connection;
+
+        return $this;
+    }
+    /**
+     * @return Connection|null
+     */
+    public function getConnection(): ?Connection
+    {
+        return $this->connection;
+    }
+    /**
+     * @param string $configSource
+     * @return BlueDotInterface
+     */
+    public function setConfiguration(string $configSource) : BlueDotInterface
+    {
+        $this->configSource = $configSource;
+
+        return $this;
+    }
+    /**
      * @param string $name
-     * @param array|mixed $parameters
+     * @param array $parameters
      * @param bool $cache
      * @return PromiseInterface
      * @throws BlueDotRuntimeException
      * @throws ConnectionException
+     * @throws Exception\CompileException
      */
     public function execute(string $name, $parameters = array(), bool $cache = true) : PromiseInterface
     {
-        $this->doBasicExecutionCheck();
+        $this->prepareBlueDot();
 
         $statement = $this->compiler->compile($name);
 
@@ -134,37 +150,6 @@ class BlueDot implements BlueDotInterface
             ->getPromise();
     }
     /**
-     * @param Connection $connection
-     * @return BlueDotInterface
-     */
-    public function setConnection(Connection $connection) : BlueDotInterface
-    {
-        if ($this->connection instanceof Connection) {
-            $this->connection->close();
-        }
-
-        $this->connection = $connection;
-
-        return $this;
-    }
-    /**
-     * @return Connection
-     */
-    public function getConnection()
-    {
-        return $this->connection;
-    }
-    /**
-     * @param string $configSource
-     * @return BlueDotInterface
-     */
-    public function setConfiguration(string $configSource) : BlueDotInterface
-    {
-        $this->initBlueDot($configSource);
-
-        return $this;
-    }
-    /**
      * @param Connection|null $connection
      * @return StatementBuilder
      * @throws ConnectionException
@@ -198,6 +183,8 @@ class BlueDot implements BlueDotInterface
      * @param string $apiName
      * @return BlueDotInterface
      * @throws APIException
+     * @throws ConfigurationException
+     * @throws ConnectionException
      */
     public function useApi(string $apiName) : BlueDotInterface
     {
@@ -220,10 +207,12 @@ class BlueDot implements BlueDotInterface
      * @param bool $cache
      * @return BlueDotInterface
      * @throws BlueDotRuntimeException
+     * @throws ConnectionException
+     * @throws Exception\CompileException
      */
     public function prepareExecution(string $name, $parameters = array(), bool $cache = true) : BlueDotInterface
     {
-        $this->doBasicExecutionCheck();
+        $this->prepareBlueDot();
 
         $statement = $this->compiler->compile($name);
 
@@ -254,6 +243,7 @@ class BlueDot implements BlueDotInterface
     }
     /**
      * @return array
+     * @throws ConnectionException
      */
     public function executePrepared() : array
     {
@@ -263,16 +253,24 @@ class BlueDot implements BlueDotInterface
 
         return $promises;
     }
-
-    private function initBlueDot($configSource = null, Connection $connection = null)
+    /**
+     * @param string $configSource
+     * @throws ConfigurationException
+     * @throws ConnectionException
+     */
+    private function initBlueDot(string $configSource)
     {
         $parsedConfiguration = $this->resolveConfiguration($configSource);
 
-        $this->connection = $this->createConnection($parsedConfiguration, $connection);
+        $this->connection = $this->createConnection($parsedConfiguration);
 
         $this->compiler = $this->createCompiler($configSource, $parsedConfiguration);
     }
-
+    /**
+     * @param string $configSource
+     * @return array
+     * @throws ConfigurationException
+     */
     private function resolveConfiguration(string $configSource)
     {
         if (!file_exists($configSource)) {
@@ -292,7 +290,12 @@ class BlueDot implements BlueDotInterface
 
         return $parsedConfiguration;
     }
-
+    /**
+     * @param string $configSource
+     * @param array $parsedConfiguration
+     * @return Compiler
+     * @throws ConfigurationException
+     */
     private function createCompiler(string $configSource, array $parsedConfiguration) : Compiler
     {
         return new Compiler(
@@ -304,19 +307,21 @@ class BlueDot implements BlueDotInterface
             new ImportCollection()
         );
     }
-
-    private function createConnection(array $parsedConfiguration, Connection $connection = null)
+    /**
+     * @param array $parsedConfiguration
+     * @return Connection|null
+     * @throws ConnectionException
+     */
+    private function createConnection(array $parsedConfiguration)
     {
-        if ($connection instanceof Connection) {
+        if (array_key_exists('connection', $parsedConfiguration['configuration'])) {
+            $connectionArray = $parsedConfiguration['configuration']['connection'];
+
             if ($this->connection instanceof Connection) {
                 $this->connection->close();
             }
 
-            return $connection;
-        }
-
-        if (array_key_exists('connection', $parsedConfiguration['configuration'])) {
-            return new Connection($parsedConfiguration['configuration']['connection']);
+            return ConnectionFactory::createConnection($connectionArray);
         }
 
         if ($this->connection instanceof Connection) {
@@ -325,8 +330,11 @@ class BlueDot implements BlueDotInterface
 
         return null;
     }
-
-    private function doBasicExecutionCheck()
+    /**
+     * @throws BlueDotRuntimeException
+     * @throws ConnectionException
+     */
+    private function prepareBlueDot()
     {
         if (!$this->connection instanceof Connection) {
             throw new ConnectionException(
@@ -340,8 +348,14 @@ class BlueDot implements BlueDotInterface
         if (!$this->compiler instanceof Compiler) {
             throw new BlueDotRuntimeException('Configuration does not exist. You have not constructed BlueDot with a configuration file. Only statement builder can be used at this point');
         }
-    }
 
+        if (!$this->connection->isOpen()) {
+            $this->connection->connect();
+        }
+    }
+    /**
+     * @return PreparedExecution
+     */
     private function createPreparedExecution() : PreparedExecution
     {
         return new PreparedExecution($this->connection);

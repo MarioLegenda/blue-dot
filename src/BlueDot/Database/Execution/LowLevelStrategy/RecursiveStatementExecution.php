@@ -37,8 +37,6 @@ class RecursiveStatementExecution implements StrategyInterface
         $this->statement = $statement;
         $this->connection = $connection;
         $this->resultReport = $resultReport;
-
-        $this->connection->connect();
     }
     /**
      * @param ArgumentBag $statements
