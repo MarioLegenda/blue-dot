@@ -45,7 +45,7 @@ covered in *Chapter 9: Promise interface*
 
 Install it with [composer](https://getcomposer.org/)
 
-    composer require mario-legenda/blue-dot 1.0.0
+    composer require mario-legenda/blue-dot 1.3
     
 ## 3. The basics
 
@@ -332,7 +332,7 @@ Following previous examples, we can create a new language by using this model:
     
     $blueDot->execute('simple.insert.create_language', $language);
     
-**BlueDot** concludes from configuration that you want a language parameter to 
+**BlueDot** concludes from configuration that you want the *language* parameter to 
 be bound to the statement sql query. It then concludes that you supplied an object
 as a parameter and looks for a *Language::getLanguage()* method on that object.
 If it finds one, it binds the value returned from that method to the *language*
@@ -344,8 +344,7 @@ there has to be a *Language::getName()* parameter on the *Language* model.
 
 Model binding is a two-way process and it can be used to fetch models from the database.
 For example, to expand on our *users* example, you could have a *User* with fields *id*, *name*, *username* and *password*.
-You would like to pass the user object as a parameter but also return a populated *User*
-model from the database.
+You would like to return an array of populated users from the database:
  
     simple:
         select:
@@ -359,7 +358,7 @@ model from the database.
 **BlueDot** will return an array of *User* objects populated with the value for
 *id*, *name*, *username* and *password*.
 
-You can combine these to approaches to find a specific user...
+You can combine these two approaches to find a specific user...
 
     simple:
         select:
@@ -382,7 +381,7 @@ parameter and return a new *User* object populated will all the returned values.
 is supplied as a parameter, **BlueDot** will search for a method *User::getLastName()/User::setLastName()*.
 You can also name your table columns *lastName* and model binding will work. **BlueDot**
 will not bind returned column values to an object if the object does not have a corresponding
-*get* and *set* method for that column. For example, if a table contains a column date_created
+*get* and *set* method for that column. For example, if a table contains a column *date_created*
 but the model does not have a *Model::setDateCreated()*, it will not bind that columns value
 to the supplied model.
 
