@@ -78,17 +78,13 @@ class BlueDot implements BlueDotInterface
             }
 
             $this->connection = $connection;
-
-            return $this;
         }
 
         $this->api()->putAPI($configSource);
 
-        $apiName = explode('.', (new \SplFileInfo($configSource))->getFilename())[0];
-
-        $this->api()->useAPI($apiName);
-
-        $this->initBlueDot($configSource, $connection);
+        if (is_file($configSource)) {
+            $this->initBlueDot($configSource, $connection);
+        }
     }
     /**
      * @param string $name
@@ -112,6 +108,8 @@ class BlueDot implements BlueDotInterface
                     )
                 );
             }
+
+            $statement = $statement->get($name);
 
             $callableStrategy = new CallableStrategy($statement, $this, $parameters);
 

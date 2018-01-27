@@ -5,7 +5,7 @@ namespace BlueDot\Common;
 interface CallableInterface
 {
     /**
-     * @void
+     * @return mixed
      */
     public function run();
 }

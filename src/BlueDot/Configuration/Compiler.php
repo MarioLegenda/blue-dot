@@ -198,7 +198,13 @@ class Compiler
                         if (!empty($properties)) {
                             foreach ($properties as $key => $value) {
                                 if (!is_string($key)) {
-                                    throw new CompileException('Invalid model options. \'properties\' should be a associative array with {statement_name}.{column} as key and a model property as value. %s given for value %s', $key, $value);
+                                    $message = sprintf(
+                                        'Invalid model options. \'properties\' should be an associative array with {statement_name}.{column} as key and a model property as value. %s given for value %s',
+                                        $key,
+                                        $value
+                                    );
+
+                                    throw new CompileException($message);
                                 }
                             }
                         }
@@ -358,12 +364,10 @@ class Compiler
         return $createdStatement;
     }
 
-    private function compileCallableStatement(string $name) : bool
+    private function compileCallableStatement(string $name)
     {
         $callableConfig = $this->builtConfiguration['callable'];
         $callableConfig->add('type', 'callable', true);
-
-        $foundConfig = false;
 
         foreach ($this->configuration['callable'] as $key => $config) {
             $resolvedName = 'callable.'.$key;
@@ -379,13 +383,11 @@ class Compiler
 
                 $callableConfig->add('callable.'.$key, $subConfig);
 
-                $foundConfig = true;
-
                 break;
             }
         }
 
-        return $foundConfig;
+        return $callableConfig;
     }
 
     private function validateImport(string $configSource, string $file) : string
