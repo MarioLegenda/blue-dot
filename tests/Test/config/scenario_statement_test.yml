@@ -1,0 +1,23 @@
+configuration:
+    connection:
+        host: 127.0.0.1
+        user: 'root'
+        password: 'root'
+        database_name: ''
+
+    scenario:
+        only_selects:
+            atomic: true
+            statements:
+                select_first_language:
+                    sql: "SELECT * FROM languages WHERE id = :id"
+                    parameters: [id]
+                select_second_language:
+                    sql: "SELECT * FROM languages WHERE id = :id"
+                    parameters: [id]
+        other_testing_scenario:
+            atomic: true
+            statements:
+                first_statement:
+                    sql: "SELECT * FROM languages WHERE id = :id"
+                    parameters: [id]

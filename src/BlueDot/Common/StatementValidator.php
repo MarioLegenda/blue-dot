@@ -2,44 +2,31 @@
 
 namespace BlueDot\Common;
 
-use BlueDot\Exception\CompileException;
 use BlueDot\Exception\ConfigurationException;
 
 class StatementValidator implements ValidatorInterface
 {
     /**
-     * @var ArgumentBag $statement
-     */
-    private $statement;
-    /**
-     * @param mixed $validationArgument
-     * @throws CompileException
+     * @param ArgumentBag $statement
      * @return ValidatorInterface
+     * @throws ConfigurationException
+     * @throws \BlueDot\Exception\BlueDotRuntimeException
      */
-    public function setValidationArgument($validationArgument) : ValidatorInterface
+    public function validate($statement) : ValidatorInterface
     {
-        if (!$validationArgument instanceof ArgumentBag) {
-            throw new CompileException('Invalid argument in '.StatementValidator::class.'. This is probably a bug so please, contact whitepostmail@gmail.com or post an issue');
-        }
-
-        $this->statement = $validationArgument;
-
-        return $this;
-    }
-    /**
-     * @return ValidatorInterface
-     */
-    public function validate() : ValidatorInterface
-    {
-        if ($this->statement->get('type') === 'scenario') {
-            $this->generalValidation($this->statement);
-            $this->validateUseOptions($this->statement->get('statements'));
-            $this->validateReturnData($this->statement);
+        if ($statement->get('type') === 'scenario') {
+            $this->generalValidation($statement);
+            $this->validateUseOptions($statement->get('statements'));
+            $this->validateReturnData($statement);
         }
 
         return $this;
     }
-
+    /**
+     * @param ArgumentBag $mainStatement
+     * @throws ConfigurationException
+     * @throws \BlueDot\Exception\BlueDotRuntimeException
+     */
     private function generalValidation(ArgumentBag $mainStatement)
     {
         $hasSelectStatement = false;
@@ -66,7 +53,11 @@ class StatementValidator implements ValidatorInterface
             }
         }
     }
-
+    /**
+     * @param ArgumentBag $mainStatement
+     * @throws ConfigurationException
+     * @throws \BlueDot\Exception\BlueDotRuntimeException
+     */
     private function validateReturnData(ArgumentBag $mainStatement)
     {
         $rootConfig = $mainStatement->get('root_config');
@@ -95,7 +86,11 @@ class StatementValidator implements ValidatorInterface
             }
         }
     }
-
+    /**
+     * @param ArgumentBag $statements
+     * @throws ConfigurationException
+     * @throws \BlueDot\Exception\BlueDotRuntimeException
+     */
     private function validateUseOptions(ArgumentBag $statements)
     {
         foreach ($statements as $statement) {

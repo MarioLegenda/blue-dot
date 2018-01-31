@@ -2,13 +2,13 @@
 
 namespace BlueDot\Configuration;
 
-use BlueDot\Cache\CacheStorage;
 use BlueDot\Configuration\Import\ImportCollection;
 use BlueDot\Configuration\Import\SqlImport;
 use BlueDot\Configuration\Validator\ConfigurationValidator;
 use BlueDot\Entity\Model;
 use BlueDot\Exception\BlueDotRuntimeException;
 use BlueDot\Exception\CompileException;
+use BlueDot\Common\StatementValidator;
 
 use BlueDot\Common\{ ArgumentBag, ArgumentValidator, ValidatorInterface};
 use BlueDot\Database\Scenario\{ UseOption, ForeignKey, ScenarioReturnEntity };
@@ -17,13 +17,13 @@ use BlueDot\Exception\ConfigurationException;
 class Compiler
 {
     /**
-     * @var ArgumentValidator $argumentValidator
-     */
-    private $argumentValidator;
-    /**
      * @var ValidatorInterface|StatementValidator $statementValidator
      */
     private $statementValidator;
+    /**
+     * @var ValidatorInterface|StatementValidator $argumentValidator
+     */
+    private $argumentValidator;
     /**
      * @var array $configuration
      */
@@ -37,9 +37,17 @@ class Compiler
      */
     private $configurationValidator;
     /**
-     * @var array $builtConfiguration
+     * @var array $builtStatements
      */
-    private $builtConfiguration = array();
+    private $builtStatements = [];
+    /**
+     * @var StatementCollection $statementCollection
+     */
+    private $statementCollection;
+    /**
+     * @var bool $isCompiled
+     */
+    private $isCompiled = false;
     /**
      * Compiler constructor.
      * @param string $configSource
@@ -48,23 +56,25 @@ class Compiler
      * @param ValidatorInterface $statementValidator
      * @param ConfigurationValidator $configurationValidator
      * @param ImportCollection $imports
+     * @throws BlueDotRuntimeException
+     * @throws CompileException
      * @throws ConfigurationException
      */
     public function __construct(
         string $configSource,
         array $configuration,
-        ValidatorInterface
-        $argumentValidator,
+        ValidatorInterface $argumentValidator,
         ValidatorInterface $statementValidator,
         ConfigurationValidator $configurationValidator,
         ImportCollection $imports
-    )
-    {
+    ) {
         $this->configuration = $configuration;
         $this->argumentValidator = $argumentValidator;
         $this->statementValidator = $statementValidator;
         $this->configurationValidator = $configurationValidator;
         $this->imports = $imports;
+
+        $this->configurationValidator->validate();
 
         if (array_key_exists('sql_import', $configuration)) {
             $path = $this->validateImport($configSource, $configuration['sql_import']);
@@ -72,339 +82,285 @@ class Compiler
             $this->imports->addImport(new SqlImport($path));
         }
 
-        if (array_key_exists('simple', $configuration)) {
-            $this->builtConfiguration['simple'] = new ArgumentBag();
-        }
-
-        if (array_key_exists('scenario', $configuration)) {
-            $this->builtConfiguration['scenario'] = new ArgumentBag();
-        }
-
-        if (array_key_exists('callable', $configuration)) {
-            $this->builtConfiguration['callable'] = new ArgumentBag();
-        }
+        $this->compileReal();
+        $this->markCompiled();
     }
     /**
      * @param string $name
      * @return ArgumentBag
-     * @throws CompileException
      */
     public function compile(string $name) : ArgumentBag
     {
-        $this->configurationValidator->validate();
+        $this->argumentValidator->validate($name);
 
-        $this->argumentValidator->setValidationArgument($name)->validate();
-
-        $type = $this->argumentValidator->getType();
-
-        if (array_key_exists($type, $this->builtConfiguration)) {
-            if ($this->builtConfiguration[$type]->has($name)) {
-                return $this->builtConfiguration[$type]->get($name);
-            }
-        } else if (!array_key_exists($type, $this->builtConfiguration)) {
-            throw new CompileException(
-                sprintf(
-                    'Statement \'%s\' could not be found. You haven\'t provided any configuration for %s statements',
-                    $name,
-                    $type
-                )
-            );
+        if ($this->statementCollection->hasStatement($name)) {
+            return $this->statementCollection->getStatement($name);
         }
 
-        $method = 'compile'.ucfirst($type).'Statement';
-
-        if (!method_exists($this, $method)) {
-            throw new CompileException($name.' statement not found');
-        }
-
-        $createdStatement = $this->$method($name);
-
-        if (!$createdStatement instanceof ArgumentBag) {
-            throw new CompileException($name.' statement not found');
-        }
-
-        $this->statementValidator->setValidationArgument($createdStatement)->validate();
-
-        return $createdStatement;
+        throw new \RuntimeException(sprintf('Statement \'%s\' not found', $name));
     }
     /**
-     * @param string $name
-     * @return ArgumentBag|null
+     * @return bool
+     */
+    public function isCompiled(): bool
+    {
+        return $this->isCompiled;
+    }
+    /**
      * @throws BlueDotRuntimeException
      * @throws CompileException
      * @throws ConfigurationException
      */
-    private function compileSimpleStatement(string $name)
+    private function compileReal()
     {
-        $builtSimpleConfiguration = $this->builtConfiguration['simple'];
+        $this->compileSimpleStatements();
+        $this->compileScenarioStatement();
+        $this->compileCallableStatement();
 
-        $createdStatement = null;
+        $this->statementCollection = new StatementCollection($this->builtStatements);
+    }
+    /**
+     * @throws BlueDotRuntimeException
+     * @throws CompileException
+     */
+    private function compileSimpleStatements()
+    {
+        if (!array_key_exists('simple', $this->configuration)) {
+            return null;
+        }
 
-        foreach ($this->configuration['simple'] as $type => $typeConfig) {
+        $simpleConfiguration = $this->configuration['simple'];
+
+        foreach ($simpleConfiguration as $type => $typeConfig) {
             foreach ($typeConfig as $statementName => $statementConfig) {
                 $resolvedName = $type.'.'.$statementName;
+                $resolvedStatementName = sprintf('simple.%s', $resolvedName);
 
-                if ('simple.'.$resolvedName === $name) {
-                    $builtStatement = new ArgumentBag();
-                    $builtStatement
-                        ->add('type', 'simple')
-                        ->add('resolved_name', $resolvedName)
-                        ->add('statement_type', $type)
-                        ->add('statement_name', $statementName)
-                        ->add('resolved_statement_name', 'simple.'.$resolvedName);
+                $builtStatement = new ArgumentBag();
+                $builtStatement
+                    ->add('type', 'simple')
+                    ->add('statement_type', $type)
+                    ->add('statement_name', $statementName)
+                    ->add('resolved_statement_name', $resolvedStatementName);
 
-                    if (array_key_exists('cache', $statementConfig)) {
-                        $cache = $statementConfig['cache'];
+                $workConfig = new ArgumentBag();
+                $workConfig->add('sql', $statementConfig['sql']);
 
-                        if ($cache === true) {
-                            $type = $builtStatement->get('statement_type');
+                $possibleImport = $statementConfig['sql'];
 
-                            if ($type !== 'select') {
-                                throw new ConfigurationException(
-                                    sprintf(
-                                        'Invalid simple statement cache. Cache can only be applied to \'select\' sql queries'
-                                    )
-                                );
-                            }
+                if ($this->imports->hasImport('sql_import')) {
+                    $import = $this->imports->getImport('sql_import', $possibleImport);
 
-                            $builtStatement->add('cache', true, true);
-                        } else if ($cache === false) {
-                            $builtStatement->add('cache', false, true);
-                        }
-                    } else {
-                        $builtStatement->add('cache', false, true);
+                    if ($import->hasValue($possibleImport)) {
+                        $workConfig->add('sql', $import->getValue($possibleImport), true);
                     }
-
-                    $workConfig = new ArgumentBag();
-                    $workConfig->add('sql', $statementConfig['sql']);
-
-                    $possibleImport = $statementConfig['sql'];
-
-                    if ($this->imports->hasImport('sql_import')) {
-                        $import = $this->imports->getImport('sql_import', $possibleImport);
-
-                        if ($import->hasValue($possibleImport)) {
-                            $workConfig->add('sql', $import->getValue($possibleImport), true);
-                        }
-                    }
-
-                    if (array_key_exists('parameters', $statementConfig)) {
-                        $parameters = $statementConfig['parameters'];
-
-                        $workConfig->add('config_parameters', $parameters);
-                    }
-
-                    if (array_key_exists('model', $statementConfig)) {
-                        $object = $statementConfig['model']['object'];
-                        $properties = (array_key_exists('properties', $statementConfig['model'])) ? $statementConfig['model']['properties'] : array();
-
-                        if (!class_exists($object)) {
-                            throw new CompileException(sprintf('Invalid model options. Object \'%s\' does not exist', $object));
-                        }
-
-                        if (!empty($properties)) {
-                            foreach ($properties as $key => $value) {
-                                if (!is_string($key)) {
-                                    $message = sprintf(
-                                        'Invalid model options. \'properties\' should be an associative array with {statement_name}.{column} as key and a model property as value. %s given for value %s',
-                                        $key,
-                                        $value
-                                    );
-
-                                    throw new CompileException($message);
-                                }
-                            }
-                        }
-
-                        $workConfig->add('model', new Model($object, $properties), true);
-                    }
-
-                    $builtStatement->mergeStorage($workConfig);
-
-                    $createdStatement = $builtStatement;
-
-                    break;
                 }
-            }
 
-            if ($createdStatement instanceof ArgumentBag) {
-                break;
+                if (array_key_exists('parameters', $statementConfig)) {
+                    $parameters = $statementConfig['parameters'];
+
+                    $workConfig->add('config_parameters', $parameters);
+                }
+
+                if (array_key_exists('model', $statementConfig)) {
+                    $object = $statementConfig['model']['object'];
+                    $properties = (array_key_exists('properties', $statementConfig['model'])) ? $statementConfig['model']['properties'] : array();
+
+                    if (!class_exists($object)) {
+                        throw new CompileException(sprintf('Invalid model options. Object \'%s\' does not exist', $object));
+                    }
+
+                    if (!empty($properties)) {
+                        foreach ($properties as $key => $value) {
+                            if (!is_string($key)) {
+                                $message = sprintf(
+                                    'Invalid model options. \'properties\' should be an associative array with {statement_name}.{column} as key and a model property as value. %s given for value %s',
+                                    $key,
+                                    $value
+                                );
+
+                                throw new CompileException($message);
+                            }
+                        }
+                    }
+
+                    $workConfig->add('model', new Model($object, $properties), true);
+                }
+
+                $builtStatement->mergeStorage($workConfig);
+                $builtStatement->setName($resolvedStatementName);
+
+                $this->statementValidator->validate($builtStatement);
+
+                $this->builtStatements[$resolvedStatementName] = $builtStatement;
             }
         }
-
-        return $createdStatement;
     }
     /**
-     * @param string $name
-     * @return ArgumentBag|null
      * @throws BlueDotRuntimeException
      * @throws CompileException
      * @throws ConfigurationException
      */
-    private function compileScenarioStatement(string $name)
+    private function compileScenarioStatement()
     {
-        $mainScenario = $this->builtConfiguration['scenario'];
+        if (!array_key_exists('scenario', $this->configuration)) {
+            return null;
+        }
 
         $scenarioConfiguration = $this->configuration['scenario'];
-
-        $createdStatement = null;
 
         foreach ($scenarioConfiguration as $scenarioName => $scenarioConfigs) {
             $scenarioStatements = $scenarioConfigs['statements'];
             $resolvedScenarioName = 'scenario.'.$scenarioName;
 
-            if ($name === $resolvedScenarioName) {
+            $builtScenarioConfiguration = new ArgumentBag();
+            $builtScenarioConfiguration->add('type', 'scenario');
 
-                $builtScenarioConfiguration = new ArgumentBag();
-                $builtScenarioConfiguration->add('type', 'scenario');
+            $rootConfig = new ArgumentBag();
+            $rootConfig
+                ->add('atomic', $scenarioConfigs['atomic'])
+                ->add('scenario_name', $scenarioName);
 
-                $rootConfig = new ArgumentBag();
-                $rootConfig
-                    ->add('atomic', $scenarioConfigs['atomic'])
-                    ->add('scenario_name', $scenarioName);
-
-                if (array_key_exists('return_data', $scenarioConfigs)) {
-                    if (empty($scenarioConfigs['return_data'])) {
-                        throw new CompileException(
-                            sprintf('Invalid configuration. If provided, \'return_data\' has to be a non empty array')
-                        );
-                    }
-
-                    $rootConfig->add('return_data', new ScenarioReturnEntity($scenarioConfigs['return_data']));
+            if (array_key_exists('return_data', $scenarioConfigs)) {
+                if (empty($scenarioConfigs['return_data'])) {
+                    throw new CompileException(
+                        sprintf('Invalid configuration. If provided, \'return_data\' has to be a non empty array')
+                    );
                 }
 
-                $statemens = new ArgumentBag();
-                foreach ($scenarioStatements as $statementName => $statementConfig) {
-                    $resolvedStatementName = 'scenario.'.$scenarioName.'.'.$statementName;
+                $rootConfig->add('return_data', new ScenarioReturnEntity($scenarioConfigs['return_data']));
+            }
 
-                    $scenarioStatement = new ArgumentBag();
-                    $scenarioStatement
-                        ->add('scenario_name', $resolvedScenarioName)
-                        ->add('resolved_statement_name', $resolvedStatementName)
-                        ->add('statement_name', $statementName)
-                        ->add('sql', $statementConfig['sql']);
+            $statemens = new ArgumentBag();
+            foreach ($scenarioStatements as $statementName => $statementConfig) {
+                $resolvedStatementName = 'scenario.'.$scenarioName.'.'.$statementName;
 
-                    if ($this->imports->hasImport('sql_import')) {
-                        $possibleImport = $statementConfig['sql'];
-                        $import = $this->imports->getImport('sql_import');
+                $scenarioStatement = new ArgumentBag();
+                $scenarioStatement
+                    ->add('scenario_name', $resolvedScenarioName)
+                    ->add('resolved_statement_name', $resolvedStatementName)
+                    ->add('statement_name', $statementName)
+                    ->add('sql', $statementConfig['sql']);
 
-                        if ($import->hasValue($possibleImport)) {
-                            $scenarioStatement->add('sql', $import->getValue($possibleImport), true);
-                        }
+                if ($this->imports->hasImport('sql_import')) {
+                    $possibleImport = $statementConfig['sql'];
+                    $import = $this->imports->getImport('sql_import');
+
+                    if ($import->hasValue($possibleImport)) {
+                        $scenarioStatement->add('sql', $import->getValue($possibleImport), true);
                     }
-
-                    $sql = $scenarioStatement->get('sql');
-
-                    preg_match('#(\w+\s)#i', $sql, $matches);
-
-                    if (empty($matches)) {
-                        throw new CompileException(sprintf(
-                            'Sql syntax could not be determined for statement %s. Sql: %s. This could be because you use sql_import and misspelled this one',
-                            $resolvedStatementName,
-                            $sql
-                        ));
-                    }
-
-                    $sqlType = trim(strtolower($matches[1]));
-
-                    if ($sqlType === 'create' or $sqlType === 'use' or $sqlType === 'drop') {
-                        $sqlType = 'table';
-                    }
-
-                    if ($sqlType === 'modify' or $sqlType === 'alter') {
-                        $sqlType = 'update';
-                    }
-
-                    $scenarioStatement->add('statement_type', $sqlType);
-
-                    $scenarioStatement->add('can_be_empty_result', false);
-
-                    if (array_key_exists('if_exists', $statementConfig)) {
-                        $scenarioStatement->add('if_exists', $statementConfig['if_exists']);
-                    }
-
-                    if (array_key_exists('if_not_exists', $statementConfig)) {
-                        $scenarioStatement->add('if_not_exists', $statementConfig['if_not_exists']);
-                    }
-
-                    if (array_key_exists('can_be_empty_result', $statementConfig)) {
-                        $scenarioStatement->add('can_be_empty_result', $statementConfig['can_be_empty_result'], true);
-                    }
-
-                    if (array_key_exists('parameters', $statementConfig)) {
-                        $parameters = $statementConfig['parameters'];
-
-                        $scenarioStatement->add('config_parameters', $parameters);
-                    }
-
-                    if (array_key_exists('use', $statementConfig)) {
-                        $useOption = $statementConfig['use'];
-
-                        $scenarioStatement->add(
-                            'use_option',
-                            new UseOption($useOption['statement_name'], $useOption['values'])
-                        );
-                    }
-
-                    if (array_key_exists('foreign_key', $statementConfig)) {
-                        $foreignKey = $statementConfig['foreign_key'];
-
-                        $scenarioStatement->add(
-                            'foreign_key',
-                            new ForeignKey(
-                                $foreignKey['statement_name'],
-                                $foreignKey['bind_to']
-                            )
-                        );
-                    }
-
-                    $statemens->add($resolvedStatementName, $scenarioStatement);
                 }
 
-                $builtScenarioConfiguration->add('root_config', $rootConfig);
-                $builtScenarioConfiguration->add('statements', $statemens);
+                $sql = $scenarioStatement->get('sql');
 
-                $createdStatement = $builtScenarioConfiguration;
+                preg_match('#(\w+\s)#i', $sql, $matches);
 
-                break;
+                if (empty($matches)) {
+                    throw new CompileException(sprintf(
+                        'Sql syntax could not be determined for statement %s. Sql: %s. This could be because you use sql_import and misspelled this one',
+                        $resolvedStatementName,
+                        $sql
+                    ));
+                }
+
+                $sqlType = trim(strtolower($matches[1]));
+
+                if ($sqlType === 'create' or $sqlType === 'use' or $sqlType === 'drop') {
+                    $sqlType = 'table';
+                }
+
+                if ($sqlType === 'modify' or $sqlType === 'alter') {
+                    $sqlType = 'update';
+                }
+
+                $scenarioStatement->add('statement_type', $sqlType);
+
+                $scenarioStatement->add('can_be_empty_result', false);
+
+                if (array_key_exists('if_exists', $statementConfig)) {
+                    $scenarioStatement->add('if_exists', $statementConfig['if_exists']);
+                }
+
+                if (array_key_exists('if_not_exists', $statementConfig)) {
+                    $scenarioStatement->add('if_not_exists', $statementConfig['if_not_exists']);
+                }
+
+                if (array_key_exists('can_be_empty_result', $statementConfig)) {
+                    $scenarioStatement->add('can_be_empty_result', $statementConfig['can_be_empty_result'], true);
+                }
+
+                if (array_key_exists('parameters', $statementConfig)) {
+                    $parameters = $statementConfig['parameters'];
+
+                    $scenarioStatement->add('config_parameters', $parameters);
+                }
+
+                if (array_key_exists('use', $statementConfig)) {
+                    $useOption = $statementConfig['use'];
+
+                    $scenarioStatement->add(
+                        'use_option',
+                        new UseOption($useOption['statement_name'], $useOption['values'])
+                    );
+                }
+
+                if (array_key_exists('foreign_key', $statementConfig)) {
+                    $foreignKey = $statementConfig['foreign_key'];
+
+                    $scenarioStatement->add(
+                        'foreign_key',
+                        new ForeignKey(
+                            $foreignKey['statement_name'],
+                            $foreignKey['bind_to']
+                        )
+                    );
+                }
+
+                $statemens->add($resolvedStatementName, $scenarioStatement);
             }
 
-            if ($createdStatement instanceof ArgumentBag) {
-                break;
-            }
+            $builtScenarioConfiguration->add('root_config', $rootConfig);
+            $builtScenarioConfiguration->add('statements', $statemens);
+
+            $this->builtStatements[$resolvedScenarioName] = $builtScenarioConfiguration;
         }
-
-        return $createdStatement;
     }
     /**
-     * @param string $name
-     * @return mixed
+     * @return null
      * @throws BlueDotRuntimeException
      */
-    private function compileCallableStatement(string $name)
+    private function compileCallableStatement()
     {
-        $callableConfig = $this->builtConfiguration['callable'];
-        $callableConfig->add('type', 'callable', true);
-
-        foreach ($this->configuration['callable'] as $key => $config) {
-            $resolvedName = 'callable.'.$key;
-
-            if ($resolvedName === $name) {
-                $subConfig = new ArgumentBag();
-
-                $subConfig
-                    ->add('type', 'callable')
-                    ->add('data_type', $config['type'])
-                    ->add('name', $config['name'])
-                    ->add('resolved_statement_name', sprintf('callable.%s', $config['name']));
-
-                $callableConfig->add('callable.'.$key, $subConfig);
-
-                break;
-            }
+        if (!array_key_exists('callable', $this->configuration)) {
+            return null;
         }
 
-        return $callableConfig;
+        foreach ($this->configuration['callable'] as $key => $config) {
+            $callableConfig = new ArgumentBag();
+            $callableConfig->add('type', 'callable', true);
+            $resolvedStatementName = sprintf('callable.%s', $key);
+
+            $subConfig = new ArgumentBag();
+
+            $subConfig
+                ->add('type', 'callable')
+                ->add('data_type', $config['type'])
+                ->add('name', $config['name'])
+                ->add('resolved_statement_name', $resolvedStatementName);
+
+            $callableConfig->add('callable.'.$key, $subConfig);
+
+            $callableConfig->setName($resolvedStatementName);
+
+            $this->builtStatements[$resolvedStatementName] = $callableConfig;
+        }
+    }
+    /**
+     * @void
+     */
+    private function markCompiled()
+    {
+        $this->isCompiled = true;
     }
     /**
      * @param string $configSource

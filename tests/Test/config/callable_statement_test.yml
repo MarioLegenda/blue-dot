@@ -1,0 +1,14 @@
+configuration:
+    connection:
+        host: 127.0.0.1
+        user: 'root'
+        password: 'root'
+        database_name: ''
+
+    callable:
+        callable_service:
+            type: object
+            name: Test\BlueDotCallable\CallableService
+        callable_service_two:
+            type: object
+            name: Test\BlueDotCallable\CallableService

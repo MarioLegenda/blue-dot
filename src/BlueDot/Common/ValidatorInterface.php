@@ -5,12 +5,8 @@ namespace BlueDot\Common;
 interface ValidatorInterface
 {
     /**
-     * @param $validationArgument
+     * @param string|object $argument
      * @return ValidatorInterface
      */
-    public function setValidationArgument($validationArgument) : ValidatorInterface;
-    /**
-     * @return ValidatorInterface
-     */
-    public function validate() : ValidatorInterface;
+    public function validate($argument) : ValidatorInterface;
 }

@@ -4,3 +4,13 @@ configuration:
         user: 'root'
         password: 'root'
         database_name: ''
+
+    simple:
+        select:
+            find_all:
+                sql: 'SELECT * FROM user'
+            find_by_id:
+                sql: 'SELECT * FROM user WHERE id = :id'
+                parameters: [id]
+                model:
+                    object: Test\Model\User
