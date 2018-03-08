@@ -8,6 +8,9 @@ use BlueDot\Exception\BlueDotRuntimeException;
 
 class ScenarioParametersResolver extends AbstractTask
 {
+    /**
+     * @throws BlueDotRuntimeException
+     */
     public function doTask()
     {
         $statement = $this->arguments['statement'];
@@ -28,7 +31,12 @@ class ScenarioParametersResolver extends AbstractTask
             }
         }
     }
-
+    /**
+     * @param ArgumentBag $statement
+     * @param array $configParameters
+     * @param $userParameters
+     * @throws BlueDotRuntimeException
+     */
     private function determineStrategy(ArgumentBag $statement, array $configParameters, $userParameters)
     {
         $individualInsert = false;
@@ -38,7 +46,7 @@ class ScenarioParametersResolver extends AbstractTask
             foreach ($userParameters as $key => $userParameter) {
                 if (!is_int($userParameter) and !is_array($userParameter) and !is_string($userParameter) and !is_null($userParameter) and !is_bool($userParameter)) {
                     throw new BlueDotRuntimeException(sprintf(
-                        'Invalid user parameter type given for parameter \'%s\'. User parameters can integers, arrays, string, nulls and bool. \'%s\' given for statement \'%s\'',
+                        'Invalid user parameter type given for parameter \'%s\'. User parameters can be integers, arrays, string, nulls and bool. \'%s\' given for statement \'%s\'',
                         $key,
                         gettype($userParameter),
                         $statement->get('resolved_statement_name')

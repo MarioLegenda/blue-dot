@@ -10,8 +10,8 @@ use BlueDot\Exception\BlueDotRuntimeException;
 class SimpleStatementParameterValidation extends AbstractTask
 {
     /**
-     * @void
-     * @throws  BlueDotRuntimeException
+     * @throws BlueDotRuntimeException
+     * @throws \BlueDot\Exception\ConfigurationException
      */
     public function doTask()
     {
@@ -22,7 +22,12 @@ class SimpleStatementParameterValidation extends AbstractTask
         $this->singleModelParameterCheck($statement, $parameters);
         $this->modelArrayCheck($statement, $parameters);
     }
-
+    /**
+     * @param ArgumentBag $statement
+     * @param null $parameters
+     * @throws BlueDotRuntimeException
+     * @throws \BlueDot\Exception\ConfigurationException
+     */
     private function modelArrayCheck(ArgumentBag $statement, $parameters = null)
     {
         if (is_array($parameters)) {
@@ -37,7 +42,12 @@ class SimpleStatementParameterValidation extends AbstractTask
             }
         }
     }
-
+    /**
+     * @param ArgumentBag $statement
+     * @param null $parameters
+     * @throws BlueDotRuntimeException
+     * @throws \BlueDot\Exception\ConfigurationException
+     */
     private function singleModelParameterCheck(ArgumentBag $statement, $parameters = null)
     {
         // if the parameter is object, check if there are methods to be bound to config parameters
@@ -72,7 +82,12 @@ class SimpleStatementParameterValidation extends AbstractTask
             }
         }
     }
-
+    /**
+     * @param ArgumentBag $statement
+     * @param null $parameters
+     * @throws BlueDotRuntimeException
+     * @throws \BlueDot\Exception\ConfigurationException
+     */
     private function generalParametersCheck(ArgumentBag $statement, $parameters = null)
     {
         // if configuration has parameters but user hasn't provided anything
@@ -95,7 +110,21 @@ class SimpleStatementParameterValidation extends AbstractTask
             );
         }
 
+        // if user provided parameters exist and config parameters exist
         if ($statement->has('config_parameters') and is_array($parameters)) {
+            // check if provided parameters and config parameters exist
+            $parameterKeys = array_keys($parameters);
+            $diff = array_diff($statement->get('config_parameters'), $parameterKeys);
+
+            if (!empty($diff)) {
+                $message = sprintf(
+                    'You haven\'t provided some config parameters. Mandatory parameters for statement \'%s\' are \'%s\'',
+                    $statement->get('resolved_statement_name'),
+                    implode(', ', $statement->get('config_parameters'))
+                );
+
+                throw new BlueDotRuntimeException($message);
+            }
             $this->addOption('parameters_exist', true);
         }
     }

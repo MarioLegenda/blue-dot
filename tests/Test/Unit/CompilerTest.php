@@ -6,7 +6,6 @@ use BlueDot\Common\ArgumentBag;
 use BlueDot\Configuration\Compiler;
 use BlueDot\Common\ArgumentValidator;
 use BlueDot\Common\StatementValidator;
-use BlueDot\Configuration\StatementCollection;
 use BlueDot\Configuration\Validator\ConfigurationValidator;
 use BlueDot\Configuration\Import\ImportCollection;
 use BlueDot\Entity\Model;

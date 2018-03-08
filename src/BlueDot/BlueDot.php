@@ -109,7 +109,6 @@ class BlueDot implements BlueDotInterface
      * @return PromiseInterface
      * @throws BlueDotRuntimeException
      * @throws ConnectionException
-     * @throws Exception\CompileException
      */
     public function execute(string $name, $parameters = array(), bool $cache = true) : PromiseInterface
     {
@@ -143,7 +142,7 @@ class BlueDot implements BlueDotInterface
             $statement->add('connection', $this->connection);
         }
 
-        $context = new ExecutionContext($statement, $parameters, $cache);
+        $context = new ExecutionContext($statement, $parameters);
 
         return $context
             ->runTasks()
@@ -209,7 +208,6 @@ class BlueDot implements BlueDotInterface
      * @return BlueDotInterface
      * @throws BlueDotRuntimeException
      * @throws ConnectionException
-     * @throws Exception\CompileException
      */
     public function prepareExecution(string $name, $parameters = array(), bool $cache = true) : BlueDotInterface
     {

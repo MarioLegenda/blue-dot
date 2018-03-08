@@ -22,7 +22,7 @@ class ScenarioStatementParametersValidation extends AbstractTask
      */
     private $existsMetadata = array();
     /**
-     * @void
+     * @throws BlueDotRuntimeException
      */
     public function doTask()
     {
@@ -34,7 +34,10 @@ class ScenarioStatementParametersValidation extends AbstractTask
         $this->extrapolateAndValidateMetadata($statements);
         $this->generalParametersCheck($statements, $parameters);
     }
-
+    /**
+     * @param ArgumentBag $statements
+     * @throws BlueDotRuntimeException
+     */
     private function extrapolateAndValidateMetadata(ArgumentBag $statements)
     {
         foreach ($statements as $statement) {
@@ -109,7 +112,11 @@ class ScenarioStatementParametersValidation extends AbstractTask
             }
         }
     }
-
+    /**
+     * @param ArgumentBag $statements
+     * @param null $parameters
+     * @throws BlueDotRuntimeException
+     */
     private function generalParametersCheck(ArgumentBag $statements, $parameters = null)
     {
         foreach ($statements as $statement) {
@@ -129,7 +136,7 @@ class ScenarioStatementParametersValidation extends AbstractTask
                 if (!array_key_exists($statementName, $parameters)) {
                     throw new BlueDotRuntimeException(
                         sprintf(
-                            'Invalid parameters. Statement %s has configuration parameters but you haven\'t supplied any in scenario %s. If you don\'t want to execute this statement, assign \'null\' to a parameter',
+                            'Invalid parameters. Statement %s has configuration parameters but you haven\'t supplied any in scenario %s. If you don\'t want to execute this statement, assign it as \'null\'',
                             $statementName,
                             $statement->get('resolved_statement_name')
                         )

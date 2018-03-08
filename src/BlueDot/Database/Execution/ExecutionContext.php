@@ -46,62 +46,26 @@ class ExecutionContext
     private $result;
     /**
      * @param ArgumentBag $statement
-     * @param bool $cache
      * @param mixed $parameters
      */
-    public function __construct(ArgumentBag $statement, $parameters = null, bool $cache)
+    public function __construct(ArgumentBag $statement, $parameters = null)
     {
         $this->statement = $statement;
         $this->parameters = $parameters;
-        $this->cache = $cache;
     }
     /**
      * @return ExecutionContext
+     * @throws BlueDotRuntimeException
      */
     public function runTasks() : ExecutionContext
     {
         $this->doRunTasks();
 
-        if ($this->statement->has('cache') and $this->statement->get('cache') === true and $this->cache === true) {
-            if (CacheStorage::getInstance()->canBeCached($this->statement)) {
-                $cache = CacheStorage::getInstance();
-                $name = $cache->createName($this->statement);
-
-                if ($cache->has($name)) {
-                    $result = $cache->get($name);
-
-                    if ($this->statement->has('model')) {
-                        $modelConverter = new EntityModelConterter($this->statement->get('model'), $result[0]);
-
-                        $this->result = $modelConverter->convertIntoModel();
-
-                        if (is_array($this->result)) {
-                            $this->result = new Entity($this->result);
-                        }
-
-                        return $this;
-                    } else {
-                        $this->result = new Entity($result);
-                    }
-
-                    return $this;
-                }
-            }
-        } else if ($this->statement->has('cache') and $this->statement->get('cache') === false) {
-            if (CacheStorage::getInstance()->canBeCached($this->statement)) {
-                $cache = CacheStorage::getInstance();
-                $name = $cache->createName($this->statement);
-
-                if ($cache->has($name)) {
-                    $cache->remove($name);
-                }
-            }
-        }
-
         return $this;
     }
     /**
      * @return ExecutionContext
+     * @throws BlueDotRuntimeException
      */
     public function createStrategy() : ExecutionContext
     {
@@ -113,6 +77,7 @@ class ExecutionContext
     }
     /**
      * @return StrategyInterface
+     * @throws BlueDotRuntimeException
      */
     public function getStrategy() : StrategyInterface
     {
@@ -145,6 +110,7 @@ class ExecutionContext
     }
     /**
      * @return PromiseInterface
+     * @throws BlueDotRuntimeException
      */
     public function getPromise() : PromiseInterface
     {
@@ -175,7 +141,10 @@ class ExecutionContext
 
         return $this;
     }
-
+    /**
+     * @return PromiseInterface
+     * @throws BlueDotRuntimeException
+     */
     private function doCreatePromise() : PromiseInterface
     {
         $promise = new Promise($this->result);
@@ -192,7 +161,10 @@ class ExecutionContext
 
         return $promise;
     }
-
+    /**
+     * @return StrategyInterface
+     * @throws BlueDotRuntimeException
+     */
     private function doCreateStrategy() : StrategyInterface
     {
         $type = $this->statement->get('type');
@@ -206,7 +178,9 @@ class ExecutionContext
 
         throw new BlueDotRuntimeException('Internal error. Strategy \''.$type.'\' has not been found. Please, contact whitepostmail@gmail.com or post an issue');
     }
-
+    /**
+     * @throws BlueDotRuntimeException
+     */
     private function doRunTasks()
     {
         $type = $this->statement->get('type');
