@@ -5,7 +5,7 @@ namespace BlueDot\Entity;
 interface PromiseInterface
 {
     /**
-     * @return mixed
+     * @return Entity|array|null
      */
     public function getResult();
     /**
@@ -28,7 +28,7 @@ interface PromiseInterface
      */
     public function getName();
     /**
-     * @return mixed
+     * @return Entity|null
      */
     public function getOriginalEntity();
     /**

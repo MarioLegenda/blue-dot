@@ -20,16 +20,30 @@ class Connection
     private $attributes = array();
     /**
      * Connection constructor.
-     * @param array $dsn
-     * @param Attributes $attributes
+     * @param array $dsn|null
+     * @param Attributes|null $attributes
      * @throws ConnectionException
      */
-    public function __construct(array $dsn, Attributes $attributes)
-    {
-        $this->validateDsn($dsn);
+    public function __construct(
+        array $dsn = null,
+        Attributes $attributes = null
+    ) {
+        if (is_array($dsn)) {
+            $this->validateDsn($dsn);
 
-        $this->dsn = $dsn;
-        $this->attributes = $attributes;
+            $this->dsn = $dsn;
+            $this->attributes = $attributes;
+        }
+    }
+    /**
+     * @param \PDO $pdo
+     * @return Connection
+     */
+    public function setPdo(\PDO $pdo): Connection
+    {
+        $this->connection = $pdo;
+
+        return $this;
     }
     /**
      * @return Attributes
@@ -44,7 +58,7 @@ class Connection
      */
     public function connect(): Connection
     {
-        if ($this->connection instanceof \PDO) {
+        if ($this->isOpen()) {
             return $this;
         }
 
@@ -66,6 +80,16 @@ class Connection
         }
 
         return $this;
+    }
+    /**
+     * @param array $newDsn
+     * @return bool
+     */
+    public function isSame(array $newDsn): bool
+    {
+        $diff = array_diff_assoc($newDsn, $this->dsn);
+
+        return empty($diff);
     }
     /**
      * @return Connection
@@ -108,7 +132,7 @@ class Connection
         foreach ($valids as $entry) {
             if (array_key_exists($entry, $dsn) === false) {
                 throw new ConnectionException(
-                    sprintf('Invalid connection. Missing \'%s\' dsn entry', $key)
+                    sprintf('Invalid connection. Missing \'%s\' dsn entry', $entry)
                 );
             }
 
@@ -116,7 +140,7 @@ class Connection
 
             if (!is_string($dsnEntry)) {
                 throw new ConnectionException(
-                    sprintf('Invalid connection. \'%s\' dns entry has to be a string', $key)
+                    sprintf('Invalid connection. \'%s\' dns entry has to be a string', $entry)
                 );
             }
         }

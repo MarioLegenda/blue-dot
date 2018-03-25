@@ -87,14 +87,19 @@ class Compiler
     }
     /**
      * @param string $name
+     * @param bool|null $silent
      * @return ArgumentBag
      */
-    public function compile(string $name) : ArgumentBag
+    public function compile(string $name, bool $silent = false) : ?ArgumentBag
     {
         $this->argumentValidator->validate($name);
 
         if ($this->statementCollection->hasStatement($name)) {
             return $this->statementCollection->getStatement($name);
+        }
+
+        if ($silent === true) {
+            return null;
         }
 
         throw new \RuntimeException(sprintf('Statement \'%s\' not found', $name));

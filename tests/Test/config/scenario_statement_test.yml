@@ -21,3 +21,13 @@ configuration:
                 first_statement:
                     sql: "SELECT * FROM languages WHERE id = :id"
                     parameters: [id]
+                insert_statement_1:
+                    sql: "INSERT INTO something"
+                insert_statement_2:
+                    sql: "INSERT INTO something"
+                insert_statement:
+                    sql: "INSERT INTO something ()"
+                    parameters: [id, other]
+                    foreign_keys:
+                        statements: [insert_statement_1, insert_statement_2]
+                        bind_them_to: [parameter_1, parameter_2]

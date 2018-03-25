@@ -29,10 +29,6 @@ class ExecutionContext
      */
     private $parameters;
     /**
-     * @var bool $cache
-     */
-    private $cache;
-    /**
      * @var StrategyInterface $strategy
      */
     private $strategy;

@@ -26,14 +26,14 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
 
         $rootConfig = $this->statement->get('root_config');
 
-        if ($rootConfig->get('atomic') === true) {
+        if ($rootConfig->get('atomic') === true and !$this->connection->getPDO()->inTransaction()) {
             $this->connection->getPDO()->beginTransaction();
         }
 
         $this->statements = $this->statement->get('statements');
 
-        foreach ($this->statements as $statement) {
-            try {
+        try {
+            foreach ($this->statements as $statement) {
                 if ($statement->has('if_exists') or $statement->has('if_not_exists')) {
 
                     $existsType = ($statement->has('if_exists')) ? 'if_exists' : 'if_not_exists';
@@ -88,26 +88,27 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
                 $recursiveStatementExecution->execute($this->statements);
 
                 unset($recursiveStatementExecution);
-
-            } catch (\PDOException $e) {
-                if ($this->connection->getPDO()->inTransaction()) {
-                    $this->connection->getPDO()->rollBack();
-                }
-
-                throw new BlueDotRuntimeException('A PDOException has been thrown for statement '.$statement->get('resolved_statement_name').' with message \''.$e->getMessage().'\'');
-            } catch (BlueDotRuntimeException $e) {
-                if ($this->connection->getPDO()->inTransaction()) {
-                    $this->connection->getPDO()->rollBack();
-                }
-
-                throw new BlueDotRuntimeException($e->getMessage());
             }
+        } catch (\PDOException $e) {
+            if ($rootConfig->get('atomic') ===  true) {
+                $this->handleRollback($rootConfig);
+            }
+
+            throw new BlueDotRuntimeException('A PDOException has been thrown for statement '.$statement->get('resolved_statement_name').' with message \''.$e->getMessage().'\'');
+        } catch (BlueDotRuntimeException $e) {
+            if ($rootConfig->get('atomic') ===  true) {
+                $this->handleRollback($rootConfig);
+            }
+
+            throw new BlueDotRuntimeException($e->getMessage());
         }
 
-        if ($rootConfig->get('atomic') === true) {
-            if ($this->connection->getPDO()->inTransaction()) {
+        try {
+            if ($rootConfig->get('atomic') === true) {
                 $this->connection->getPDO()->commit();
             }
+        } catch (\Exception $e) {
+            $this->handleRollback($rootConfig);
         }
 
         return $this;
@@ -129,6 +130,21 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
         }
 
         return (new CreateRegularComponent($this->resultReport))->createEntity();
+    }
+    /**
+     * @param ArgumentBag $rootConfig
+     * @throws BlueDotRuntimeException
+     */
+    private function handleRollback(ArgumentBag $rootConfig)
+    {
+        if ($rootConfig->get('atomic') === true) {
+            if (!$this->connection->getPDO()->inTransaction()) {
+                $message = sprintf('Internal error. Scenario %s should be in transaction to rollback but it isn\'t', $rootConfig->get('scenario_name'));
+                throw new BlueDotRuntimeException($message);
+            }
+
+            $this->connection->getPDO()->rollBack();
+        }
     }
 
 }

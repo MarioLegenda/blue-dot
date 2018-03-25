@@ -3,6 +3,7 @@
 namespace BlueDot\Entity;
 
 use BlueDot\Common\AbstractArgumentBag;
+use BlueDot\Common\ArgumentBag;
 use BlueDot\Exception\EntityException;
 
 class Entity extends AbstractArgumentBag
@@ -119,7 +120,13 @@ class Entity extends AbstractArgumentBag
 
         return $result;
     }
-
+    /**
+     * @param string $column
+     * @param $value
+     * @param array|null $replacementResult
+     * @return array
+     * @throws EntityException
+     */
     private function doFindBy(string $column, $value, array $replacementResult = null)
     {
         $arguments = $this->arguments;
@@ -160,13 +167,16 @@ class Entity extends AbstractArgumentBag
 
         return $results;
     }
-
+    /**
+     * @param array $grouping
+     * @param string|null $scenarioName
+     * @return array
+     * @throws EntityException
+     * @throws \BlueDot\Exception\BlueDotRuntimeException
+     */
     private function doNormalizeJoinedResult(array $grouping, string $scenarioName = null)
     {
-        $arguments = $this->arguments;
-        if (!is_null($scenarioName)) {
-            $arguments = $this->get($scenarioName);
-        }
+        $arguments = $this->normalize();
 
         $grouping = new Grouping($grouping);
 
@@ -213,7 +223,12 @@ class Entity extends AbstractArgumentBag
 
         return $result;
     }
-
+    /**
+     * @param string $column
+     * @param $value
+     * @return array|mixed
+     * @throws EntityException
+     */
     private function doFind(string $column, $value)
     {
         $result = $this->findBy($column, $value);
@@ -231,5 +246,34 @@ class Entity extends AbstractArgumentBag
         }
 
         return $result;
+    }
+    /**
+     * @param string|null $scenarioName
+     * @throws \BlueDot\Exception\BlueDotRuntimeException
+     * @throws \RuntimeException
+     * @return array|AbstractArgumentBag
+     */
+    private function normalize(string $scenarioName = null)
+    {
+        $arguments = $this->arguments;
+        if (!is_null($scenarioName)) {
+            $arguments = $this->get($scenarioName);
+
+            if ($arguments instanceof Entity) {
+                $arguments = $arguments->toArray();
+            }
+        }
+
+        if ($arguments instanceof AbstractArgumentBag) {
+            if (is_null($arguments->get('row_count'))) {
+                throw new \RuntimeException('There are no rows to normalize');
+            }
+        }
+
+        if (is_array($arguments) and empty($arguments)) {
+            throw new \RuntimeException('There are no rows to normalize');
+        }
+
+        return $arguments;
     }
 }

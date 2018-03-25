@@ -4,7 +4,7 @@ namespace BlueDot\Repository;
 
 use BlueDot\Exception\RepositoryException;
 
-class Repository implements RepositoryInterface, \Countable
+class Repository implements RepositoryInterface, \Countable, \IteratorAggregate
 {
     /**
      * @var array $files
@@ -23,9 +23,7 @@ class Repository implements RepositoryInterface, \Countable
      */
     private $repositories = array();
     /**
-     * @param string $resource
-     * @return RepositoryInterface
-     * @throws RepositoryException
+     * @inheritdoc
      */
     public function putRepository(string $resource) : RepositoryInterface
     {
@@ -44,9 +42,7 @@ class Repository implements RepositoryInterface, \Countable
         return $this;
     }
     /**
-     * @param string $repository
-     * @return string
-     * @throws RepositoryException
+     * @inheritdoc
      */
     public function useRepository(string $repository) : string
     {
@@ -63,43 +59,49 @@ class Repository implements RepositoryInterface, \Countable
         return $this->repositories[$repository];
     }
     /**
-     * @param string $repository
-     * @return bool
+     * @inheritdoc
      */
     public function hasRepository(string $repository) : bool
     {
         return array_key_exists($repository, $this->repositories);
     }
     /**
-     * @return array
+     * @inheritdoc
      */
     public function getWorkingRepositories() : array
     {
         return $this->repositories;
     }
     /**
-     * @return array
+     * @inheritdoc
      */
     public function getFiles() : array
     {
         return $this->files;
     }
     /**
-     * @return array
+     * @inheritdoc
      */
     public function getDirs() : array
     {
         return $this->dirs;
     }
     /**
-     * @return string|null
+     * @inheritdoc
      */
     public function getCurrentlyUsingRepository(): ?string
     {
         return $this->currentlyUsingRepository;
     }
     /**
-     * @return int
+     * @inheritdoc
+     */
+    public function isCurrentlyUsingRepository(string $repository): bool
+    {
+        return $this->getCurrentlyUsingRepository() === $repository;
+    }
+    /**
+     * @inheritdoc
      */
     public function count(): int
     {
@@ -154,5 +156,12 @@ class Repository implements RepositoryInterface, \Countable
         $this->dirs[] = $dir;
 
         return $this;
+    }
+    /**
+     * @return \ArrayIterator
+     */
+    public function getIterator(): \ArrayIterator
+    {
+        return new \ArrayIterator($this->getWorkingRepositories());
     }
 }

@@ -3,6 +3,7 @@
 namespace BlueDot\Component;
 
 use BlueDot\Common\ArgumentBag;
+use BlueDot\Database\TypeConverter;
 use BlueDot\Entity\Entity;
 use BlueDot\Result\DeleteQueryResult;
 use BlueDot\Result\MultipleInsertQueryResult;
@@ -30,6 +31,7 @@ class CreateRegularComponent
     public function createEntity() : Entity
     {
         $entity = new Entity();
+        $typeConverter = new TypeConverter();
 
         foreach ($this->report as $scenarioName => $report) {
             $name = explode('.', $scenarioName)[2];
@@ -68,7 +70,7 @@ class CreateRegularComponent
             }
 
             if ($report instanceof SelectQueryResult) {
-                $info = new Entity($report->getQueryResult());
+                $info = new Entity($typeConverter->convert($report->getQueryResult()));
 
                 $entity->add($name, $info);
             }

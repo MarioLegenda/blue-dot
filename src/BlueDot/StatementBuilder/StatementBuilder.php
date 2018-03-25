@@ -109,7 +109,7 @@ class StatementBuilder
         if (!empty($properties)) {
             foreach ($properties as $key => $value) {
                 if (!is_string($key)) {
-                    throw new CompileException('Invalid model options. \'properties\' should be a associative array. %s given for value %s', $key, $value);
+                    throw new CompileException(sprintf('Invalid model options. \'properties\' should be a associative array. %s given for value %s', $key, $value));
                 }
             }
         }
@@ -138,7 +138,7 @@ class StatementBuilder
 
         $this->statement->add('connection', $this->connection);
 
-        $context = new ExecutionContext($this->statement, null, false);
+        $context = new ExecutionContext($this->statement, $this->userParameters);
 
         return $context
             ->runTasks()

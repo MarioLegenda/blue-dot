@@ -38,7 +38,6 @@ class PreparedExecution
      * @param string $name
      * @param StrategyInterface $strategy
      * @return PreparedExecution
-     * @throws BlueDotRuntimeException
      */
     public function addStrategy(string $name, StrategyInterface $strategy) : PreparedExecution
     {
@@ -61,19 +60,28 @@ class PreparedExecution
             );
         }
 
-        $this->connection->getPDO()->beginTransaction();
+        try {
+            $this->connection->getPDO()->beginTransaction();
 
-        foreach ($this->strategies as $key => $strategy) {
-            $result = $strategy->execute()->getResult();
+            foreach ($this->strategies as $key => $strategy) {
+                $result = $strategy->execute()->getResult();
 
-            $promise = $this->createPromise($result);
+                $promise = $this->createPromise($result);
 
-            $promise->setName($this->statementNames[$key]);
+                $promise->setName($this->statementNames[$key]);
 
-            $this->promises[$promise->getName()] = $promise;
+                $this->promises[$promise->getName()][] = $promise;
+            }
+
+            $this->connection->getPDO()->commit();
+        } catch (\Exception $e) {
+            if ($this->connection->getPDO()->inTransaction()) {
+                $this->connection->getPDO()->rollBack();
+            }
+
+            throw $e;
         }
 
-        $this->connection->getPDO()->commit();
 
         return $this;
     }

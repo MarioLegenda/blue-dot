@@ -18,6 +18,7 @@ class ScenarioParametersResolver extends AbstractTask
 
         $statements = $statement->get('statements');
 
+        /** @var ArgumentBag $statement */
         foreach ($statements as $statement) {
             if ($statement->has('config_parameters')) {
                 $configParameters = $statement->get('config_parameters');
@@ -25,9 +26,12 @@ class ScenarioParametersResolver extends AbstractTask
 
                 if (!$statement->has('has_to_execute')) {
                     $this->determineStrategy($statement, $configParameters, $userParameters);
+
                 }
             } else if (!$statement->has('config_parameters')) {
-                $statement->add('query_strategy', 'individual_strategy');
+                if (!$statement->has('query_strategy')) {
+                    $statement->add('query_strategy', 'individual_strategy');
+                }
             }
         }
     }

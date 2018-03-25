@@ -29,7 +29,7 @@ class Promise implements PromiseInterface
         $this->entity = $entity;
     }
     /**
-     * @return Entity|object|null
+     * @inheritdoc
      */
     public function getResult()
     {
@@ -44,7 +44,7 @@ class Promise implements PromiseInterface
         return $this->entity;
     }
     /**
-     * @return Entity|null|object
+     * @inheritdoc
      */
     public function getOriginalEntity()
     {
@@ -94,7 +94,7 @@ class Promise implements PromiseInterface
      */
     public function setName(string $name)
     {
-        return $this->name;
+        return $this->name = $name;
     }
     /**
      * @return string|null

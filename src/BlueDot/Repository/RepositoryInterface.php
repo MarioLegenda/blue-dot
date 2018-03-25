@@ -35,4 +35,9 @@ interface RepositoryInterface
      * @return string|null
      */
     public function getCurrentlyUsingRepository();
+    /**
+     * @param string $repository
+     * @return bool
+     */
+    public function isCurrentlyUsingRepository(string $repository): bool;
 }

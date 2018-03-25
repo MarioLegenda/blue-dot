@@ -7,10 +7,6 @@ use BlueDot\Common\ArgumentBag;
 class ScenarioStatementFinder
 {
     /**
-     * @var array $statementKeys
-     */
-    private $statementKeys = [];
-    /**
      * @var array $statements
      */
     private $statements = [];
@@ -18,20 +14,10 @@ class ScenarioStatementFinder
      * @param string $name
      * @param ArgumentBag $statement
      * @return ScenarioStatementFinder
-     * @throws \BlueDot\Exception\BlueDotRuntimeException
      */
     public function add(string $name, ArgumentBag $statement): ScenarioStatementFinder
     {
-        $statements = $statement->get('statements');
-
-        $temp = [];
-        /** @var ArgumentBag $singleStatement */
-        foreach ($statements as $singleStatement) {
-            $temp[] = $singleStatement->get('resolved_statement_name');
-        }
-
-        $this->statementKeys[] = $temp;
-        $this->statements[] = $statement;
+        $this->statements[$name] = $statement;
 
         return $this;
     }
@@ -41,12 +27,10 @@ class ScenarioStatementFinder
      */
     public function find(string $name): ?ArgumentBag
     {
-        foreach ($this->statementKeys as $key => $statements) {
-            if (in_array($name, $statements)) {
-                return $this->statements[$key];
-            }
+        if (!array_key_exists($name, $this->statements)) {
+            return null;
         }
 
-        return null;
+        return $this->statements[$name];
     }
 }

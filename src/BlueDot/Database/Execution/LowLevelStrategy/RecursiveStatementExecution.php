@@ -45,11 +45,11 @@ class RecursiveStatementExecution implements StrategyInterface
      */
     public function execute(ArgumentBag $statements = null) : StrategyInterface
     {
-        if ($this->statement->get('statement_type') === 'database' or $this->statement->get('statement_type') === 'table') {
+/*        if ($this->statement->get('statement_type') === 'database' or $this->statement->get('statement_type') === 'table') {
             $this->executeReal($statements);
 
             return $this;
-        }
+        }*/
 
         $result = $this->executeReal($statements)->getResult();
 
@@ -79,9 +79,9 @@ class RecursiveStatementExecution implements StrategyInterface
     private function executeReal(ArgumentBag $statements) : StrategyInterface
     {
         try {
-            if (!$this->connection->getPDO()->inTransaction()) {
+/*            if (!$this->connection->getPDO()->inTransaction()) {
                 $this->connection->getPDO()->beginTransaction();
-            }
+            }*/
 
             if ($this->statement->has('foreign_key') and $this->statement->get('statement_type') === 'insert') {
                 $currentStatementType = $this->statement->get('statement_type');
@@ -152,17 +152,17 @@ class RecursiveStatementExecution implements StrategyInterface
                 default: throw new BlueDotRuntimeException('Internal Error. Query strategy not determined');
             }
 
-            if ($this->connection->getPDO()->inTransaction()) {
+/*            if ($this->connection->getPDO()->inTransaction()) {
                 $this->connection->getPDO()->commit();
-            }
+            }*/
 
             return $this;
         } catch (\PDOException $e) {
             $message = sprintf('A PDOException was thrown for statement %s with message \'%s\'', $this->statement->get('resolved_statement_name'), $e->getMessage());
 
-            if ($this->connection->getPDO()->inTransaction()) {
+/*            if ($this->connection->getPDO()->inTransaction()) {
                 $this->connection->getPDO()->rollBack();
-            }
+            }*/
 
             throw new BlueDotRuntimeException($message);
         }

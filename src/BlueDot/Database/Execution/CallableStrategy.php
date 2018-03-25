@@ -61,6 +61,7 @@ class CallableStrategy implements StrategyInterface
 
             $this->result = $object->run();
         }
+
         return $this;
     }
 
