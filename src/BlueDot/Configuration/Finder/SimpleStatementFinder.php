@@ -3,32 +3,33 @@
 namespace BlueDot\Configuration\Finder;
 
 use BlueDot\Common\ArgumentBag;
+use BlueDot\Database\Model\ConfigurationInterface;
 
 class SimpleStatementFinder
 {
     /**
-     * @var array $statements
+     * @var array $configurations
      */
-    private $statements = [];
+    private $configurations = [];
     /**
      * @param string $name
-     * @param ArgumentBag $statement
+     * @param ConfigurationInterface $configuration
      * @return SimpleStatementFinder
      */
-    public function add(string $name, ArgumentBag $statement): SimpleStatementFinder
+    public function add(string $name, ConfigurationInterface $configuration): SimpleStatementFinder
     {
-        $this->statements[$name] = $statement;
+        $this->configurations[$name] = $configuration;
 
         return $this;
     }
     /**
      * @param string $name
-     * @return ArgumentBag|null
+     * @return ConfigurationInterface|null
      */
-    public function find(string $name): ?ArgumentBag
+    public function find(string $name): ?ConfigurationInterface
     {
-        if (array_key_exists($name, $this->statements)) {
-            return $this->statements[$name];
+        if (array_key_exists($name, $this->configurations)) {
+            return $this->configurations[$name];
         }
 
         return null;

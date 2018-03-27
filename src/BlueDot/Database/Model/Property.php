@@ -1,13 +1,6 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: mario
- * Date: 13.03.17.
- * Time: 13:14
- */
 
-namespace BlueDot\Entity;
-
+namespace BlueDot\Database\Model;
 
 use BlueDot\Exception\BlueDotRuntimeException;
 

@@ -62,7 +62,7 @@ class StatementCollection
      * @param string $name
      * @param ArgumentBag $statement
      */
-    private function arrange(string $name, ArgumentBag $statement)
+    private function arrange(string $name, $statement)
     {
         $type = $this->determineType($name);
 

@@ -5,7 +5,11 @@ namespace BlueDot\Configuration;
 use BlueDot\Configuration\Import\ImportCollection;
 use BlueDot\Configuration\Import\SqlImport;
 use BlueDot\Configuration\Validator\ConfigurationValidator;
-use BlueDot\Entity\Model;
+use BlueDot\Database\Model\ConfigurationCollection;
+use BlueDot\Database\Model\Metadata;
+use BlueDot\Database\Model\Model;
+use BlueDot\Database\Model\Simple\SimpleConfiguration;
+use BlueDot\Database\Model\Simple\WorkConfig;
 use BlueDot\Exception\BlueDotRuntimeException;
 use BlueDot\Exception\CompileException;
 use BlueDot\Common\StatementValidator;
@@ -129,22 +133,23 @@ class Compiler
             return null;
         }
 
-        $simpleConfiguration = $this->configuration['simple'];
+        $simpleConfigurationArray = $this->configuration['simple'];
 
-        foreach ($simpleConfiguration as $type => $typeConfig) {
+        foreach ($simpleConfigurationArray as $type => $typeConfig) {
             foreach ($typeConfig as $statementName => $statementConfig) {
                 $resolvedName = $type.'.'.$statementName;
                 $resolvedStatementName = sprintf('simple.%s', $resolvedName);
 
-                $builtStatement = new ArgumentBag();
-                $builtStatement
-                    ->add('type', 'simple')
-                    ->add('statement_type', $type)
-                    ->add('statement_name', $statementName)
-                    ->add('resolved_statement_name', $resolvedStatementName);
+                $metadata = new Metadata(
+                    'simple',
+                    $type,
+                    $statementName,
+                    $resolvedStatementName
+                );
 
-                $workConfig = new ArgumentBag();
-                $workConfig->add('sql', $statementConfig['sql']);
+                $sql = $statementConfig['sql'];
+                $parameters = null;
+                $model = null;
 
                 $possibleImport = $statementConfig['sql'];
 
@@ -152,14 +157,12 @@ class Compiler
                     $import = $this->imports->getImport('sql_import', $possibleImport);
 
                     if ($import->hasValue($possibleImport)) {
-                        $workConfig->add('sql', $import->getValue($possibleImport), true);
+                        $sql = $import->getValue($possibleImport);
                     }
                 }
 
                 if (array_key_exists('parameters', $statementConfig)) {
                     $parameters = $statementConfig['parameters'];
-
-                    $workConfig->add('config_parameters', $parameters);
                 }
 
                 if (array_key_exists('model', $statementConfig)) {
@@ -184,15 +187,24 @@ class Compiler
                         }
                     }
 
-                    $workConfig->add('model', new Model($object, $properties), true);
+                    $model = new Model($object, $properties);
                 }
 
-                $builtStatement->mergeStorage($workConfig);
-                $builtStatement->setName($resolvedStatementName);
+                $workConfig = new WorkConfig(
+                    $sql,
+                    $parameters,
+                    $model
+                );
 
-                $this->statementValidator->validate($builtStatement);
+                $configuration = new SimpleConfiguration(
+                    $resolvedStatementName,
+                    $metadata,
+                    $workConfig
+                );
 
-                $this->builtStatements[$resolvedStatementName] = $builtStatement;
+                $this->statementValidator->validate($configuration);
+
+                $this->builtStatements[$resolvedStatementName] = $configuration;
             }
         }
     }

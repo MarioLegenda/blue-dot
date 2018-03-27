@@ -5,8 +5,9 @@ namespace Test;
 use BlueDot\BlueDot;
 use BlueDot\Database\Connection;
 use BlueDot\Database\ConnectionFactory;
+use PHPUnit\Framework\TestCase;
 
-class ConnectionTest extends \PHPUnit_Framework_TestCase
+class ConnectionTest extends TestCase
 {
     public function test_connection()
     {
