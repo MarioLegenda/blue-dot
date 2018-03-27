@@ -15,3 +15,5 @@ configuration:
                 parameters: [id]
                 model:
                     object: Test\Model\User
+            invalid_statement_sql:
+                sql: 'UPDATE user SET name = :name'

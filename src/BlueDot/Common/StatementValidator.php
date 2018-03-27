@@ -2,19 +2,21 @@
 
 namespace BlueDot\Common;
 
+use BlueDot\Database\Model\ConfigurationInterface;
+use BlueDot\Database\Model\Simple\SimpleConfiguration;
 use BlueDot\Exception\ConfigurationException;
 
 class StatementValidator implements ValidatorInterface
 {
     /**
-     * @param ArgumentBag $statement
+     * @param ConfigurationInterface|SimpleConfiguration $configuration
      * @return ValidatorInterface
      * @throws ConfigurationException
      * @throws \BlueDot\Exception\BlueDotRuntimeException
      */
-    public function validate($statement) : ValidatorInterface
+    public function validate($configuration) : ValidatorInterface
     {
-        if ($statement->get('type') === 'scenario') {
+        if ($configuration->getMetadata()->getType() === 'scenario') {
             $this->generalValidation($statement);
             $this->validateUseOptions($statement->get('statements'));
             $this->validateReturnData($statement);

@@ -5,9 +5,10 @@ namespace BlueDot\Configuration;
 use BlueDot\Common\ArgumentBag;
 use BlueDot\Configuration\Finder\CallableStatementFinder;
 use BlueDot\Configuration\Finder\ScenarioStatementFinder;
-use BlueDot\Configuration\Finder\SimpleStatementFinder;
+use BlueDot\Configuration\Finder\SimpleConfigurationFinder;
+use BlueDot\Database\Model\ConfigurationInterface;
 
-class StatementCollection
+class ConfigurationCollection
 {
     /**
      * @var array $statementFinders
@@ -19,7 +20,7 @@ class StatementCollection
      */
     public function __construct(array $statements)
     {
-        $this->statementFinders['simple'] = new SimpleStatementFinder();
+        $this->statementFinders['simple'] = new SimpleConfigurationFinder();
         $this->statementFinders['scenario'] = new ScenarioStatementFinder();
         $this->statementFinders['callable'] = new CallableStatementFinder();
 
@@ -31,20 +32,20 @@ class StatementCollection
      * @param string $name
      * @return bool
      */
-    public function hasStatement(string $name): bool
+    public function hasConfiguration(string $name): bool
     {
         $type = $this->determineType($name);
         $statement = $this->statementFinders[$type]->find($name);
 
-        return $statement instanceof ArgumentBag;
+        return $statement instanceof ConfigurationInterface;
     }
     /**
      * @param string $name
-     * @return ArgumentBag
+     * @return ConfigurationInterface
      */
-    public function getStatement(string $name): ?ArgumentBag
+    public function getConfiguration(string $name): ?ConfigurationInterface
     {
-        if ($this->hasStatement($name)) {
+        if ($this->hasConfiguration($name)) {
             return $this->statementFinders[$this->determineType($name)]->find($name);
         }
 
@@ -62,7 +63,7 @@ class StatementCollection
      * @param string $name
      * @param ArgumentBag $statement
      */
-    private function arrange(string $name, ArgumentBag $statement)
+    private function arrange(string $name, $statement)
     {
         $type = $this->determineType($name);
 

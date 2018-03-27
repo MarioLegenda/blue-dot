@@ -2,11 +2,8 @@
 
 namespace BlueDot;
 
-use BlueDot\Common\{
-    ArgumentBag, ArgumentValidator, StatementValidator
-};
+use BlueDot\Common\{ ArgumentValidator, StatementValidator };
 
-use BlueDot\Configuration\Cache\CompilerCache;
 use BlueDot\Configuration\Compiler;
 
 use BlueDot\Configuration\Import\ImportCollection;
@@ -32,10 +29,6 @@ use BlueDot\Repository\Repository;
 class BlueDot implements BlueDotInterface
 {
     /**
-     * @var string $env
-     */
-    private $env;
-    /**
      * @var string $configSource
      */
     private $configSource;
@@ -43,10 +36,6 @@ class BlueDot implements BlueDotInterface
      * @var Compiler $compiler
      */
     private $compiler;
-    /**
-     * @var CompilerCache $compilerCache
-     */
-    private $compilerCache;
     /**
      * @var Connection $connection
      */
@@ -62,7 +51,6 @@ class BlueDot implements BlueDotInterface
     /**
      * BlueDot constructor.
      * @param string|null $configSource
-     * @param string $env
      * @throws ConfigurationException
      * @throws ConnectionException
      *
@@ -71,13 +59,8 @@ class BlueDot implements BlueDotInterface
      * to be set. This allows querying multiple databases with one instance
      * of BlueDot
      */
-    public function __construct(string $configSource = null, string $env = 'dev')
+    public function __construct(string $configSource = null)
     {
-        $this->validateEnvironment($env);
-
-        $this->env = $env;
-        $this->compilerCache = new CompilerCache();
-
         if (is_null($configSource)) {
             return $this;
         }
@@ -219,14 +202,26 @@ class BlueDot implements BlueDotInterface
         return $this;
     }
     /**
-     * @inheritdoc
+     * @param string $name
+     * @param array $parameters
+     * @return BlueDotInterface
+     * @throws BlueDotRuntimeException
+     * @throws ConnectionException
      */
     public function prepareExecution(string $name, $parameters = array()) : BlueDotInterface
     {
         $this->prepareBlueDot();
 
-        /** @var ArgumentBag $statement */
         $statement = $this->compiler->compile($name);
+
+        if ($statement->get('type') !== 'simple') {
+            throw new BlueDotRuntimeException(
+                sprintf(
+                    'Invalid prepared execution statement \'%s\'. Only simple statements can be prepared for execution',
+                    $statement->get('resolved_statement_name')
+                )
+            );
+        }
 
         if (!$this->preparedExecution instanceof PreparedExecution) {
             $this->preparedExecution = $this->createPreparedExecution();
@@ -258,8 +253,10 @@ class BlueDot implements BlueDotInterface
     }
     /**
      * @param string $configSource
+     * @throws BlueDotRuntimeException
      * @throws ConfigurationException
      * @throws ConnectionException
+     * @throws Exception\CompileException
      */
     private function initBlueDot(string $configSource)
     {
@@ -285,16 +282,7 @@ class BlueDot implements BlueDotInterface
             );
         }
 
-        if ($this->env === 'prod') {
-            if (!$this->compilerCache->isInCache($configSource)) {
-                $this->compilerCache->putInCache($configSource, Yaml::parse(file_get_contents($configSource)));
-            }
-
-            $parsedConfiguration = $this->compilerCache->getFromCache($configSource);
-        } else if ($this->env === 'dev') {
-            $parsedConfiguration = Yaml::parse(file_get_contents($configSource));
-        }
-
+        $parsedConfiguration = Yaml::parse(file_get_contents($configSource));
 
         if (empty($parsedConfiguration)) {
             throw new ConfigurationException('Invalid configuration. Configuration could not be parsed');
@@ -306,7 +294,9 @@ class BlueDot implements BlueDotInterface
      * @param string $configSource
      * @param array $parsedConfiguration
      * @return Compiler
+     * @throws BlueDotRuntimeException
      * @throws ConfigurationException
+     * @throws Exception\CompileException
      */
     private function createCompiler(string $configSource, array $parsedConfiguration) : Compiler
     {
@@ -330,10 +320,6 @@ class BlueDot implements BlueDotInterface
             $connectionArray = $parsedConfiguration['configuration']['connection'];
 
             if ($this->connection instanceof Connection) {
-                if ($this->connection->isSame($connectionArray)) {
-                    return $this->connection;
-                }
-
                 $this->connection->close();
             }
 
@@ -375,18 +361,5 @@ class BlueDot implements BlueDotInterface
     private function createPreparedExecution() : PreparedExecution
     {
         return new PreparedExecution($this->connection);
-    }
-    /**
-     * @param string $env
-     */
-    private function validateEnvironment(string $env)
-    {
-        $validEnvs = ['dev', 'prod'];
-
-        if (!in_array($env, $validEnvs)) {
-            $message = sprintf('Invalid environment. Valid environments are \'%s\'', implode(', ', $validEnvs));
-
-            throw new \RuntimeException($message);
-        }
     }
 }

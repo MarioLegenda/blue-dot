@@ -2,17 +2,16 @@
 
 namespace Test\Unit;
 
-use BlueDot\Common\ArgumentBag;
 use BlueDot\Common\ArgumentValidator;
 use BlueDot\Common\StatementValidator;
 use BlueDot\Configuration\Compiler;
 use BlueDot\Configuration\Import\ImportCollection;
 use BlueDot\Configuration\Validator\ConfigurationValidator;
 use BlueDot\Database\Execution\ExecutionContext;
-use BlueDot\Exception\BlueDotRuntimeException;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Yaml\Yaml;
 
-class ExecutionContextTest extends \PHPUnit_Framework_TestCase
+class ExecutionContextTest extends TestCase
 {
     /**
      * @var array $simpleConfig
@@ -49,103 +48,62 @@ class ExecutionContextTest extends \PHPUnit_Framework_TestCase
         ];
     }
 
-    public function test_simple_statement_parameters()
+    public function test_simple_execution_context()
     {
-        $parsedConfiguration = $this->simpleConfig['config'];
+        $file = $this->simpleConfig['file'];
+        $configArray = $this->simpleConfig['config'];
 
         $compiler = new Compiler(
-            $this->simpleConfig['file'],
-            $parsedConfiguration['configuration'],
+            $file,
+            $configArray['configuration'],
             new ArgumentValidator(),
             new StatementValidator(),
-            new ConfigurationValidator($parsedConfiguration),
+            new ConfigurationValidator($configArray),
             new ImportCollection()
         );
+
+        static::assertTrue($compiler->isCompiled());
 
         $statementName = 'simple.select.find_by_id';
-        $statement = $compiler->compile($statementName);
 
-/*        $this->assertInvalidParameters($statement, [
-            'i' => 5
+        $compiledConfiguration = $compiler->compile($statementName);
+
+        $executionContext = new ExecutionContext($compiledConfiguration, [
+            'id' => 1,
         ]);
-        $this->assertInvalidParameters($statement, []);
-        $this->assertInvalidParameters($statement, [5]);
 
-        $this->assertValidParameters($statement, [
-            'id' => 5,
-        ]);*/
+        $executionContext->runTasks();
     }
 
-    public function test_scenario_statement_parameters()
+    public function test_simple_execution_invalid_context()
     {
-        $parsedConfiguration = $this->scenarioConfig['config'];
+        $file = $this->simpleConfig['file'];
+        $configArray = $this->simpleConfig['config'];
 
         $compiler = new Compiler(
-            $this->scenarioConfig['file'],
-            $parsedConfiguration['configuration'],
+            $file,
+            $configArray['configuration'],
             new ArgumentValidator(),
             new StatementValidator(),
-            new ConfigurationValidator($parsedConfiguration),
+            new ConfigurationValidator($configArray),
             new ImportCollection()
         );
 
-        $statement = $compiler->compile('scenario.only_selects.select_first_language');
+        static::assertTrue($compiler->isCompiled());
 
-/*        $this->assertInvalidParameters($statement, []);
-        $this->assertInvalidParameters($statement, [
-            'select_first_language' => [],
-        ]);
-        $this->assertInvalidParameters($statement, [
-            'select_first_language' => [
-                'id' => 4,
-            ],
-        ]);*/
-        $this->assertInvalidParameters($statement, [
-            'select_first_language' => [
-                'id' => 5
-            ],
-            'select_second_language' => [
-                'id' => 5
-            ],
-        ]);
-        $this->assertInvalidParameters($statement, [
-            'select_first_language' => [5],
-            'select_second_language' => [
-                'id' => 5,
-            ],
-        ]);
-        $this->assertInvalidParameters($statement, [
-            'select_first_language' => [5],
-            'select_second_language' => [7],
-        ]);
-    }
-    /**
-     * @param ArgumentBag $statement
-     * @param array $parameters
-     */
-    private function assertInvalidParameters(ArgumentBag $statement, array $parameters = [])
-    {
-        $enteredParametersException = false;
+        $statementName = 'simple.select.invalid_statement_sql';
+
+        $compiledConfiguration = $compiler->compile($statementName);
+
+        $executionContext = new ExecutionContext($compiledConfiguration);
+
+        $entersInvalidStatementException = false;
         try {
-            $executionContext = new ExecutionContext($statement, $parameters);
-
             $executionContext->runTasks();
-        } catch (BlueDotRuntimeException $e) {
-            var_dump($e->getMessage());
-            $enteredParametersException = true;
+        } catch (\RuntimeException $e) {
+            $entersInvalidStatementException = true;
         }
 
-        static::assertTrue($enteredParametersException);
-    }
-    /**
-     * @param ArgumentBag $statement
-     * @param array $parameters
-     * @throws BlueDotRuntimeException
-     */
-    private function assertValidParameters(ArgumentBag $statement, array $parameters)
-    {
-        $executionContext = new ExecutionContext($statement, $parameters);
-
-        $executionContext->runTasks();
+        static::assertTrue($entersInvalidStatementException);
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace BlueDot\Entity;
+namespace BlueDot\Database\Model;
 
 class Model
 {
@@ -16,6 +16,7 @@ class Model
      * Model constructor.
      * @param string $name
      * @param array $properties
+     * @throws \BlueDot\Exception\BlueDotRuntimeException
      */
     public function __construct(string $name, array $properties)
     {

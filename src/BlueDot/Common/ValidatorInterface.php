@@ -2,11 +2,13 @@
 
 namespace BlueDot\Common;
 
+use BlueDot\Database\Model\ConfigurationInterface;
+
 interface ValidatorInterface
 {
     /**
-     * @param string|object $argument
+     * @param object|string $configuration
      * @return ValidatorInterface
      */
-    public function validate($argument) : ValidatorInterface;
+    public function validate($configuration) : ValidatorInterface;
 }

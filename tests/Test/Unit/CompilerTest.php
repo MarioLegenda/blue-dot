@@ -2,13 +2,17 @@
 
 namespace Test\Unit;
 
-use BlueDot\Common\ArgumentBag;
-use BlueDot\Configuration\Compiler;
 use BlueDot\Common\ArgumentValidator;
 use BlueDot\Common\StatementValidator;
-use BlueDot\Configuration\Validator\ConfigurationValidator;
+use BlueDot\Configuration\Compiler;
 use BlueDot\Configuration\Import\ImportCollection;
-use BlueDot\Entity\Model;
+use BlueDot\Configuration\Validator\ConfigurationValidator;
+use BlueDot\Database\Model\ConfigurationInterface;
+use BlueDot\Database\Model\MetadataInterface;
+use BlueDot\Database\Model\Model;
+use BlueDot\Database\Model\Simple\SimpleConfiguration;
+use BlueDot\Database\Model\WorkConfig;
+use BlueDot\Database\Model\WorkConfigInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Yaml\Yaml;
 
@@ -35,98 +39,110 @@ class CompilerTest extends TestCase
 
         $this->simpleConfig = [
             'file' => $simpleConfig,
-            'config' => Yaml::parse(file_get_contents($simpleConfig))
+            'config' => Yaml::parse($simpleConfig)
         ];
 
         $this->scenarioConfig = [
             'file' => $scenarioConfig,
-            'config' => Yaml::parse(file_get_contents($scenarioConfig))
+            'config' => Yaml::parse($scenarioConfig)
         ];
 
         $this->callableConfig = [
             'file' => $callableConfig,
-            'config' => Yaml::parse(file_get_contents($callableConfig)),
+            'config' => Yaml::parse($callableConfig),
         ];
     }
 
-/*    public function test_simple_statements_compiler()
+    public function test_simple_no_parameters_compiler()
     {
-        $parsedConfiguration = $this->simpleConfig['config'];
+        $file = $this->simpleConfig['file'];
+        $configArray = $this->simpleConfig['config'];
 
         $compiler = new Compiler(
-            $this->simpleConfig['file'],
-            $parsedConfiguration['configuration'],
+            $file,
+            $configArray['configuration'],
             new ArgumentValidator(),
             new StatementValidator(),
-            new ConfigurationValidator($parsedConfiguration),
+            new ConfigurationValidator($configArray),
+            new ImportCollection()
+        );
+
+        $statementName = 'simple.select.find_all';
+
+        static::assertTrue($compiler->isCompiled());
+
+        /** @var SimpleConfiguration $compiledConfiguration */
+        $compiledConfiguration = $compiler->compile($statementName);
+
+        static::assertInstanceOf(ConfigurationInterface::class, $compiledConfiguration);
+        static::assertEquals($statementName, $compiledConfiguration->getName());
+
+        static::assertInstanceOf(MetadataInterface::class, $compiledConfiguration->getMetadata());
+        static::assertInstanceOf(WorkConfig::class, $compiledConfiguration->getWorkConfig());
+
+        $metadata = $compiledConfiguration->getMetadata();
+
+        static::assertEquals('simple', $metadata->getType());
+        static::assertEquals('select', $metadata->getStatementType());
+        static::assertEquals('find_all', $metadata->getStatementName());
+        static::assertEquals($statementName, $metadata->getResolvedStatementName());
+        static::assertEquals('simple.select', $metadata->getResolvedStatementType());
+
+        $workConfig = $compiledConfiguration->getWorkConfig();
+
+        static::assertInternalType('string', $workConfig->getSql());
+        static::assertNull($workConfig->getModel());
+        static::assertNull($workConfig->getConfigParameters());
+    }
+
+    public function test_simple_parameterized_compiler()
+    {
+        $file = $this->simpleConfig['file'];
+        $configArray = $this->simpleConfig['config'];
+
+        $compiler = new Compiler(
+            $file,
+            $configArray['configuration'],
+            new ArgumentValidator(),
+            new StatementValidator(),
+            new ConfigurationValidator($configArray),
             new ImportCollection()
         );
 
         $statementName = 'simple.select.find_by_id';
-        $statement = $compiler->compile($statementName);
-
-        static::assertInstanceOf(ArgumentBag::class, $statement);
-
-        static::assertEquals('simple', $statement->get('type'));
-        static::assertEquals('select', $statement->get('statement_type'));
-        static::assertEquals('find_by_id', $statement->get('statement_name'));
-        static::assertEquals($statementName, $statement->get('resolved_statement_name'));
-
-        static::assertTrue($statement->has('config_parameters'));
-        static::assertNotEmpty($statement->get('config_parameters'));
-
-        static::assertTrue($statement->has('model'));
-        static::assertInstanceOf(Model::class, $statement->get('model'));
 
         static::assertTrue($compiler->isCompiled());
-    }*/
 
-    public function test_scenario_statement_compiler()
-    {
-        $parsedConfiguration = $this->scenarioConfig['config'];
+        /** @var SimpleConfiguration $compiledConfiguration */
+        $compiledConfiguration = $compiler->compile($statementName);
 
-        $compiler = new Compiler(
-            $this->scenarioConfig['file'],
-            $parsedConfiguration['configuration'],
-            new ArgumentValidator(),
-            new StatementValidator(),
-            new ConfigurationValidator($parsedConfiguration),
-            new ImportCollection()
-        );
+        static::assertInstanceOf(ConfigurationInterface::class, $compiledConfiguration);
+        static::assertEquals($statementName, $compiledConfiguration->getName());
 
-        $statement = $compiler->compile('scenario.only_selects');
+        static::assertInstanceOf(MetadataInterface::class, $compiledConfiguration->getMetadata());
+        static::assertInstanceOf(WorkConfigInterface::class, $compiledConfiguration->getWorkConfig());
 
-        static::assertInstanceOf(ArgumentBag::class, $statement);
+        $metadata = $compiledConfiguration->getMetadata();
 
-        static::assertEquals('only_selects', $statement->get('root_config')->get('scenario_name'));
-        static::assertTrue($statement->get('root_config')->get('atomic'));
+        static::assertEquals('simple', $metadata->getType());
+        static::assertEquals('select', $metadata->getStatementType());
+        static::assertEquals('find_by_id', $metadata->getStatementName());
+        static::assertEquals('simple.select', $metadata->getResolvedStatementType());
+        static::assertEquals($statementName, $metadata->getResolvedStatementName());
 
-        $statement = $compiler->compile('scenario.only_selects');
+        $workConfig = $compiledConfiguration->getWorkConfig();
 
-        static::assertInstanceOf(ArgumentBag::class, $statement);
+        static::assertInternalType('string', $workConfig->getSql());
+        static::assertInternalType('array', $workConfig->getConfigParameters());
+        static::assertNotEmpty($workConfig->getConfigParameters());
 
-        static::assertEquals('only_selects', $statement->get('root_config')->get('scenario_name'));
-        static::assertTrue($statement->get('root_config')->get('atomic'));
+        static::assertInstanceOf(Model::class, $workConfig->getModel());
+
+        $model = $workConfig->getModel();
+
+        static::assertInternalType('string', $model->getName());
+        static::assertNotEmpty($model->getName());
+
+        static::assertEmpty($model->getProperties());
     }
-
-/*    public function test_callable_statement_compiler()
-    {
-        $parsedConfiguration = $this->callableConfig['config'];
-
-        $compiler = new Compiler(
-            $this->scenarioConfig['file'],
-            $parsedConfiguration['configuration'],
-            new ArgumentValidator(),
-            new StatementValidator(),
-            new ConfigurationValidator($parsedConfiguration),
-            new ImportCollection()
-        );
-
-        $statementName = 'callable.callable_service';
-        $statement = $compiler->compile($statementName);
-
-        static::assertEquals($statementName, $statement->getName());
-
-        static::assertEquals('callable', $statement->get('type'));
-    }*/
 }
