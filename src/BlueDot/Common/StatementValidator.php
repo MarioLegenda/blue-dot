@@ -16,7 +16,7 @@ class StatementValidator implements ValidatorInterface
      */
     public function validate($configuration) : ValidatorInterface
     {
-        if ($configuration->getMetadata()->getType() === 'simple') {
+        if ($configuration->getMetadata()->getType() === 'scenario') {
             $this->generalValidation($statement);
             $this->validateUseOptions($statement->get('statements'));
             $this->validateReturnData($statement);

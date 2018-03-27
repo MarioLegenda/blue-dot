@@ -204,12 +204,11 @@ class BlueDot implements BlueDotInterface
     /**
      * @param string $name
      * @param array $parameters
-     * @param bool $cache
      * @return BlueDotInterface
      * @throws BlueDotRuntimeException
      * @throws ConnectionException
      */
-    public function prepareExecution(string $name, $parameters = array(), bool $cache = true) : BlueDotInterface
+    public function prepareExecution(string $name, $parameters = array()) : BlueDotInterface
     {
         $this->prepareBlueDot();
 
@@ -232,7 +231,7 @@ class BlueDot implements BlueDotInterface
             $statement->add('connection', $this->connection);
         }
 
-        $executionContext = new ExecutionContext($statement, $parameters, $cache);
+        $executionContext = new ExecutionContext($statement, $parameters);
 
         $executionContext->runTasks();
 
@@ -254,8 +253,10 @@ class BlueDot implements BlueDotInterface
     }
     /**
      * @param string $configSource
+     * @throws BlueDotRuntimeException
      * @throws ConfigurationException
      * @throws ConnectionException
+     * @throws Exception\CompileException
      */
     private function initBlueDot(string $configSource)
     {
@@ -293,7 +294,9 @@ class BlueDot implements BlueDotInterface
      * @param string $configSource
      * @param array $parsedConfiguration
      * @return Compiler
+     * @throws BlueDotRuntimeException
      * @throws ConfigurationException
+     * @throws Exception\CompileException
      */
     private function createCompiler(string $configSource, array $parsedConfiguration) : Compiler
     {

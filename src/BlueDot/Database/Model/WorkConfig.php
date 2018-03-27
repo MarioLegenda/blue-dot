@@ -1,10 +1,8 @@
 <?php
 
-namespace BlueDot\Database\Model\Simple;
+namespace BlueDot\Database\Model;
 
-use BlueDot\Database\Model\Model;
-
-class WorkConfig
+class WorkConfig implements WorkConfigInterface
 {
     /**
      * @var string $sql
@@ -18,6 +16,10 @@ class WorkConfig
      * @var Model $model
      */
     private $model;
+    /**
+     * @var array $userParameters
+     */
+    private $userParameters;
     /**
      * WorkConfig constructor.
      * @param string $sql
@@ -34,24 +36,38 @@ class WorkConfig
         $this->model = $model;
     }
     /**
-     * @return string
+     * @inheritdoc
      */
     public function getSql(): string
     {
         return $this->sql;
     }
     /**
-     * @return array
+     * @inheritdoc
      */
-    public function getConfigParameters(): array
+    public function getConfigParameters(): ?array
     {
         return $this->configParameters;
     }
     /**
-     * @return Model
+     * @inheritdoc
      */
-    public function getModel(): Model
+    public function getUserParameters(): array
+    {
+        return $this->userParameters;
+    }
+    /**
+     * @inheritdoc
+     */
+    public function getModel(): ?Model
     {
         return $this->model;
+    }
+    /**
+     * @inheritdoc
+     */
+    public function injectUserParameters(array $userParameters)
+    {
+        $this->userParameters = $userParameters;
     }
 }

@@ -2,10 +2,9 @@
 
 namespace BlueDot\Configuration\Finder;
 
-use BlueDot\Common\ArgumentBag;
 use BlueDot\Database\Model\ConfigurationInterface;
 
-class SimpleStatementFinder
+class SimpleConfigurationFinder
 {
     /**
      * @var array $configurations
@@ -14,9 +13,9 @@ class SimpleStatementFinder
     /**
      * @param string $name
      * @param ConfigurationInterface $configuration
-     * @return SimpleStatementFinder
+     * @return SimpleConfigurationFinder
      */
-    public function add(string $name, ConfigurationInterface $configuration): SimpleStatementFinder
+    public function add(string $name, ConfigurationInterface $configuration): SimpleConfigurationFinder
     {
         $this->configurations[$name] = $configuration;
 

@@ -2,7 +2,7 @@
 
 namespace BlueDot\Database\Model;
 
-class Metadata
+class Metadata implements MetadataInterface
 {
     /**
      * @var string $type
@@ -21,6 +21,10 @@ class Metadata
      */
     private $resolvedStatementName;
     /**
+     * @var string $resolvedStatementType
+     */
+    private $resolvedStatementType;
+    /**
      * Metadata constructor.
      * @param string $type
      * @param string $statementType
@@ -37,33 +41,41 @@ class Metadata
         $this->statementType = $statementType;
         $this->statementName = $statementName;
         $this->resolvedStatementName = $resolvedStatementName;
+        $this->resolvedStatementType = sprintf('%s.%s', $this->type, $this->statementType);
     }
     /**
-     * @return string
+     * @inheritdoc
      */
     public function getType(): string
     {
         return $this->type;
     }
     /**
-     * @return string
+     * @inheritdoc
      */
     public function getStatementType(): string
     {
         return $this->statementType;
     }
     /**
-     * @return string
+     * @inheritdoc
      */
     public function getStatementName(): string
     {
         return $this->statementName;
     }
     /**
-     * @return string
+     * @inheritdoc
      */
     public function getResolvedStatementName(): string
     {
         return $this->resolvedStatementName;
+    }
+    /**
+     * @inheritdoc
+     */
+    public function getResolvedStatementType(): string
+    {
+        return $this->resolvedStatementType;
     }
 }

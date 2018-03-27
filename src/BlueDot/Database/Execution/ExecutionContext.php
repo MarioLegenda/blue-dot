@@ -4,6 +4,10 @@ namespace BlueDot\Database\Execution;
 
 use BlueDot\Cache\CacheStorage;
 use BlueDot\Common\ArgumentBag;
+use BlueDot\Database\Execution\Validation\Implementation\CorrectSqlValidation;
+use BlueDot\Database\Execution\Validation\ValidationResolver;
+use BlueDot\Database\Model\ConfigurationInterface;
+use BlueDot\Database\Model\Simple\SimpleConfiguration;
 use BlueDot\Database\Validation\Scenario\ScenarioParametersResolver;
 use BlueDot\Database\Validation\Scenario\ScenarioStatementParametersValidation;
 use BlueDot\Database\Validation\ScenarioStatementTaskRunner;
@@ -21,17 +25,13 @@ use BlueDot\Database\Validation\Simple\SimpleParametersResolver;
 class ExecutionContext
 {
     /**
-     * @var ArgumentBag $statement
+     * @var ConfigurationInterface $configuration
      */
-    private $statement;
+    private $configuration;
     /**
-     * @var mixed $parameters
+     * @var array|null $userParameters
      */
-    private $parameters;
-    /**
-     * @var bool $cache
-     */
-    private $cache;
+    private $userParameters;
     /**
      * @var StrategyInterface $strategy
      */
@@ -45,17 +45,17 @@ class ExecutionContext
      */
     private $result;
     /**
-     * @param ArgumentBag $statement
-     * @param mixed $parameters
+     * @param ConfigurationInterface $configuration
+     * @param array|null $userParameters
      */
-    public function __construct(ArgumentBag $statement, $parameters = null)
+    public function __construct(ConfigurationInterface $configuration, array $userParameters = null)
     {
-        $this->statement = $statement;
-        $this->parameters = $parameters;
+        $this->configuration = $configuration;
+        $this->userParameters = $userParameters;
     }
     /**
      * @return ExecutionContext
-     * @throws BlueDotRuntimeException
+     * @throws \RuntimeException
      */
     public function runTasks() : ExecutionContext
     {
@@ -179,11 +179,19 @@ class ExecutionContext
         throw new BlueDotRuntimeException('Internal error. Strategy \''.$type.'\' has not been found. Please, contact whitepostmail@gmail.com or post an issue');
     }
     /**
-     * @throws BlueDotRuntimeException
+     * @throws \RuntimeException
      */
     private function doRunTasks()
     {
-        $type = $this->statement->get('type');
+        $validatorResolver = new ValidationResolver();
+
+        if ($this->configuration instanceof SimpleConfiguration) {
+            $validatorResolver
+                ->addValidator(new CorrectSqlValidation($this->configuration));
+        }
+
+        $validatorResolver->resolveValidation();
+/*        $type = $this->statement->get('type');
 
         switch($type) {
             case 'simple':
@@ -217,6 +225,6 @@ class ExecutionContext
                 'Internal error. Strategy %s has not been found. This is probably a bug. Please, contact whitepostmail@gmail.com or post an issue on Github',
                 $type
             )
-        );
+        );*/
     }
 }

@@ -5,11 +5,11 @@ namespace BlueDot\Configuration;
 use BlueDot\Configuration\Import\ImportCollection;
 use BlueDot\Configuration\Import\SqlImport;
 use BlueDot\Configuration\Validator\ConfigurationValidator;
-use BlueDot\Database\Model\ConfigurationCollection;
+use BlueDot\Database\Model\ConfigurationInterface;
 use BlueDot\Database\Model\Metadata;
 use BlueDot\Database\Model\Model;
 use BlueDot\Database\Model\Simple\SimpleConfiguration;
-use BlueDot\Database\Model\Simple\WorkConfig;
+use BlueDot\Database\Model\WorkConfig;
 use BlueDot\Exception\BlueDotRuntimeException;
 use BlueDot\Exception\CompileException;
 use BlueDot\Common\StatementValidator;
@@ -45,9 +45,9 @@ class Compiler
      */
     private $builtStatements = [];
     /**
-     * @var StatementCollection $statementCollection
+     * @var ConfigurationCollection $configurationCollection
      */
-    private $statementCollection;
+    private $configurationCollection;
     /**
      * @var bool $isCompiled
      */
@@ -91,14 +91,14 @@ class Compiler
     }
     /**
      * @param string $name
-     * @return ArgumentBag
+     * @return ConfigurationInterface
      */
-    public function compile(string $name) : ArgumentBag
+    public function compile(string $name) : ConfigurationInterface
     {
         $this->argumentValidator->validate($name);
 
-        if ($this->statementCollection->hasStatement($name)) {
-            return $this->statementCollection->getStatement($name);
+        if ($this->configurationCollection->hasConfiguration($name)) {
+            return $this->configurationCollection->getConfiguration($name);
         }
 
         throw new \RuntimeException(sprintf('Statement \'%s\' not found', $name));
@@ -121,7 +121,7 @@ class Compiler
         $this->compileScenarioStatement();
         $this->compileCallableStatement();
 
-        $this->statementCollection = new StatementCollection($this->builtStatements);
+        $this->configurationCollection = new ConfigurationCollection($this->builtStatements);
     }
     /**
      * @throws BlueDotRuntimeException

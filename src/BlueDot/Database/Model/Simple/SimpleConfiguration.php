@@ -3,7 +3,8 @@
 namespace BlueDot\Database\Model\Simple;
 
 use BlueDot\Database\Model\ConfigurationInterface;
-use BlueDot\Database\Model\Metadata;
+use BlueDot\Database\Model\MetadataInterface;
+use BlueDot\Database\Model\WorkConfigInterface;
 
 class SimpleConfiguration implements ConfigurationInterface
 {
@@ -12,23 +13,23 @@ class SimpleConfiguration implements ConfigurationInterface
      */
     private $name;
     /**
-     * @var Metadata $metadata
+     * @var MetadataInterface $metadata
      */
     private $metadata;
     /**
-     * @var WorkConfig $workConfig
+     * @var WorkConfigInterface $workConfig
      */
     private $workConfig;
     /**
      * SimpleConfiguration constructor.
      * @param string $name
-     * @param Metadata $metadata
-     * @param WorkConfig $workConfig
+     * @param MetadataInterface $metadata
+     * @param WorkConfigInterface $workConfig
      */
     public function __construct(
         string $name,
-        Metadata $metadata,
-        WorkConfig $workConfig
+        MetadataInterface $metadata,
+        WorkConfigInterface $workConfig
     ) {
         $this->name = $name;
         $this->metadata = $metadata;
@@ -42,17 +43,34 @@ class SimpleConfiguration implements ConfigurationInterface
         return $this->name;
     }
     /**
-     * @return Metadata
+     * @return MetadataInterface
      */
-    public function getMetadata(): Metadata
+    public function getMetadata(): MetadataInterface
     {
         return $this->metadata;
     }
     /**
-     * @return WorkConfig
+     * @return WorkConfigInterface
      */
-    public function getWorkConfig(): WorkConfig
+    public function getWorkConfig(): WorkConfigInterface
     {
         return $this->workConfig;
+    }
+    /**
+     * @inheritdoc
+     */
+    public function injectUserParameters(array $userParameters = null)
+    {
+        $resolvedUserParameters = null;
+
+        if (!is_null($userParameters) and !empty($userParameters)) {
+            $resolvedUserParameters = $userParameters;
+        }
+
+        if (is_null($userParameters) and empty($userParameters)) {
+            $resolvedUserParameters = [];
+        }
+
+        $this->workConfig->injectUserParameters($resolvedUserParameters);
     }
 }
