@@ -106,4 +106,29 @@ class ExecutionContextTest extends TestCase
 
         static::assertTrue($entersInvalidStatementException);
     }
+
+    public function test_simple_parameters()
+    {
+        $file = $this->simpleConfig['file'];
+        $configArray = $this->simpleConfig['config'];
+
+        $compiler = new Compiler(
+            $file,
+            $configArray['configuration'],
+            new ArgumentValidator(),
+            new StatementValidator(),
+            new ConfigurationValidator($configArray),
+            new ImportCollection()
+        );
+
+        static::assertTrue($compiler->isCompiled());
+
+        $statementName = 'simple.select.find_all';
+
+        $compiledConfiguration = $compiler->compile($statementName);
+
+        $executionContext = new ExecutionContext($compiledConfiguration);
+
+        $executionContext->runTasks();
+    }
 }

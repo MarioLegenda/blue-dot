@@ -4,6 +4,7 @@ namespace BlueDot\Database\Execution;
 
 use BlueDot\Cache\CacheStorage;
 use BlueDot\Common\ArgumentBag;
+use BlueDot\Database\Execution\Validation\Implementation\CorrectParametersValidation;
 use BlueDot\Database\Execution\Validation\Implementation\CorrectSqlValidation;
 use BlueDot\Database\Execution\Validation\ValidationResolver;
 use BlueDot\Database\Model\ConfigurationInterface;
@@ -52,6 +53,8 @@ class ExecutionContext
     {
         $this->configuration = $configuration;
         $this->userParameters = $userParameters;
+
+        $this->configuration->injectUserParameters($userParameters);
     }
     /**
      * @return ExecutionContext
@@ -187,7 +190,8 @@ class ExecutionContext
 
         if ($this->configuration instanceof SimpleConfiguration) {
             $validatorResolver
-                ->addValidator(new CorrectSqlValidation($this->configuration));
+                ->addValidator(new CorrectSqlValidation($this->configuration))
+                ->addValidator(new CorrectParametersValidation($this->configuration));
         }
 
         $validatorResolver->resolveValidation();

@@ -92,7 +92,8 @@ class CompilerTest extends TestCase
 
         static::assertInternalType('string', $workConfig->getSql());
         static::assertNull($workConfig->getModel());
-        static::assertNull($workConfig->getConfigParameters());
+        static::assertInternalType('array', $workConfig->getConfigParameters());
+        static::assertEmpty($workConfig->getConfigParameters());
     }
 
     public function test_simple_parameterized_compiler()

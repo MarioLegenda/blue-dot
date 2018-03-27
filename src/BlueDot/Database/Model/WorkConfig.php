@@ -32,6 +32,11 @@ class WorkConfig implements WorkConfigInterface
         Model $model = null
     ) {
         $this->sql = $sql;
+
+        if (is_null($configParameters)) {
+            $configParameters = [];
+        }
+
         $this->configParameters = $configParameters;
         $this->model = $model;
     }
