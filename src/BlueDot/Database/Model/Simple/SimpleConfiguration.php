@@ -2,11 +2,12 @@
 
 namespace BlueDot\Database\Model\Simple;
 
+use BlueDot\Configuration\Flow\FlowProductInterface;
 use BlueDot\Database\Model\ConfigurationInterface;
 use BlueDot\Database\Model\MetadataInterface;
 use BlueDot\Database\Model\WorkConfigInterface;
 
-class SimpleConfiguration implements ConfigurationInterface
+class SimpleConfiguration implements ConfigurationInterface, FlowProductInterface
 {
     /**
      * @var string $name

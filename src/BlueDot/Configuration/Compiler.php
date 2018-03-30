@@ -2,6 +2,7 @@
 
 namespace BlueDot\Configuration;
 
+use BlueDot\Configuration\Flow\SimpleFlow;
 use BlueDot\Configuration\Import\ImportCollection;
 use BlueDot\Configuration\Import\SqlImport;
 use BlueDot\Configuration\Validator\ConfigurationValidator;
@@ -14,7 +15,7 @@ use BlueDot\Exception\BlueDotRuntimeException;
 use BlueDot\Exception\CompileException;
 use BlueDot\Common\StatementValidator;
 
-use BlueDot\Common\{ ArgumentBag, ArgumentValidator, ValidatorInterface};
+use BlueDot\Common\{ ArgumentBag, ValidatorInterface};
 use BlueDot\Database\Scenario\{ UseOption, ForeignKey, ScenarioReturnEntity };
 use BlueDot\Exception\ConfigurationException;
 
@@ -135,10 +136,19 @@ class Compiler
 
         $simpleConfigurationArray = $this->configuration['simple'];
 
+        $simpleFlow = new SimpleFlow();
+
         foreach ($simpleConfigurationArray as $type => $typeConfig) {
             foreach ($typeConfig as $statementName => $statementConfig) {
                 $resolvedName = $type.'.'.$statementName;
                 $resolvedStatementName = sprintf('simple.%s', $resolvedName);
+
+                $configuration = $simpleFlow->create(
+                    $resolvedStatementName,
+                    $statementConfig,
+                    $this->imports
+                );
+/*
 
                 $metadata = new Metadata(
                     'simple',
@@ -200,7 +210,7 @@ class Compiler
                     $resolvedStatementName,
                     $metadata,
                     $workConfig
-                );
+                );*/
 
                 $this->statementValidator->validate($configuration);
 
