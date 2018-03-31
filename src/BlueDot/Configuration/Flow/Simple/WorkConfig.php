@@ -1,6 +1,6 @@
 <?php
 
-namespace BlueDot\Database\Model;
+namespace BlueDot\Configuration\Flow\Simple;
 
 class WorkConfig implements WorkConfigInterface
 {

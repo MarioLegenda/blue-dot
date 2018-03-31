@@ -3,16 +3,16 @@
 namespace Test\Unit;
 
 use BlueDot\Common\ArgumentValidator;
+use BlueDot\Common\FlowProductInterface;
 use BlueDot\Common\StatementValidator;
 use BlueDot\Configuration\Compiler;
 use BlueDot\Configuration\Import\ImportCollection;
 use BlueDot\Configuration\Validator\ConfigurationValidator;
 use BlueDot\Database\Model\ConfigurationInterface;
-use BlueDot\Database\Model\MetadataInterface;
-use BlueDot\Database\Model\Model;
-use BlueDot\Database\Model\Simple\SimpleConfiguration;
-use BlueDot\Database\Model\WorkConfig;
-use BlueDot\Database\Model\WorkConfigInterface;
+use BlueDot\Configuration\Flow\Simple\MetadataInterface;
+use BlueDot\Configuration\Flow\Simple\Model;
+use BlueDot\Configuration\Flow\Simple\SimpleConfiguration;
+use BlueDot\Configuration\Flow\Simple\WorkConfigInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Yaml\Yaml;
 
@@ -74,16 +74,16 @@ class CompilerTest extends TestCase
         /** @var SimpleConfiguration $compiledConfiguration */
         $compiledConfiguration = $compiler->compile($statementName);
 
-        static::assertInstanceOf(ConfigurationInterface::class, $compiledConfiguration);
+        static::assertInstanceOf(FlowProductInterface::class, $compiledConfiguration);
         static::assertEquals($statementName, $compiledConfiguration->getName());
 
         static::assertInstanceOf(MetadataInterface::class, $compiledConfiguration->getMetadata());
-        static::assertInstanceOf(WorkConfig::class, $compiledConfiguration->getWorkConfig());
+        static::assertInstanceOf(WorkConfigInterface::class, $compiledConfiguration->getWorkConfig());
 
         $metadata = $compiledConfiguration->getMetadata();
 
-        static::assertEquals('simple', $metadata->getType());
-        static::assertEquals('select', $metadata->getStatementType());
+        static::assertEquals('simple', $metadata->getStatementType());
+        static::assertEquals('select', $metadata->getSqlType());
         static::assertEquals('find_all', $metadata->getStatementName());
         static::assertEquals($statementName, $metadata->getResolvedStatementName());
         static::assertEquals('simple.select', $metadata->getResolvedStatementType());
@@ -117,7 +117,7 @@ class CompilerTest extends TestCase
         /** @var SimpleConfiguration $compiledConfiguration */
         $compiledConfiguration = $compiler->compile($statementName);
 
-        static::assertInstanceOf(ConfigurationInterface::class, $compiledConfiguration);
+        static::assertInstanceOf(FlowProductInterface::class, $compiledConfiguration);
         static::assertEquals($statementName, $compiledConfiguration->getName());
 
         static::assertInstanceOf(MetadataInterface::class, $compiledConfiguration->getMetadata());
@@ -125,8 +125,8 @@ class CompilerTest extends TestCase
 
         $metadata = $compiledConfiguration->getMetadata();
 
-        static::assertEquals('simple', $metadata->getType());
-        static::assertEquals('select', $metadata->getStatementType());
+        static::assertEquals('simple', $metadata->getStatementType());
+        static::assertEquals('select', $metadata->getSqlType());
         static::assertEquals('find_by_id', $metadata->getStatementName());
         static::assertEquals('simple.select', $metadata->getResolvedStatementType());
         static::assertEquals($statementName, $metadata->getResolvedStatementName());

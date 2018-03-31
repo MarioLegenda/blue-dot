@@ -1,13 +1,10 @@
 <?php
 
-namespace BlueDot\Database\Model\Simple;
+namespace BlueDot\Configuration\Flow\Simple;
 
-use BlueDot\Configuration\Flow\FlowProductInterface;
-use BlueDot\Database\Model\ConfigurationInterface;
-use BlueDot\Database\Model\MetadataInterface;
-use BlueDot\Database\Model\WorkConfigInterface;
+use BlueDot\Configuration\Flow\FlowConfigurationProductInterface;
 
-class SimpleConfiguration implements ConfigurationInterface, FlowProductInterface
+class SimpleConfiguration implements FlowConfigurationProductInterface
 {
     /**
      * @var string $name

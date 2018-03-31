@@ -15,7 +15,9 @@ use BlueDot\Exception\BlueDotRuntimeException;
 use BlueDot\Exception\CompileException;
 use BlueDot\Common\StatementValidator;
 
-use BlueDot\Common\{ ArgumentBag, ValidatorInterface};
+use BlueDot\Common\{
+    ArgumentBag, FlowProductInterface, ValidatorInterface
+};
 use BlueDot\Database\Scenario\{ UseOption, ForeignKey, ScenarioReturnEntity };
 use BlueDot\Exception\ConfigurationException;
 
@@ -92,9 +94,9 @@ class Compiler
     }
     /**
      * @param string $name
-     * @return ConfigurationInterface
+     * @return FlowProductInterface
      */
-    public function compile(string $name) : ConfigurationInterface
+    public function compile(string $name) : FlowProductInterface
     {
         $this->argumentValidator->validate($name);
 
@@ -206,7 +208,7 @@ class Compiler
                     $model
                 );
 
-                $configuration = new SimpleConfiguration(
+                $configuration = new SimpleConfiguration.php(
                     $resolvedStatementName,
                     $metadata,
                     $workConfig

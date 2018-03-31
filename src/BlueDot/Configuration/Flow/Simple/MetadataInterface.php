@@ -1,17 +1,17 @@
 <?php
 
-namespace BlueDot\Database\Model;
+namespace BlueDot\Configuration\Flow\Simple;
 
 interface MetadataInterface
 {
     /**
      * @return string
      */
-    public function getType(): string;
+    public function getStatementType(): string;
     /**
      * @return string
      */
-    public function getStatementType(): string;
+    public function getSqlType(): string;
     /**
      * @return string
      */

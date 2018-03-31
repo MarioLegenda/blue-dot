@@ -1,6 +1,6 @@
 <?php
 
-namespace BlueDot\Configuration\Flow;
+namespace BlueDot\Common;
 
 interface FlowProductInterface
 {

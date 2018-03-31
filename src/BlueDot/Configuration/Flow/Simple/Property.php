@@ -1,6 +1,6 @@
 <?php
 
-namespace BlueDot\Database\Model;
+namespace BlueDot\Configuration\Flow\Simple;
 
 use BlueDot\Exception\BlueDotRuntimeException;
 

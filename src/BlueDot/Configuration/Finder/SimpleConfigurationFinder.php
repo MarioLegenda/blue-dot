@@ -2,7 +2,7 @@
 
 namespace BlueDot\Configuration\Finder;
 
-use BlueDot\Database\Model\ConfigurationInterface;
+use BlueDot\Common\FlowProductInterface;
 
 class SimpleConfigurationFinder
 {
@@ -12,10 +12,10 @@ class SimpleConfigurationFinder
     private $configurations = [];
     /**
      * @param string $name
-     * @param ConfigurationInterface $configuration
+     * @param FlowProductInterface $configuration
      * @return SimpleConfigurationFinder
      */
-    public function add(string $name, ConfigurationInterface $configuration): SimpleConfigurationFinder
+    public function add(string $name, FlowProductInterface $configuration): SimpleConfigurationFinder
     {
         $this->configurations[$name] = $configuration;
 
@@ -23,9 +23,9 @@ class SimpleConfigurationFinder
     }
     /**
      * @param string $name
-     * @return ConfigurationInterface|null
+     * @return FlowProductInterface|null
      */
-    public function find(string $name): ?ConfigurationInterface
+    public function find(string $name): ?FlowProductInterface
     {
         if (array_key_exists($name, $this->configurations)) {
             return $this->configurations[$name];

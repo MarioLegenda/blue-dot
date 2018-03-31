@@ -3,10 +3,10 @@
 namespace BlueDot\Configuration;
 
 use BlueDot\Common\ArgumentBag;
+use BlueDot\Common\FlowProductInterface;
 use BlueDot\Configuration\Finder\CallableStatementFinder;
 use BlueDot\Configuration\Finder\ScenarioStatementFinder;
 use BlueDot\Configuration\Finder\SimpleConfigurationFinder;
-use BlueDot\Database\Model\ConfigurationInterface;
 
 class ConfigurationCollection
 {
@@ -37,13 +37,13 @@ class ConfigurationCollection
         $type = $this->determineType($name);
         $statement = $this->statementFinders[$type]->find($name);
 
-        return $statement instanceof ConfigurationInterface;
+        return $statement instanceof FlowProductInterface;
     }
     /**
      * @param string $name
-     * @return ConfigurationInterface
+     * @return FlowProductInterface
      */
-    public function getConfiguration(string $name): ?ConfigurationInterface
+    public function getConfiguration(string $name): ?FlowProductInterface
     {
         if ($this->hasConfiguration($name)) {
             return $this->statementFinders[$this->determineType($name)]->find($name);
