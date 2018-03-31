@@ -26,6 +26,10 @@ class SimpleFlow
     ): FlowConfigurationProductInterface {
         $statementInfo = $this->resolveStatementInfo($resolvedStatementName);
 
+        $sql = $this->resolveSql($importCollection, $config['sql']);
+        $parameters = $this->resolveParametersIfExists($config);
+        $model = $this->resolveModelIfExists($config);
+
         $metadata = new Metadata(
             $statementInfo['statement_type'],
             $statementInfo['sql_type'],
@@ -33,22 +37,6 @@ class SimpleFlow
             $statementInfo['resolved_statement_type'],
             $statementInfo['resolved_statement_name']
         );
-
-        $sql = $config['sql'];
-        $parameters = null;
-        $model = $this->resolveModelIfExists($config);
-
-        if ($importCollection->hasImport('sql_import')) {
-            $import = $importCollection->getImport('sql_import', $sql);
-
-            if ($import->hasValue($sql)) {
-                $sql = $import->getValue($sql);
-            }
-        }
-
-        if (array_key_exists('parameters', $config)) {
-            $parameters = $config['parameters'];
-        }
 
         $workConfig = new WorkConfig(
             $sql,
@@ -118,5 +106,36 @@ class SimpleFlow
         }
 
         return $model;
+    }
+    /**
+     * @param ImportCollection $importCollection
+     * @param string $sql
+     * @return string
+     */
+    private function resolveSql(
+        ImportCollection $importCollection,
+        string $sql
+    ): string {
+        if ($importCollection->hasImport('sql_import')) {
+            $import = $importCollection->getImport('sql_import', $sql);
+
+            if ($import->hasValue($sql)) {
+                return $import->getValue($sql);
+            }
+        }
+
+        return $sql;
+    }
+    /**
+     * @param array $config
+     * @return array|null
+     */
+    private function resolveParametersIfExists(array $config): ?array
+    {
+        if (array_key_exists('parameters', $config)) {
+            return $config['parameters'];
+        }
+
+        return null;
     }
 }

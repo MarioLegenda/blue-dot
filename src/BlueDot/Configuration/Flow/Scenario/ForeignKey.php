@@ -1,6 +1,6 @@
 <?php
 
-namespace BlueDot\Database\Scenario;
+namespace BlueDot\Configuration\Flow\Scenario;
 
 class ForeignKey
 {
@@ -9,9 +9,9 @@ class ForeignKey
      */
     private $statementName;
     /**
-     * @var array $bindTo
+     * @var string $bindTo
      */
-    private $bindTo = array();
+    private $bindTo;
     /**
      * @param string $statementName
      * @param string $bindTo
@@ -24,7 +24,7 @@ class ForeignKey
     /**
      * @return string
      */
-    public function getName() : string
+    public function getStatementName() : string
     {
         return $this->statementName;
     }

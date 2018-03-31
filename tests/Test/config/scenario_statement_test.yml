@@ -15,12 +15,13 @@ configuration:
                 select_second_language:
                     sql: "SELECT * FROM languages WHERE id = :id"
                     parameters: [id]
-        other_testing_scenario:
+        full_scenario:
             atomic: true
             statements:
                 first_statement:
                     sql: "SELECT * FROM languages WHERE id = :id"
                     parameters: [id]
+                    can_be_empty_result: true
                 insert_statement_1:
                     sql: "INSERT INTO something"
                 insert_statement_2:
@@ -28,6 +29,9 @@ configuration:
                 insert_statement:
                     sql: "INSERT INTO something ()"
                     parameters: [id, other]
-                    foreign_keys:
-                        statements: [insert_statement_1, insert_statement_2]
-                        bind_them_to: [parameter_1, parameter_2]
+                    foreign_key:
+                        statement_name: insert_statement_1
+                        bind_to: parameter_1
+                    use:
+                        statement_name: first_statement
+                        values: { first_statement.id: id }

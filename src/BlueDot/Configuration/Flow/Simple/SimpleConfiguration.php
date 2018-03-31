@@ -11,7 +11,7 @@ class SimpleConfiguration implements FlowConfigurationProductInterface
      */
     private $name;
     /**
-     * @var MetadataInterface $metadata
+     * @var Metadata $metadata
      */
     private $metadata;
     /**
@@ -21,12 +21,12 @@ class SimpleConfiguration implements FlowConfigurationProductInterface
     /**
      * SimpleConfiguration constructor.
      * @param string $name
-     * @param MetadataInterface $metadata
+     * @param Metadata $metadata
      * @param WorkConfigInterface $workConfig
      */
     public function __construct(
         string $name,
-        MetadataInterface $metadata,
+        Metadata $metadata,
         WorkConfigInterface $workConfig
     ) {
         $this->name = $name;
@@ -41,9 +41,9 @@ class SimpleConfiguration implements FlowConfigurationProductInterface
         return $this->name;
     }
     /**
-     * @return MetadataInterface
+     * @return Metadata
      */
-    public function getMetadata(): MetadataInterface
+    public function getMetadata(): Metadata
     {
         return $this->metadata;
     }

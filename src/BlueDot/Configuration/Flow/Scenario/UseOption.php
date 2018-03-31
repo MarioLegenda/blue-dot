@@ -1,13 +1,13 @@
 <?php
 
-namespace BlueDot\Database\Scenario;
+namespace BlueDot\Configuration\Flow\Scenario;
 
 class UseOption
 {
     /**
-     * @var string $name
+     * @var string $statementName
      */
-    private $name;
+    private $statementName;
     /**
      * @var array $values
      */
@@ -18,15 +18,15 @@ class UseOption
      */
     public function __construct(string $name, array $values)
     {
-        $this->name = $name;
+        $this->statementName = $name;
         $this->values = $values;
     }
     /**
      * @return string
      */
-    public function getName() : string
+    public function getStatementName() : string
     {
-        return $this->name;
+        return $this->statementName;
     }
     /**
      * @return array

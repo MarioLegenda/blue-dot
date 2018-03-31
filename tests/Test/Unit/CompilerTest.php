@@ -6,14 +6,20 @@ use BlueDot\Common\ArgumentValidator;
 use BlueDot\Common\FlowProductInterface;
 use BlueDot\Common\StatementValidator;
 use BlueDot\Configuration\Compiler;
+use BlueDot\Configuration\Flow\Scenario\ForeignKey;
+use BlueDot\Configuration\Flow\Scenario\RootConfiguration;
+use BlueDot\Configuration\Flow\Scenario\ScenarioConfiguration;
+use BlueDot\Configuration\Flow\Scenario\UseOption;
 use BlueDot\Configuration\Import\ImportCollection;
 use BlueDot\Configuration\Validator\ConfigurationValidator;
-use BlueDot\Configuration\Flow\Simple\MetadataInterface;
 use BlueDot\Configuration\Flow\Simple\Model;
 use BlueDot\Configuration\Flow\Simple\SimpleConfiguration;
 use BlueDot\Configuration\Flow\Simple\WorkConfigInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Yaml\Yaml;
+
+use BlueDot\Configuration\Flow\Scenario\Metadata as ScenarioMetadata;
+use BlueDot\Configuration\Flow\Simple\Metadata as SimpleMetadata;
 
 class CompilerTest extends TestCase
 {
@@ -76,9 +82,10 @@ class CompilerTest extends TestCase
         static::assertInstanceOf(FlowProductInterface::class, $compiledConfiguration);
         static::assertEquals($statementName, $compiledConfiguration->getName());
 
-        static::assertInstanceOf(MetadataInterface::class, $compiledConfiguration->getMetadata());
+        static::assertInstanceOf(SimpleMetadata::class, $compiledConfiguration->getMetadata());
         static::assertInstanceOf(WorkConfigInterface::class, $compiledConfiguration->getWorkConfig());
 
+        /** @var SimpleMetadata $metadata */
         $metadata = $compiledConfiguration->getMetadata();
 
         static::assertEquals('simple', $metadata->getStatementType());
@@ -119,9 +126,10 @@ class CompilerTest extends TestCase
         static::assertInstanceOf(FlowProductInterface::class, $compiledConfiguration);
         static::assertEquals($statementName, $compiledConfiguration->getName());
 
-        static::assertInstanceOf(MetadataInterface::class, $compiledConfiguration->getMetadata());
+        static::assertInstanceOf(SimpleMetadata::class, $compiledConfiguration->getMetadata());
         static::assertInstanceOf(WorkConfigInterface::class, $compiledConfiguration->getWorkConfig());
 
+        /** @var \BlueDot\Configuration\Flow\Simple\Metadata $metadata */
         $metadata = $compiledConfiguration->getMetadata();
 
         static::assertEquals('simple', $metadata->getStatementType());
@@ -144,5 +152,137 @@ class CompilerTest extends TestCase
         static::assertNotEmpty($model->getName());
 
         static::assertEmpty($model->getProperties());
+    }
+
+    public function test_basic_scenario_compiler()
+    {
+        $file = $this->scenarioConfig['file'];
+        $configArray = $this->scenarioConfig['config'];
+
+        $compiler = new Compiler(
+            $file,
+            $configArray['configuration'],
+            new ArgumentValidator(),
+            new StatementValidator(),
+            new ConfigurationValidator($configArray),
+            new ImportCollection()
+        );
+
+        $scenarioName = 'scenario.only_selects';
+
+        /** @var ScenarioConfiguration $compiledConfiguration */
+        $compiledConfiguration = $compiler->compile($scenarioName);
+
+        static::assertInstanceOf(ScenarioConfiguration::class, $compiledConfiguration);
+
+        $rootConfiguration = $compiledConfiguration->getRootConfiguration();
+        $metadata = $compiledConfiguration->getMetadata();
+
+        static::assertInstanceOf(RootConfiguration::class, $rootConfiguration);
+        static::assertNotEmpty($metadata);
+        static::assertInternalType('array', $metadata);
+
+        static::assertEquals($scenarioName, $rootConfiguration->getScenarioName());
+        static::assertTrue($rootConfiguration->isAtomic());
+        static::assertNull($rootConfiguration->getReturnData());
+
+        /** @var ScenarioMetadata $singleMetadata */
+        foreach ($metadata as $singleMetadata) {
+            static::assertInstanceOf(ScenarioMetadata::class, $singleMetadata);
+            static::assertNotEmpty($singleMetadata->getResolvedScenarioStatementName());
+            static::assertNotEmpty($singleMetadata->getScenarioName());
+            static::assertNotEmpty($singleMetadata->getSingleScenarioName());
+            static::assertNotEmpty($singleMetadata->getSql());
+            static::assertNotEmpty($singleMetadata->getSqlType());
+            static::assertEquals('select', $singleMetadata->getSqlType());
+            static::assertInternalType('boolean', $singleMetadata->canBeEmptyResult());
+
+            static::assertNull($singleMetadata->getIfExistsStatementName());
+            static::assertNull($singleMetadata->getIfNotExistsStatementName());
+            static::assertNull($singleMetadata->getUseOption());
+            static::assertNull($singleMetadata->getUserParameters());
+            static::assertNull($singleMetadata->getForeignKey());
+
+            static::assertNotEmpty($singleMetadata->getConfigParameters());
+            static::assertInternalType('array', $singleMetadata->getConfigParameters());
+        }
+    }
+
+    public function test_full_scenario_compiler()
+    {
+        $file = $this->scenarioConfig['file'];
+        $configArray = $this->scenarioConfig['config'];
+
+        $compiler = new Compiler(
+            $file,
+            $configArray['configuration'],
+            new ArgumentValidator(),
+            new StatementValidator(),
+            new ConfigurationValidator($configArray),
+            new ImportCollection()
+        );
+
+        $scenarioName = 'scenario.full_scenario';
+
+        /** @var ScenarioConfiguration $compiledConfiguration */
+        $compiledConfiguration = $compiler->compile($scenarioName);
+
+        static::assertInstanceOf(ScenarioConfiguration::class, $compiledConfiguration);
+
+        $rootConfiguration = $compiledConfiguration->getRootConfiguration();
+        $metadata = $compiledConfiguration->getMetadata();
+
+        static::assertInstanceOf(RootConfiguration::class, $rootConfiguration);
+        static::assertNotEmpty($metadata);
+        static::assertInternalType('array', $metadata);
+
+        static::assertEquals($scenarioName, $rootConfiguration->getScenarioName());
+        static::assertTrue($rootConfiguration->isAtomic());
+        static::assertNull($rootConfiguration->getReturnData());
+
+        $foreignKeyAssertEntered = false;
+        $useOptionAssertEntered = false;
+        /** @var ScenarioMetadata $singleMetadata */
+        foreach ($metadata as $singleMetadata) {
+            static::assertInstanceOf(ScenarioMetadata::class, $singleMetadata);
+            static::assertNotEmpty($singleMetadata->getResolvedScenarioStatementName());
+            static::assertNotEmpty($singleMetadata->getScenarioName());
+            static::assertNotEmpty($singleMetadata->getSingleScenarioName());
+            static::assertNotEmpty($singleMetadata->getSql());
+            static::assertNotEmpty($singleMetadata->getSqlType());
+            static::assertInternalType('boolean', $singleMetadata->canBeEmptyResult());
+
+            static::assertNull($singleMetadata->getIfExistsStatementName());
+            static::assertNull($singleMetadata->getIfNotExistsStatementName());
+            static::assertNull($singleMetadata->getUserParameters());
+
+            /** @var ForeignKey $foreignKey */
+            $foreignKey = $singleMetadata->getForeignKey();
+
+            if ($foreignKey instanceof ForeignKey) {
+                $foreignKeyAssertEntered = true;
+
+                static::assertNotEmpty($foreignKey->getStatementName());
+                static::assertInternalType('string', $foreignKey->getStatementName());
+
+                static::assertNotEmpty($foreignKey->getBindTo());
+                static::assertInternalType('string', $foreignKey->getBindTo());
+            }
+
+            $useOption = $singleMetadata->getUseOption();
+
+            if ($useOption instanceof UseOption) {
+                $useOptionAssertEntered = true;
+
+                static::assertNotEmpty($useOption->getStatementName());
+                static::assertInternalType('string', $useOption->getStatementName());
+
+                static::assertNotEmpty($useOption->getValues());
+                static::assertInternalType('array', $useOption->getValues());
+            }
+        }
+
+        static::assertTrue($useOptionAssertEntered);
+        static::assertTrue($foreignKeyAssertEntered);
     }
 }

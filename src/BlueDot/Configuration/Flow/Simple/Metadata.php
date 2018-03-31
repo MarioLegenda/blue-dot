@@ -2,7 +2,7 @@
 
 namespace BlueDot\Configuration\Flow\Simple;
 
-class Metadata implements MetadataInterface
+class Metadata
 {
     /**
      * @var string $statementType

@@ -1,6 +1,6 @@
 <?php
 
-namespace BlueDot\Database\Scenario;
+namespace BlueDot\Configuration\Flow\Scenario;
 
 class ReturnData
 {

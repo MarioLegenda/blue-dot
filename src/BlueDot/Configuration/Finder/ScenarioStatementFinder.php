@@ -2,7 +2,7 @@
 
 namespace BlueDot\Configuration\Finder;
 
-use BlueDot\Common\ArgumentBag;
+use BlueDot\Common\FlowProductInterface;
 
 class ScenarioStatementFinder
 {
@@ -12,10 +12,10 @@ class ScenarioStatementFinder
     private $statements = [];
     /**
      * @param string $name
-     * @param ArgumentBag $statement
+     * @param FlowProductInterface $statement
      * @return ScenarioStatementFinder
      */
-    public function add(string $name, ArgumentBag $statement): ScenarioStatementFinder
+    public function add(string $name, FlowProductInterface $statement): ScenarioStatementFinder
     {
         $this->statements[$name] = $statement;
 
@@ -23,9 +23,9 @@ class ScenarioStatementFinder
     }
     /**
      * @param string $name
-     * @return ArgumentBag|null
+     * @return FlowProductInterface|null
      */
-    public function find(string $name): ?ArgumentBag
+    public function find(string $name): ?FlowProductInterface
     {
         if (!array_key_exists($name, $this->statements)) {
             return null;
