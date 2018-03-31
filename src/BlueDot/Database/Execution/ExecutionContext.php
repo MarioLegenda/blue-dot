@@ -8,6 +8,9 @@ use BlueDot\Configuration\Flow\Scenario\ScenarioConfiguration;
 use BlueDot\Configuration\Flow\Simple\SimpleConfiguration;
 use BlueDot\Database\Execution\Validation\Implementation\CorrectParametersValidation;
 use BlueDot\Database\Execution\Validation\Implementation\CorrectSqlValidation;
+use BlueDot\Database\Execution\Validation\Implementation\ExistsStatementValidation;
+use BlueDot\Database\Execution\Validation\Implementation\ForeignKeyValidation;
+use BlueDot\Database\Execution\Validation\Implementation\UseOptionValidation;
 use BlueDot\Database\Execution\Validation\ValidationResolver;
 use BlueDot\Entity\Entity;
 use BlueDot\Entity\Promise;
@@ -182,6 +185,13 @@ class ExecutionContext
         $validatorResolver
             ->addValidator(new CorrectSqlValidation($this->configuration))
             ->addValidator(new CorrectParametersValidation($this->configuration));
+
+        if ($this->configuration instanceof ScenarioConfiguration) {
+            $validatorResolver
+                ->addValidator(new ForeignKeyValidation($this->configuration))
+                ->addValidator(new UseOptionValidation($this->configuration))
+                ->addValidator(new ExistsStatementValidation($this->configuration));
+        }
 
         $validatorResolver->resolveValidation();
 /*        $type = $this->statement->get('type');

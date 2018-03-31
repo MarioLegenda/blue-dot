@@ -24,8 +24,10 @@ configuration:
                     can_be_empty_result: true
                 insert_statement_1:
                     sql: "INSERT INTO something"
+                    if_not_exists: first_statement
                 insert_statement_2:
                     sql: "INSERT INTO something"
+                    if_exists: first_statement
                 insert_statement:
                     sql: "INSERT INTO something ()"
                     parameters: [id, other]

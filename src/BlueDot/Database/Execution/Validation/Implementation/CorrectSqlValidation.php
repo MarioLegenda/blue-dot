@@ -3,7 +3,6 @@
 namespace BlueDot\Database\Execution\Validation\Implementation;
 
 use BlueDot\Configuration\Flow\FlowConfigurationProductInterface;
-use BlueDot\Configuration\Flow\Scenario\Metadata;
 use BlueDot\Configuration\Flow\Scenario\ScenarioConfiguration;
 use BlueDot\Database\Execution\Validation\ValidatorInterface;
 use BlueDot\Configuration\Flow\Simple\SimpleConfiguration;
