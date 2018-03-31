@@ -57,7 +57,7 @@ class SimpleConfiguration implements FlowConfigurationProductInterface
     /**
      * @inheritdoc
      */
-    public function injectUserParameters(array $userParameters = null)
+    public function injectUserParameters($userParameters = null)
     {
         $resolvedUserParameters = null;
 

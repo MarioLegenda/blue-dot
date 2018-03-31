@@ -200,7 +200,10 @@ class CompilerTest extends TestCase
             static::assertNull($singleMetadata->getIfExistsStatementName());
             static::assertNull($singleMetadata->getIfNotExistsStatementName());
             static::assertNull($singleMetadata->getUseOption());
-            static::assertNull($singleMetadata->getUserParameters());
+
+            static::assertEmpty($singleMetadata->getUserParameters());
+            static::assertInternalType('array', $singleMetadata->getUserParameters());
+
             static::assertNull($singleMetadata->getForeignKey());
 
             static::assertNotEmpty($singleMetadata->getConfigParameters());
@@ -254,7 +257,9 @@ class CompilerTest extends TestCase
 
             static::assertNull($singleMetadata->getIfExistsStatementName());
             static::assertNull($singleMetadata->getIfNotExistsStatementName());
-            static::assertNull($singleMetadata->getUserParameters());
+
+            static::assertEmpty($singleMetadata->getUserParameters());
+            static::assertInternalType('array', $singleMetadata->getUserParameters());
 
             /** @var ForeignKey $foreignKey */
             $foreignKey = $singleMetadata->getForeignKey();

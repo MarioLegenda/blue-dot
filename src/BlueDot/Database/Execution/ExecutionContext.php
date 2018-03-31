@@ -2,31 +2,22 @@
 
 namespace BlueDot\Database\Execution;
 
-use BlueDot\Cache\CacheStorage;
-use BlueDot\Common\ArgumentBag;
+use BlueDot\Common\FlowProductInterface;
+use BlueDot\Configuration\Flow\FlowConfigurationProductInterface;
+use BlueDot\Configuration\Flow\Scenario\ScenarioConfiguration;
+use BlueDot\Configuration\Flow\Simple\SimpleConfiguration;
 use BlueDot\Database\Execution\Validation\Implementation\CorrectParametersValidation;
 use BlueDot\Database\Execution\Validation\Implementation\CorrectSqlValidation;
 use BlueDot\Database\Execution\Validation\ValidationResolver;
-use BlueDot\Database\Model\ConfigurationInterface;
-use BlueDot\Database\Model\Simple\SimpleConfiguration;
-use BlueDot\Database\Validation\Scenario\ScenarioParametersResolver;
-use BlueDot\Database\Validation\Scenario\ScenarioStatementParametersValidation;
-use BlueDot\Database\Validation\ScenarioStatementTaskRunner;
 use BlueDot\Entity\Entity;
 use BlueDot\Entity\Promise;
 use BlueDot\Entity\PromiseInterface;
 use BlueDot\Exception\BlueDotRuntimeException;
-use BlueDot\Component\TaskRunner\TaskRunnerFactory;
-use BlueDot\Database\Validation\SimpleStatementTaskRunner;
-use BlueDot\Entity\ModelConverter as EntityModelConterter;
-use BlueDot\Component\ModelConverter;
-use BlueDot\Database\Validation\Simple\SimpleStatementParameterValidation;
-use BlueDot\Database\Validation\Simple\SimpleParametersResolver;
 
 class ExecutionContext
 {
     /**
-     * @var ConfigurationInterface $configuration
+     * @var FlowProductInterface|SimpleConfiguration|ScenarioConfiguration $configuration
      */
     private $configuration;
     /**
@@ -46,10 +37,10 @@ class ExecutionContext
      */
     private $result;
     /**
-     * @param ConfigurationInterface $configuration
+     * @param FlowConfigurationProductInterface|SimpleConfiguration|ScenarioConfiguration $configuration
      * @param array|null $userParameters
      */
-    public function __construct(ConfigurationInterface $configuration, array $userParameters = null)
+    public function __construct(FlowConfigurationProductInterface $configuration, array $userParameters = null)
     {
         $this->configuration = $configuration;
         $this->userParameters = $userParameters;
@@ -188,11 +179,9 @@ class ExecutionContext
     {
         $validatorResolver = new ValidationResolver();
 
-        if ($this->configuration instanceof SimpleConfiguration) {
-            $validatorResolver
-                ->addValidator(new CorrectSqlValidation($this->configuration))
-                ->addValidator(new CorrectParametersValidation($this->configuration));
-        }
+        $validatorResolver
+            ->addValidator(new CorrectSqlValidation($this->configuration))
+            ->addValidator(new CorrectParametersValidation($this->configuration));
 
         $validatorResolver->resolveValidation();
 /*        $type = $this->statement->get('type');

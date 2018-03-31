@@ -144,15 +144,23 @@ class Metadata
     /**
      * @return array|null
      */
-    public function getUserParameters(): ?array
+    public function getUserParameters(): array
     {
+		if (is_null($this->userParameters)) {
+			return [];
+		}
+
         return $this->userParameters;
     }
     /**
      * @return array|null
      */
-    public function getConfigParameters(): ?array
+    public function getConfigParameters(): array
     {
+		if (is_null($this->configParameters)) {
+			return [];
+		}
+
         return $this->configParameters;
     }
     /**
@@ -176,6 +184,27 @@ class Metadata
     {
         return $this->sqlType;
     }
-
-
+    /**
+     * @param array $userParameters
+     */
+    public function injectUserParameters(array $userParameters)
+    {
+        $this->userParameters = $userParameters;
+    }
+    /**
+     * @return string
+     */
+    public function __toString(): string
+    {
+        return sprintf(
+            "Statement: %s\nSql: %s\ncan_be_empty_result: %s\nif_exists: %s\nif_not_exists: %s\nUser parameters: %s\nConfig parameters: %s\n",
+            $this->getResolvedScenarioStatementName(),
+            $this->getSql(),
+            $this->canBeEmptyResult(),
+            $this->getIfExistsStatementName(),
+            $this->getIfNotExistsStatementName(),
+            implode(', ', array_keys($this->getUserParameters())),
+            implode(', ', array_values(($this->getConfigParameters())))
+        );
+    }
 }

@@ -14,7 +14,7 @@ use BlueDot\Common\StatementValidator;
 use BlueDot\Common\{
     ArgumentBag, FlowProductInterface, Util\Util, ValidatorInterface
 };
-use BlueDot\Database\Scenario\{ UseOption, ForeignKey, ScenarioReturnEntity };
+
 use BlueDot\Exception\ConfigurationException;
 
 class Compiler
@@ -153,8 +153,7 @@ class Compiler
         }
     }
     /**
-     * @throws BlueDotRuntimeException
-     * @throws CompileException
+     * @return null
      * @throws ConfigurationException
      */
     private function compileScenarioStatement()

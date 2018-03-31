@@ -40,4 +40,22 @@ class ScenarioConfiguration implements FlowConfigurationProductInterface
     {
         return $this->metadata;
     }
+    /**
+     * @inheritdoc
+     */
+    public function injectUserParameters($userParameters)
+    {
+        if (!is_array($userParameters)) {
+            return null;
+        }
+
+        foreach ($userParameters as $scenarioStatementName => $parameters) {
+            if (array_key_exists($scenarioStatementName, $this->metadata)) {
+                /** @var Metadata $metadata */
+                $metadata = $this->metadata[$scenarioStatementName];
+				
+                $metadata->injectUserParameters($parameters);
+            }
+        }
+    }
 }

@@ -5,6 +5,8 @@ namespace Test\Unit;
 use BlueDot\Common\ArgumentValidator;
 use BlueDot\Common\StatementValidator;
 use BlueDot\Configuration\Compiler;
+use BlueDot\Configuration\Flow\Scenario\ScenarioConfiguration;
+use BlueDot\Configuration\Flow\Simple\SimpleConfiguration;
 use BlueDot\Configuration\Import\ImportCollection;
 use BlueDot\Configuration\Validator\ConfigurationValidator;
 use BlueDot\Database\Execution\ExecutionContext;
@@ -66,6 +68,7 @@ class ExecutionContextTest extends TestCase
 
         $statementName = 'simple.select.find_by_id';
 
+        /** @var SimpleConfiguration $compiledConfiguration */
         $compiledConfiguration = $compiler->compile($statementName);
 
         $executionContext = new ExecutionContext($compiledConfiguration, [
@@ -93,6 +96,7 @@ class ExecutionContextTest extends TestCase
 
         $statementName = 'simple.select.invalid_statement_sql';
 
+        /** @var SimpleConfiguration $compiledConfiguration */
         $compiledConfiguration = $compiler->compile($statementName);
 
         $executionContext = new ExecutionContext($compiledConfiguration);
@@ -125,9 +129,74 @@ class ExecutionContextTest extends TestCase
 
         $statementName = 'simple.select.find_all';
 
+        /** @var SimpleConfiguration $compiledConfiguration */
         $compiledConfiguration = $compiler->compile($statementName);
 
         $executionContext = new ExecutionContext($compiledConfiguration);
+
+        $executionContext->runTasks();
+    }
+
+    public function test_full_scenario()
+    {
+        $file = $this->scenarioConfig['file'];
+        $configArray = $this->scenarioConfig['config'];
+
+        $compiler = new Compiler(
+            $file,
+            $configArray['configuration'],
+            new ArgumentValidator(),
+            new StatementValidator(),
+            new ConfigurationValidator($configArray),
+            new ImportCollection()
+        );
+
+        $scenarioName = 'scenario.full_scenario';
+
+        /** @var ScenarioConfiguration $compiledConfiguration */
+        $compiledConfiguration = $compiler->compile($scenarioName);
+
+        $invalidParametersExceptionThrown = false;
+        try {
+            $executionContext = new ExecutionContext($compiledConfiguration, [
+                'id' => 1,
+            ]);
+
+            $executionContext->runTasks();
+        } catch (\RuntimeException $e) {
+            echo sprintf("\n%s\n", $e->getMessage());
+
+            $invalidParametersExceptionThrown = true;
+        }
+
+        static::assertTrue($invalidParametersExceptionThrown);
+
+        $invalidParametersExceptionThrown = false;
+        try {
+            $executionContext = new ExecutionContext($compiledConfiguration, [
+                'first_statement' => [
+                    'id' => 1,
+                ],
+            ]);
+
+            $executionContext->runTasks();
+        } catch (\RuntimeException $e) {
+            echo sprintf("\n%s\n", $e->getMessage());
+
+            $invalidParametersExceptionThrown = true;
+        }
+
+        static::assertTrue($invalidParametersExceptionThrown);
+
+        $executionContext = new ExecutionContext($compiledConfiguration, [
+            'first_statement' => [
+                'id' => 1,
+            ],
+            'insert_statement' => [
+                'id' => 1,
+                'other' => 'other',
+            ],
+        ]);
 
         $executionContext->runTasks();
     }

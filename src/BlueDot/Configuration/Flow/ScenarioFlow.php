@@ -74,7 +74,7 @@ class ScenarioFlow
             $useOption = $this->resolveUseOptionIfExists($actualStatement);
             $foreignKey = $this->resolveForeignKeyIfExists($actualStatement);
 
-            $metadata[] = new Metadata(
+            $metadata[$statementName] = new Metadata(
                 $resolvedStatementName,
                 $sql,
                 $sqlType,
