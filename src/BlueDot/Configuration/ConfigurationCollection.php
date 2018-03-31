@@ -16,16 +16,16 @@ class ConfigurationCollection
     private $statementFinders = [];
     /**
      * StatementCollection constructor.
-     * @param array $statements
+     * @param \Generator $statements
      */
-    public function __construct(array $statements)
+    public function __construct(\Generator $statements)
     {
         $this->statementFinders['simple'] = new SimpleConfigurationFinder();
         $this->statementFinders['scenario'] = new ScenarioStatementFinder();
         $this->statementFinders['callable'] = new CallableStatementFinder();
 
-        foreach ($statements as $name => $statement) {
-            $this->arrange($name, $statement);
+        foreach ($statements as $statement) {
+            $this->arrange($statement['key'], $statement['item']);
         }
     }
     /**

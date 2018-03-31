@@ -8,7 +8,6 @@ use BlueDot\Common\StatementValidator;
 use BlueDot\Configuration\Compiler;
 use BlueDot\Configuration\Import\ImportCollection;
 use BlueDot\Configuration\Validator\ConfigurationValidator;
-use BlueDot\Database\Model\ConfigurationInterface;
 use BlueDot\Configuration\Flow\Simple\MetadataInterface;
 use BlueDot\Configuration\Flow\Simple\Model;
 use BlueDot\Configuration\Flow\Simple\SimpleConfiguration;

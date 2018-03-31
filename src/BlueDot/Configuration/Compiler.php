@@ -6,17 +6,12 @@ use BlueDot\Configuration\Flow\SimpleFlow;
 use BlueDot\Configuration\Import\ImportCollection;
 use BlueDot\Configuration\Import\SqlImport;
 use BlueDot\Configuration\Validator\ConfigurationValidator;
-use BlueDot\Database\Model\ConfigurationInterface;
-use BlueDot\Database\Model\Metadata;
-use BlueDot\Database\Model\Model;
-use BlueDot\Database\Model\Simple\SimpleConfiguration;
-use BlueDot\Database\Model\WorkConfig;
 use BlueDot\Exception\BlueDotRuntimeException;
 use BlueDot\Exception\CompileException;
 use BlueDot\Common\StatementValidator;
 
 use BlueDot\Common\{
-    ArgumentBag, FlowProductInterface, ValidatorInterface
+    ArgumentBag, FlowProductInterface, Util\Util, ValidatorInterface
 };
 use BlueDot\Database\Scenario\{ UseOption, ForeignKey, ScenarioReturnEntity };
 use BlueDot\Exception\ConfigurationException;
@@ -124,7 +119,9 @@ class Compiler
         $this->compileScenarioStatement();
         $this->compileCallableStatement();
 
-        $this->configurationCollection = new ConfigurationCollection($this->builtStatements);
+        $this->configurationCollection = new ConfigurationCollection(
+            Util::instance()->createGenerator($this->builtStatements)
+        );
     }
     /**
      * @throws BlueDotRuntimeException
@@ -136,85 +133,19 @@ class Compiler
             return null;
         }
 
-        $simpleConfigurationArray = $this->configuration['simple'];
+        $simpleConfigurationGenerator = Util::instance()->createGenerator($this->configuration['simple']);
 
         $simpleFlow = new SimpleFlow();
 
-        foreach ($simpleConfigurationArray as $type => $typeConfig) {
-            foreach ($typeConfig as $statementName => $statementConfig) {
-                $resolvedName = $type.'.'.$statementName;
-                $resolvedStatementName = sprintf('simple.%s', $resolvedName);
+        foreach ($simpleConfigurationGenerator as $typeConfig) {
+            foreach ($typeConfig['item'] as $statementName => $statementConfig) {
+                $resolvedStatementName = sprintf('simple.%s.%s', $typeConfig['key'], $statementName);
 
                 $configuration = $simpleFlow->create(
                     $resolvedStatementName,
                     $statementConfig,
                     $this->imports
                 );
-/*
-
-                $metadata = new Metadata(
-                    'simple',
-                    $type,
-                    $statementName,
-                    $resolvedStatementName
-                );
-
-                $sql = $statementConfig['sql'];
-                $parameters = null;
-                $model = null;
-
-                $possibleImport = $statementConfig['sql'];
-
-                if ($this->imports->hasImport('sql_import')) {
-                    $import = $this->imports->getImport('sql_import', $possibleImport);
-
-                    if ($import->hasValue($possibleImport)) {
-                        $sql = $import->getValue($possibleImport);
-                    }
-                }
-
-                if (array_key_exists('parameters', $statementConfig)) {
-                    $parameters = $statementConfig['parameters'];
-                }
-
-                if (array_key_exists('model', $statementConfig)) {
-                    $object = $statementConfig['model']['object'];
-                    $properties = (array_key_exists('properties', $statementConfig['model'])) ? $statementConfig['model']['properties'] : array();
-
-                    if (!class_exists($object)) {
-                        throw new CompileException(sprintf('Invalid model options. Object \'%s\' does not exist', $object));
-                    }
-
-                    if (!empty($properties)) {
-                        foreach ($properties as $key => $value) {
-                            if (!is_string($key)) {
-                                $message = sprintf(
-                                    'Invalid model options. \'properties\' should be an associative array with {statement_name}.{column} as key and a model property as value. %s given for value %s',
-                                    $key,
-                                    $value
-                                );
-
-                                throw new CompileException($message);
-                            }
-                        }
-                    }
-
-                    $model = new Model($object, $properties);
-                }
-
-                $workConfig = new WorkConfig(
-                    $sql,
-                    $parameters,
-                    $model
-                );
-
-                $configuration = new SimpleConfiguration.php(
-                    $resolvedStatementName,
-                    $metadata,
-                    $workConfig
-                );*/
-
-                $this->statementValidator->validate($configuration);
 
                 $this->builtStatements[$resolvedStatementName] = $configuration;
             }
