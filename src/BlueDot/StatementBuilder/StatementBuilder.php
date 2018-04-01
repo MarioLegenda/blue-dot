@@ -3,19 +3,19 @@
 namespace BlueDot\StatementBuilder;
 
 use BlueDot\Common\ArgumentBag;
-use BlueDot\Database\Connection;
+use BlueDot\Kernel\Connection;
 use BlueDot\Entity\PromiseInterface;
 use BlueDot\Exception\BlueDotRuntimeException;
 use BlueDot\Exception\CompileException;
 use BlueDot\Entity\Model;
 use BlueDot\Exception\StatementBuilderException;
-use BlueDot\Database\Execution\ExecutionContext;
+use BlueDot\Kernel\Execution\Kernel;
 use BlueDot\Entity\Promise;
 use BlueDot\Component\TaskRunner\TaskRunnerFactory;
-use BlueDot\Database\Validation\SimpleStatementTaskRunner;
+use BlueDot\Kernel\Validation\SimpleStatementTaskRunner;
 use BlueDot\Component\ModelConverter;
-use BlueDot\Database\Validation\Simple\SimpleStatementParameterValidation;
-use BlueDot\Database\Validation\Simple\SimpleParametersResolver;
+use BlueDot\Kernel\Validation\Simple\SimpleStatementParameterValidation;
+use BlueDot\Kernel\Validation\Simple\SimpleParametersResolver;
 
 class StatementBuilder
 {
@@ -138,7 +138,7 @@ class StatementBuilder
 
         $this->statement->add('connection', $this->connection);
 
-        $context = new ExecutionContext($this->statement, $this->userParameters);
+        $context = new Kernel($this->statement, $this->userParameters);
 
         return $context
             ->runTasks()

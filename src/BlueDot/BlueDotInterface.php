@@ -2,7 +2,7 @@
 
 namespace BlueDot;
 
-use BlueDot\Database\Connection;
+use BlueDot\Kernel\Connection;
 use BlueDot\Entity\PromiseInterface;
 use BlueDot\StatementBuilder\StatementBuilder;
 use BlueDot\Repository\RepositoryInterface;

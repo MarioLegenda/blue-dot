@@ -3,8 +3,8 @@
 namespace Test;
 
 use BlueDot\BlueDot;
-use BlueDot\Database\Connection;
-use BlueDot\Database\ConnectionFactory;
+use BlueDot\Kernel\Connection;
+use BlueDot\Kernel\ConnectionFactory;
 use PHPUnit\Framework\TestCase;
 
 class ConnectionTest extends TestCase

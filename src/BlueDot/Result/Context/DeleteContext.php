@@ -2,7 +2,7 @@
 
 namespace BlueDot\Result\Context;
 
-use BlueDot\Database\Connection;
+use BlueDot\Kernel\Connection;
 use BlueDot\Result\DeleteQueryResult;
 use BlueDot\Result\NullQueryResult;
 

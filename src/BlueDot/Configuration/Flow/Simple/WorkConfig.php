@@ -3,7 +3,7 @@
 namespace BlueDot\Configuration\Flow\Simple;
 
 use BlueDot\Common\Enum\TypeInterface;
-use BlueDot\Database\Execution\Enum\Parameter\ParameterTypeFactory;
+use BlueDot\Kernel\Execution\Enum\Parameter\ParameterTypeFactory;
 
 class WorkConfig
 {

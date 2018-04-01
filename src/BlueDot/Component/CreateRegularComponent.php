@@ -3,7 +3,7 @@
 namespace BlueDot\Component;
 
 use BlueDot\Common\ArgumentBag;
-use BlueDot\Database\TypeConverter;
+use BlueDot\Kernel\TypeConverter;
 use BlueDot\Entity\Entity;
 use BlueDot\Result\DeleteQueryResult;
 use BlueDot\Result\MultipleInsertQueryResult;

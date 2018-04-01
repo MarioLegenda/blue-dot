@@ -2,8 +2,8 @@
 
 namespace BlueDot\Common;
 
-use BlueDot\Database\Model\ConfigurationInterface;
-use BlueDot\Database\Model\Simple\SimpleConfiguration;
+use BlueDot\Kernel\Model\ConfigurationInterface;
+use BlueDot\Kernel\Model\Simple\SimpleConfiguration;
 use BlueDot\Exception\ConfigurationException;
 
 class StatementValidator implements ValidatorInterface

@@ -8,11 +8,11 @@ use BlueDot\Configuration\Compiler;
 
 use BlueDot\Configuration\Import\ImportCollection;
 use BlueDot\Configuration\Validator\ConfigurationValidator;
-use BlueDot\Database\Connection;
+use BlueDot\Kernel\Connection;
 
-use BlueDot\Database\ConnectionFactory;
-use BlueDot\Database\Execution\{
-    CallableStrategy, ExecutionContext, PreparedExecution
+use BlueDot\Kernel\ConnectionFactory;
+use BlueDot\Kernel\Execution\{
+    CallableStrategy, Kernel, PreparedExecution
 };
 
 use BlueDot\Entity\Promise;
@@ -142,7 +142,7 @@ class BlueDot implements BlueDotInterface
             $statement->add('connection', $this->connection);
         }
 
-        $context = new ExecutionContext($statement, $parameters);
+        $context = new Kernel($statement, $parameters);
 
         return $context
             ->runTasks()
@@ -231,7 +231,7 @@ class BlueDot implements BlueDotInterface
             $statement->add('connection', $this->connection);
         }
 
-        $executionContext = new ExecutionContext($statement, $parameters);
+        $executionContext = new Kernel($statement, $parameters);
 
         $executionContext->runTasks();
 

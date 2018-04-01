@@ -18,6 +18,6 @@ class StringType extends BaseType
             throw new \RuntimeException($message);
         }
 
-        parent::fromValue($value);
+        return parent::fromValue($value);
     }
 }

@@ -2,7 +2,7 @@
 
 namespace BlueDot\Common;
 
-use BlueDot\Database\Model\ConfigurationInterface;
+use BlueDot\Kernel\Model\ConfigurationInterface;
 
 interface ValidatorInterface
 {
