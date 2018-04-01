@@ -6,12 +6,14 @@ use BlueDot\Common\ArgumentValidator;
 use BlueDot\Common\StatementValidator;
 use BlueDot\Configuration\Compiler;
 use BlueDot\Configuration\Flow\Scenario\ScenarioConfiguration;
+use BlueDot\Configuration\Flow\Service\ServiceConfiguration;
 use BlueDot\Configuration\Flow\Simple\SimpleConfiguration;
 use BlueDot\Configuration\Import\ImportCollection;
 use BlueDot\Configuration\Validator\ConfigurationValidator;
 use BlueDot\Kernel\Connection\ConnectionFactory;
 use BlueDot\Kernel\Kernel;
 use BlueDot\Kernel\Strategy\ScenarioStrategy;
+use BlueDot\Kernel\Strategy\ServiceStrategy;
 use BlueDot\Kernel\Strategy\SimpleStrategy;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Yaml\Yaml;
@@ -299,5 +301,31 @@ class KernelTest extends TestCase
         $strategy = $kernel->createStrategy($connection);
 
         static::assertInstanceOf(ScenarioStrategy::class, $strategy);
+
+        $file = $this->serviceConfig['file'];
+        $configArray = $this->serviceConfig['config'];
+
+        $compiler = new Compiler(
+            $file,
+            $configArray['configuration'],
+            new ArgumentValidator(),
+            new StatementValidator(),
+            new ConfigurationValidator($configArray),
+            new ImportCollection()
+        );
+
+        static::assertTrue($compiler->isCompiled());
+
+        $statementName = 'service.service_one';
+
+        /** @var ServiceConfiguration $compiledConfiguration */
+        $compiledConfiguration = $compiler->compile($statementName);
+
+        $kernel = new Kernel($compiledConfiguration);
+
+        $kernel->validateKernel();
+        $strategy = $kernel->createStrategy($connection);
+
+        static::assertInstanceOf(ServiceStrategy::class, $strategy);
     }
 }

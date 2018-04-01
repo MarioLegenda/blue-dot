@@ -22,14 +22,14 @@ class Property
      * Property constructor.
      * @param string $statement
      * @param string $modelProperty
-     * @throws BlueDotRuntimeException
+     * @throws \RuntimeException
      */
     public function __construct(string $statement, string $modelProperty)
     {
         $exploded = explode('.', $statement);
 
         if (count($exploded) !== 2) {
-            throw new BlueDotRuntimeException(
+            throw new \RuntimeException(
                 sprintf(
                     'Invalid model property. Property should be a \'key:value\' pair with \'key\' as {statement_name}.{column_name} and \'value\' as the name of the model property'
                 )

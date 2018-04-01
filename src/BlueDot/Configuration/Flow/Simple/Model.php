@@ -16,7 +16,7 @@ class Model
      * Model constructor.
      * @param string $class
      * @param array $properties
-     * @throws \BlueDot\Exception\BlueDotRuntimeException
+     * @throws \RuntimeException
      */
     public function __construct(string $class, array $properties)
     {

@@ -3,14 +3,22 @@
 namespace BlueDot\Kernel\Strategy;
 
 use BlueDot\BlueDotInterface;
-use BlueDot\Common\AbstractCallable;
 use BlueDot\Common\ArgumentBag;
 use BlueDot\Common\StorageInterface;
+use BlueDot\Configuration\Flow\Service\ServiceConfiguration;
 use BlueDot\Exception\BlueDotRuntimeException;
-use BlueDot\Common\ServiceInterface;
+use BlueDot\Kernel\Connection\Connection;
 
-class CallableStrategy implements StrategyInterface
+class ServiceStrategy implements StrategyInterface
 {
+    /**
+     * @var Connection $connection
+     */
+    private $connection;
+    /**
+     * @var ServiceConfiguration $configuration
+     */
+    private $configuration;
     /**
      * @var StorageInterface $result
      */
@@ -28,16 +36,16 @@ class CallableStrategy implements StrategyInterface
      */
     private $blueDot;
     /**
-     * @param ArgumentBag $statement
-     * @param BlueDotInterface $blueDot
-     * @param array $parameters
-     * @throws BlueDotRuntimeException
+     * SimpleStrategy constructor.
+     * @param ServiceConfiguration $configuration
+     * @param Connection $connection
      */
-    public function __construct(ArgumentBag $statement, BlueDotInterface $blueDot, array $parameters = null)
-    {
-        $this->statement = $statement;
-        $this->blueDot = $blueDot;
-        $this->parameters = $parameters;
+    public function __construct(
+        ServiceConfiguration $configuration,
+        Connection $connection
+    ) {
+        $this->configuration = $configuration;
+        $this->connection = $connection;
     }
 
     public function execute() : StrategyInterface

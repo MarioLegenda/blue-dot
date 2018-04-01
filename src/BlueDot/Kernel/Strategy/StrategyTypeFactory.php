@@ -5,8 +5,10 @@ namespace BlueDot\Kernel\Strategy;
 use BlueDot\Common\Enum\TypeInterface;
 use BlueDot\Common\FlowProductInterface;
 use BlueDot\Configuration\Flow\Scenario\ScenarioConfiguration;
+use BlueDot\Configuration\Flow\Service\ServiceConfiguration;
 use BlueDot\Configuration\Flow\Simple\SimpleConfiguration;
 use BlueDot\Kernel\Strategy\Enum\ScenarioStrategyType;
+use BlueDot\Kernel\Strategy\Enum\ServiceStrategyType;
 use BlueDot\Kernel\Strategy\Enum\SimpleStrategyType;
 
 class StrategyTypeFactory
@@ -23,6 +25,10 @@ class StrategyTypeFactory
 
         if ($configuration instanceof ScenarioConfiguration) {
             return ScenarioStrategyType::fromValue();
+        }
+
+        if ($configuration instanceof ServiceConfiguration) {
+            return ServiceStrategyType::fromValue();
         }
     }
 }

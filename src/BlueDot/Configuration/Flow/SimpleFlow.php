@@ -16,7 +16,7 @@ class SimpleFlow
      * @param array $config
      * @param ImportCollection $importCollection
      * @return FlowConfigurationProductInterface
-     * @throws \BlueDot\Exception\BlueDotRuntimeException
+     * @throws \RuntimeException
      */
     public function create(
         string $resolvedStatementName,
@@ -72,7 +72,7 @@ class SimpleFlow
     /**
      * @param array $config
      * @return Model|null
-     * @throws \BlueDot\Exception\BlueDotRuntimeException
+     * @throws \RuntimeException
      */
     private function resolveModelIfExists(array $config): ?Model
     {

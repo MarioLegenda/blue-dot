@@ -8,8 +8,10 @@ use BlueDot\Configuration\Flow\Scenario\ScenarioConfiguration;
 use BlueDot\Configuration\Flow\Simple\SimpleConfiguration;
 use BlueDot\Kernel\Connection\Connection;
 use BlueDot\Kernel\Strategy\Enum\ScenarioStrategyType;
+use BlueDot\Kernel\Strategy\Enum\ServiceStrategyType;
 use BlueDot\Kernel\Strategy\Enum\SimpleStrategyType;
 use BlueDot\Kernel\Strategy\ScenarioStrategy;
+use BlueDot\Kernel\Strategy\ServiceStrategy;
 use BlueDot\Kernel\Strategy\SimpleStrategy;
 use BlueDot\Kernel\Strategy\StrategyInterface;
 use BlueDot\Kernel\Strategy\StrategyTypeFactory;
@@ -94,6 +96,13 @@ class Kernel
 
         if ($type->equals(ScenarioStrategyType::fromValue())) {
             return new ScenarioStrategy(
+                $this->configuration,
+                $connection
+            );
+        }
+
+        if ($type->equals(ServiceStrategyType::fromValue())) {
+            return new ServiceStrategy(
                 $this->configuration,
                 $connection
             );
