@@ -58,7 +58,7 @@ class WorkConfig
         return $this->configParameters;
     }
     /**
-     * @return null|array|object|object[]
+     * @return null|array
      */
     public function getUserParameters()
     {

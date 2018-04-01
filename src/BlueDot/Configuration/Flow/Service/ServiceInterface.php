@@ -1,8 +1,8 @@
 <?php
 
-namespace BlueDot\Common;
+namespace BlueDot\Configuration\Flow\Service;
 
-interface CallableInterface
+interface ServiceInterface
 {
     /**
      * @return array

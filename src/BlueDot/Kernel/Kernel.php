@@ -18,6 +18,7 @@ use BlueDot\Kernel\Validation\Implementation\CorrectSqlValidation;
 use BlueDot\Kernel\Validation\Implementation\ExistsStatementValidation;
 use BlueDot\Kernel\Validation\Implementation\ForeignKeyValidation;
 use BlueDot\Kernel\Validation\Implementation\ModelValidation;
+use BlueDot\Kernel\Validation\Implementation\ServiceValidation;
 use BlueDot\Kernel\Validation\Implementation\UseOptionValidation;
 use BlueDot\Kernel\Validation\ValidationResolver;
 use BlueDot\Entity\Entity;
@@ -69,7 +70,8 @@ class Kernel
             ->addValidator(new ModelValidation($this->configuration))
             ->addValidator(new ForeignKeyValidation($this->configuration))
             ->addValidator(new UseOptionValidation($this->configuration))
-            ->addValidator(new ExistsStatementValidation($this->configuration));
+            ->addValidator(new ExistsStatementValidation($this->configuration))
+            ->addValidator(new ServiceValidation($this->configuration));
 
         $validatorResolver->resolveValidation();
 

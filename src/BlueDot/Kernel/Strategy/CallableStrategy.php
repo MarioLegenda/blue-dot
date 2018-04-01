@@ -7,7 +7,7 @@ use BlueDot\Common\AbstractCallable;
 use BlueDot\Common\ArgumentBag;
 use BlueDot\Common\StorageInterface;
 use BlueDot\Exception\BlueDotRuntimeException;
-use BlueDot\Common\CallableInterface;
+use BlueDot\Common\ServiceInterface;
 
 class CallableStrategy implements StrategyInterface
 {
@@ -48,12 +48,12 @@ class CallableStrategy implements StrategyInterface
 
             $object = new $objectName($this->blueDot, $this->parameters);
 
-            if (!$object instanceof CallableInterface) {
+            if (!$object instanceof ServiceInterface) {
                 throw new BlueDotRuntimeException(
                     sprintf(
-                        'Callable %s has to implement %s or extend %s',
+                        'Service %s has to implement %s or extend %s',
                         $this->statement->get('name'),
-                        CallableInterface::class,
+                        ServiceInterface::class,
                         AbstractCallable::class
                     )
                 );

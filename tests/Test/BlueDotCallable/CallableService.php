@@ -2,12 +2,15 @@
 
 namespace Test\BlueDotCallable;
 
-use BlueDot\Common\AbstractCallable;
+use BlueDot\Configuration\Flow\Service\BaseService;
 
-class CallableService extends AbstractCallable
+class CallableService extends BaseService
 {
-    public function run()
+    /**
+     * @inheritdoc
+     */
+    public function run(): array
     {
-
+        return [];
     }
 }

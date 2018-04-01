@@ -2,6 +2,7 @@
 
 namespace BlueDot\Configuration;
 
+use BlueDot\Configuration\Flow\ServiceFlow;
 use BlueDot\Configuration\Flow\ScenarioFlow;
 use BlueDot\Configuration\Flow\SimpleFlow;
 use BlueDot\Configuration\Import\ImportCollection;
@@ -110,23 +111,20 @@ class Compiler
         return $this->isCompiled;
     }
     /**
-     * @throws BlueDotRuntimeException
-     * @throws CompileException
-     * @throws ConfigurationException
+     * @void
      */
     private function compileReal()
     {
         $this->compileSimpleStatements();
         $this->compileScenarioStatement();
-        $this->compileCallableStatement();
+        $this->compileServiceStatement();
 
         $this->configurationCollection = new ConfigurationCollection(
             Util::instance()->createGenerator($this->builtStatements)
         );
     }
     /**
-     * @throws BlueDotRuntimeException
-     * @throws CompileException
+     * @void
      */
     private function compileSimpleStatements()
     {
@@ -134,7 +132,8 @@ class Compiler
             return null;
         }
 
-        $simpleConfigurationGenerator = Util::instance()->createGenerator($this->configuration['simple']);
+        $simpleConfigurationGenerator = Util::instance()
+            ->createGenerator($this->configuration['simple']);
 
         $simpleFlow = new SimpleFlow();
 
@@ -153,8 +152,7 @@ class Compiler
         }
     }
     /**
-     * @return null
-     * @throws ConfigurationException
+     * @void
      */
     private function compileScenarioStatement()
     {
@@ -162,7 +160,8 @@ class Compiler
             return null;
         }
 
-        $scenarioConfiguration = Util::instance()->createGenerator($this->configuration['scenario']);
+        $scenarioConfiguration = Util::instance()
+            ->createGenerator($this->configuration['scenario']);
 
         $scenarioFlow = new ScenarioFlow();
 
@@ -181,33 +180,29 @@ class Compiler
         }
     }
     /**
-     * @return null
-     * @throws BlueDotRuntimeException
+     * @void
      */
-    private function compileCallableStatement()
+    private function compileServiceStatement()
     {
-        if (!array_key_exists('callable', $this->configuration)) {
+        if (!array_key_exists('service', $this->configuration)) {
             return null;
         }
 
-        foreach ($this->configuration['callable'] as $key => $config) {
-            $callableConfig = new ArgumentBag();
-            $callableConfig->add('type', 'callable', true);
-            $resolvedStatementName = sprintf('callable.%s', $key);
+        $serviceConfiguration = Util::instance()
+            ->createGenerator($this->configuration['service']);
 
-            $subConfig = new ArgumentBag();
+        $serviceFlow = new ServiceFlow();
 
-            $subConfig
-                ->add('type', 'callable')
-                ->add('data_type', $config['type'])
-                ->add('name', $config['name'])
-                ->add('resolved_statement_name', $resolvedStatementName);
+        foreach ($serviceConfiguration as $callableConfigs) {
+            $serviceName = $callableConfigs['key'];
+            $resolvedServiceName = sprintf('service.%s', $serviceName);
 
-            $callableConfig->add('callable.'.$key, $subConfig);
+            $serviceConfig = $serviceFlow->create(
+                $resolvedServiceName,
+                $callableConfigs
+            );
 
-            $callableConfig->setName($resolvedStatementName);
-
-            $this->builtStatements[$resolvedStatementName] = $callableConfig;
+            $this->builtStatements[$resolvedServiceName] = $serviceConfig;
         }
     }
     /**

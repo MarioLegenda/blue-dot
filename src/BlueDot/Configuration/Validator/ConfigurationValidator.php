@@ -46,10 +46,10 @@ class ConfigurationValidator
         $callableConfiguration = $this->validateScenarioConfiguration($scenarioConfiguration);
 
         $callableConfiguration
-            ->cannotBeEmptyIfExists('callable')
-            ->isArrayIfExists('callable')
-            ->stepIntoIfExists('callable')
-                ->closureValidator('callable', function($nodeName, ArrayNode $nodes) {
+            ->cannotBeEmptyIfExists('service')
+            ->isArrayIfExists('service')
+            ->stepIntoIfExists('service')
+                ->closureValidator('service', function($nodeName, ArrayNode $nodes) {
                     foreach ($nodes as $key => $node) {
                         if (!is_string($key)) {
                             throw new ConfigurationException('\''.$key.'\' has to be a string');
@@ -57,11 +57,8 @@ class ConfigurationValidator
 
                         $node = new ArrayNode($key, $node);
                         $node
-                            ->cannotBeEmpty('type')
-                            ->isString('type')
-                            ->hasToBeOneOf('type', array('object', 'service'))
-                            ->cannotBeEmpty('name')
-                            ->isString('name');
+                            ->cannotBeEmpty('class')
+                            ->isString('class');
                     }
                 });
 

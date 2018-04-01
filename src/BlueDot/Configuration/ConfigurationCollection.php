@@ -4,7 +4,7 @@ namespace BlueDot\Configuration;
 
 use BlueDot\Common\ArgumentBag;
 use BlueDot\Common\FlowProductInterface;
-use BlueDot\Configuration\Finder\CallableStatementFinder;
+use BlueDot\Configuration\Finder\ServiceStatementFinder;
 use BlueDot\Configuration\Finder\ScenarioStatementFinder;
 use BlueDot\Configuration\Finder\SimpleConfigurationFinder;
 
@@ -22,7 +22,7 @@ class ConfigurationCollection
     {
         $this->statementFinders['simple'] = new SimpleConfigurationFinder();
         $this->statementFinders['scenario'] = new ScenarioStatementFinder();
-        $this->statementFinders['callable'] = new CallableStatementFinder();
+        $this->statementFinders['service'] = new ServiceStatementFinder();
 
         foreach ($statements as $statement) {
             $this->arrange($statement['key'], $statement['item']);
@@ -76,7 +76,7 @@ class ConfigurationCollection
                 $this->statementFinders[$type]->add($name, $statement);
 
                 return;
-            case 'callable':
+            case 'service':
                 $this->statementFinders[$type]->add($name, $statement);
 
                 return;

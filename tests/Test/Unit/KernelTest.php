@@ -28,15 +28,15 @@ class KernelTest extends TestCase
      */
     private $scenarioConfig;
     /**
-     * @var array $callableConfig
+     * @var array $serviceConfig
      */
-    private $callableConfig;
+    private $serviceConfig;
 
     public function setUp()
     {
         $simpleConfig = __DIR__.'/../config/simple_statement_test.yml';
         $scenarioConfig = __DIR__.'/../config/scenario_statement_test.yml';
-        $callableConfig = __DIR__.'/../config/callable_statement_test.yml';
+        $serviceConfig = __DIR__ . '/../config/service_statement_test.yml';
 
         $this->simpleConfig = [
             'file' => $simpleConfig,
@@ -48,9 +48,9 @@ class KernelTest extends TestCase
             'config' => Yaml::parse($scenarioConfig)
         ];
 
-        $this->callableConfig = [
-            'file' => $callableConfig,
-            'config' => Yaml::parse($callableConfig),
+        $this->serviceConfig = [
+            'file' => $serviceConfig,
+            'config' => Yaml::parse($serviceConfig),
         ];
     }
 
@@ -201,6 +201,32 @@ class KernelTest extends TestCase
                 'other' => 'other',
             ],
         ]);
+
+        $kernel->validateKernel();
+    }
+
+    public function test_service()
+    {
+        $file = $this->serviceConfig['file'];
+        $configArray = $this->serviceConfig['config'];
+
+        $compiler = new Compiler(
+            $file,
+            $configArray['configuration'],
+            new ArgumentValidator(),
+            new StatementValidator(),
+            new ConfigurationValidator($configArray),
+            new ImportCollection()
+        );
+
+        static::assertTrue($compiler->isCompiled());
+
+        $scenarioName = 'service.service_one';
+
+        /** @var ScenarioConfiguration $compiledConfiguration */
+        $compiledConfiguration = $compiler->compile($scenarioName);
+
+        $kernel = new Kernel($compiledConfiguration);
 
         $kernel->validateKernel();
     }

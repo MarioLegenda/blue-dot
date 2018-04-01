@@ -1,10 +1,10 @@
 <?php
 
-namespace BlueDot\Common;
+namespace BlueDot\Configuration\Flow\Service;
 
 use BlueDot\BlueDotInterface;
 
-abstract class AbstractCallable implements CallableInterface
+abstract class BaseService implements ServiceInterface
 {
     /**
      * @var BlueDotInterface $blueDot

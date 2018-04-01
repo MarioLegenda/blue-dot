@@ -10,6 +10,7 @@ use BlueDot\Configuration\Flow\Scenario\ForeignKey;
 use BlueDot\Configuration\Flow\Scenario\RootConfiguration;
 use BlueDot\Configuration\Flow\Scenario\ScenarioConfiguration;
 use BlueDot\Configuration\Flow\Scenario\UseOption;
+use BlueDot\Configuration\Flow\Service\ServiceConfiguration;
 use BlueDot\Configuration\Import\ImportCollection;
 use BlueDot\Configuration\Validator\ConfigurationValidator;
 use BlueDot\Configuration\Flow\Simple\Model;
@@ -32,15 +33,15 @@ class CompilerTest extends TestCase
      */
     private $scenarioConfig;
     /**
-     * @var array $callableConfig
+     * @var array $serviceConfig
      */
-    private $callableConfig;
+    private $serviceConfig;
 
     public function setUp()
     {
         $simpleConfig = __DIR__.'/../config/simple_statement_test.yml';
         $scenarioConfig = __DIR__.'/../config/scenario_statement_test.yml';
-        $callableConfig = __DIR__.'/../config/callable_statement_test.yml';
+        $serviceConfig = __DIR__.'/../config/service_statement_test.yml';
 
         $this->simpleConfig = [
             'file' => $simpleConfig,
@@ -52,10 +53,37 @@ class CompilerTest extends TestCase
             'config' => Yaml::parse($scenarioConfig)
         ];
 
-        $this->callableConfig = [
-            'file' => $callableConfig,
-            'config' => Yaml::parse($callableConfig),
+        $this->serviceConfig = [
+            'file' => $serviceConfig,
+            'config' => Yaml::parse($serviceConfig),
         ];
+    }
+
+    public function test_callable_compiler()
+    {
+        $file = $this->serviceConfig['file'];
+        $configArray = $this->serviceConfig['config'];
+
+        $compiler = new Compiler(
+            $file,
+            $configArray['configuration'],
+            new ArgumentValidator(),
+            new StatementValidator(),
+            new ConfigurationValidator($configArray),
+            new ImportCollection()
+        );
+
+        $statementName = 'service.service_one';
+
+        /** @var ServiceConfiguration $compiledConfiguration */
+        $compiledConfiguration = $compiler->compile($statementName);
+
+        static::assertInstanceOf(ServiceConfiguration::class, $compiledConfiguration);
+
+        static::assertEquals($compiledConfiguration->getResolvedServiceName(), $statementName);
+
+        static::assertNotEmpty($compiledConfiguration->getClass());
+        static::assertInternalType('string', $compiledConfiguration->getClass());
     }
 
     public function test_simple_no_parameters_compiler()
