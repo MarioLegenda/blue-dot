@@ -6,16 +6,46 @@ use BlueDot\Common\ArgumentBag;
 use BlueDot\Common\StorageInterface;
 use BlueDot\Component\CreateRegularComponent;
 use BlueDot\Component\CreateReturnEntitiesComponent;
+use BlueDot\Configuration\Flow\Scenario\ScenarioConfiguration;
 use BlueDot\Exception\BlueDotRuntimeException;
+use BlueDot\Kernel\Connection\Connection;
 use BlueDot\Kernel\Execution\LowLevelStrategy\RecursiveStatementExecution;
 use BlueDot\Result\NullQueryResult;
 
-class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
+class ScenarioStrategy implements StrategyInterface
 {
+    /**
+     * @var ScenarioConfiguration $configuration
+     */
+    private $configuration;
+    /**
+     * @var Connection $connection
+     */
+    protected $connection;
+    /**
+     * @var ArgumentBag $statement
+     */
+    protected $statement;
+    /**
+     * @var ArgumentBag $resultReport
+     */
+    protected $resultReport;
     /**
      * @var ArgumentBag $statements
      */
     private $statements;
+    /**
+     * ScenarioStrategy constructor.
+     * @param ScenarioConfiguration $configuration
+     * @param Connection $connection
+     */
+    public function __construct(
+        ScenarioConfiguration $configuration,
+        Connection $connection
+    ) {
+        $this->connection = $connection;
+        $this->configuration = $configuration;
+    }
     /**
      * @return StrategyInterface
      * @throws BlueDotRuntimeException

@@ -7,7 +7,9 @@ use BlueDot\Configuration\Flow\FlowConfigurationProductInterface;
 use BlueDot\Configuration\Flow\Scenario\ScenarioConfiguration;
 use BlueDot\Configuration\Flow\Simple\SimpleConfiguration;
 use BlueDot\Kernel\Connection\Connection;
+use BlueDot\Kernel\Strategy\Enum\ScenarioStrategyType;
 use BlueDot\Kernel\Strategy\Enum\SimpleStrategyType;
+use BlueDot\Kernel\Strategy\ScenarioStrategy;
 use BlueDot\Kernel\Strategy\SimpleStrategy;
 use BlueDot\Kernel\Strategy\StrategyInterface;
 use BlueDot\Kernel\Strategy\StrategyTypeFactory;
@@ -87,6 +89,13 @@ class Kernel
                 $connection
             );
         }
+
+        if ($type->equals(ScenarioStrategyType::fromValue())) {
+            return new ScenarioStrategy(
+                $this->configuration,
+                $connection
+            );
+        }
     }
     /**
      * @return Kernel
@@ -161,29 +170,5 @@ class Kernel
         $promise->setName($resolvedStatementName);
 
         return $promise;
-    }
-    /**
-     * @return StrategyInterface
-     * @throws BlueDotRuntimeException
-     */
-    private function doCreateStrategy() : StrategyInterface
-    {
-        $type = $this->statement->get('type');
-
-        switch($type) {
-            case 'simple':
-                return new SimpleStrategy($this->statement);
-            case 'scenario':
-                return new ScenarioStrategy($this->statement);
-        }
-
-        throw new BlueDotRuntimeException('Internal error. Strategy \''.$type.'\' has not been found. Please, contact whitepostmail@gmail.com or post an issue');
-    }
-    /**
-     * @throws \RuntimeException
-     */
-    private function doRunTasks()
-    {
-
     }
 }

@@ -11,6 +11,7 @@ use BlueDot\Configuration\Import\ImportCollection;
 use BlueDot\Configuration\Validator\ConfigurationValidator;
 use BlueDot\Kernel\Connection\ConnectionFactory;
 use BlueDot\Kernel\Kernel;
+use BlueDot\Kernel\Strategy\ScenarioStrategy;
 use BlueDot\Kernel\Strategy\SimpleStrategy;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Yaml\Yaml;
@@ -209,6 +210,13 @@ class KernelTest extends TestCase
         $file = $this->simpleConfig['file'];
         $configArray = $this->simpleConfig['config'];
 
+        $connection = ConnectionFactory::createConnection([
+            'host' => 'dummy_host',
+            'database_name' => 'dummy_database_name',
+            'user' => 'dummy_user',
+            'password' => 'dummy_password',
+        ]);
+
         $compiler = new Compiler(
             $file,
             $configArray['configuration'],
@@ -227,16 +235,43 @@ class KernelTest extends TestCase
 
         $kernel = new Kernel($compiledConfiguration);
 
-        $connection = ConnectionFactory::createConnection([
-            'host' => 'dummy_host',
-            'database_name' => 'dummy_database_name',
-            'user' => 'dummy_user',
-            'password' => 'dummy_password',
+        $kernel->validateKernel();
+        $strategy = $kernel->createStrategy($connection);
+
+        static::assertInstanceOf(SimpleStrategy::class, $strategy);
+
+        $file = $this->scenarioConfig['file'];
+        $configArray = $this->scenarioConfig['config'];
+
+        $compiler = new Compiler(
+            $file,
+            $configArray['configuration'],
+            new ArgumentValidator(),
+            new StatementValidator(),
+            new ConfigurationValidator($configArray),
+            new ImportCollection()
+        );
+
+        static::assertTrue($compiler->isCompiled());
+
+        $statementName = 'scenario.full_scenario';
+
+        /** @var ScenarioConfiguration $compiledConfiguration */
+        $compiledConfiguration = $compiler->compile($statementName);
+
+        $kernel = new Kernel($compiledConfiguration, [
+            'first_statement' => [
+                'id' => 1,
+            ],
+            'insert_statement' => [
+                'id' => 1,
+                'other' => 'other',
+            ],
         ]);
 
         $kernel->validateKernel();
         $strategy = $kernel->createStrategy($connection);
 
-        static::assertInstanceOf(SimpleStrategy::class, $strategy);
+        static::assertInstanceOf(ScenarioStrategy::class, $strategy);
     }
 }
