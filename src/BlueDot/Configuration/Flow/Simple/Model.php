@@ -5,22 +5,22 @@ namespace BlueDot\Configuration\Flow\Simple;
 class Model
 {
     /**
-     * @var string $name
+     * @var string $class
      */
-    private $name;
+    private $class;
     /**
      * @var array $properties
      */
     private $properties;
     /**
      * Model constructor.
-     * @param string $name
+     * @param string $class
      * @param array $properties
      * @throws \BlueDot\Exception\BlueDotRuntimeException
      */
-    public function __construct(string $name, array $properties)
+    public function __construct(string $class, array $properties)
     {
-        $this->name = $name;
+        $this->class = $class;
 
         if (!empty($properties)) {
             foreach ($properties as $statement => $property) {
@@ -31,16 +31,9 @@ class Model
     /**
      * @return string
      */
-    public function getName(): string
+    public function getClass(): string
     {
-        return $this->name;
-    }
-    /**
-     * @param string $name
-     */
-    public function setName(string $name)
-    {
-        $this->name = $name;
+        return $this->class;
     }
     /**
      * @return mixed

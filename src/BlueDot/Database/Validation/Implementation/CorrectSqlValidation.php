@@ -1,10 +1,10 @@
 <?php
 
-namespace BlueDot\Database\Execution\Validation\Implementation;
+namespace BlueDot\Database\Validation\Implementation;
 
 use BlueDot\Configuration\Flow\FlowConfigurationProductInterface;
 use BlueDot\Configuration\Flow\Scenario\ScenarioConfiguration;
-use BlueDot\Database\Execution\Validation\ValidatorInterface;
+use BlueDot\Database\Validation\ValidatorInterface;
 use BlueDot\Configuration\Flow\Simple\SimpleConfiguration;
 
 class CorrectSqlValidation implements ValidatorInterface

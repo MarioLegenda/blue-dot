@@ -1,6 +1,6 @@
 <?php
 
-namespace BlueDot\Database\Execution\Validation;
+namespace BlueDot\Database\Validation;
 
 interface ValidatorInterface
 {

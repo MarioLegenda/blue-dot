@@ -291,18 +291,4 @@ class SimpleStrategy extends AbstractStrategy implements StrategyInterface
             return $entity;
         }
     }
-
-    private function saveInCache($result)
-    {
-        if ($this->statement->has('cache') and $this->statement->get('cache') === true) {
-            if (CacheStorage::getInstance()->canBeCached($this->statement)) {
-                $cache = CacheStorage::getInstance();
-                $name = $cache->createName($this->statement);
-
-                if (!$cache->has($name)) {
-                    $cache->put($name, $result);
-                }
-            }
-        }
-    }
 }

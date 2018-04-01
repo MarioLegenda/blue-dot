@@ -16,7 +16,6 @@ class SimpleFlow
      * @param array $config
      * @param ImportCollection $importCollection
      * @return FlowConfigurationProductInterface
-     * @throws CompileException
      * @throws \BlueDot\Exception\BlueDotRuntimeException
      */
     public function create(
@@ -27,7 +26,7 @@ class SimpleFlow
         $statementInfo = $this->resolveStatementInfo($resolvedStatementName);
 
         $sql = $this->resolveSql($importCollection, $config['sql']);
-        $parameters = $this->resolveParametersIfExists($config);
+        $parameters = $this->resolveConfigParametersIfExists($config);
         $model = $this->resolveModelIfExists($config);
 
         $metadata = new Metadata(
@@ -73,7 +72,6 @@ class SimpleFlow
     /**
      * @param array $config
      * @return Model|null
-     * @throws CompileException
      * @throws \BlueDot\Exception\BlueDotRuntimeException
      */
     private function resolveModelIfExists(array $config): ?Model
@@ -83,24 +81,6 @@ class SimpleFlow
         if (array_key_exists('model', $config)) {
             $object = $config['model']['object'];
             $properties = (array_key_exists('properties', $config['model'])) ? $config['model']['properties'] : array();
-
-            if (!class_exists($object)) {
-                throw new CompileException(sprintf('Invalid model options. Object \'%s\' does not exist', $object));
-            }
-
-            if (!empty($properties)) {
-                foreach ($properties as $key => $value) {
-                    if (!is_string($key)) {
-                        $message = sprintf(
-                            'Invalid model options. \'properties\' should be an associative array with {statement_name}.{column} as key and a model property as value. %s given for value %s',
-                            $key,
-                            $value
-                        );
-
-                        throw new CompileException($message);
-                    }
-                }
-            }
 
             $model = new Model($object, $properties);
         }
@@ -130,7 +110,7 @@ class SimpleFlow
      * @param array $config
      * @return array|null
      */
-    private function resolveParametersIfExists(array $config): ?array
+    private function resolveConfigParametersIfExists(array $config): ?array
     {
         if (array_key_exists('parameters', $config)) {
             return $config['parameters'];

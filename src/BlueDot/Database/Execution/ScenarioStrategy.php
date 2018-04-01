@@ -19,6 +19,7 @@ class ScenarioStrategy extends AbstractStrategy implements StrategyInterface
     /**
      * @return StrategyInterface
      * @throws BlueDotRuntimeException
+     * @throws \BlueDot\Exception\ConnectionException
      */
     public function execute() : StrategyInterface
     {

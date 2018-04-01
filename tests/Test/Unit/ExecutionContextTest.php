@@ -12,6 +12,7 @@ use BlueDot\Configuration\Validator\ConfigurationValidator;
 use BlueDot\Database\Execution\ExecutionContext;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Yaml\Yaml;
+use Test\Model\User;
 
 class ExecutionContextTest extends TestCase
 {

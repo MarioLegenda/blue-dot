@@ -1,36 +1,39 @@
 <?php
 
-namespace BlueDot\Database\Execution\Validation\Implementation;
+namespace BlueDot\Database\Validation\Implementation;
 
+use BlueDot\Common\FlowProductInterface;
 use BlueDot\Configuration\Flow\Scenario\Metadata;
 use BlueDot\Configuration\Flow\Scenario\UseOption;
-use BlueDot\Database\Execution\Validation\ValidatorInterface;
+use BlueDot\Database\Validation\ValidatorInterface;
 use BlueDot\Configuration\Flow\Scenario\ScenarioConfiguration;
 
 class UseOptionValidation implements ValidatorInterface
 {
     /**
-     * @var ScenarioConfiguration $configuration
+     * @var FlowProductInterface|ScenarioConfiguration $configuration
      */
     private $configuration;
     /**
      * UseOptionValidation constructor.
-     * @param ScenarioConfiguration $scenarioConfiguration
+     * @param FlowProductInterface $configuration
      */
     public function __construct(
-        ScenarioConfiguration $scenarioConfiguration
+        FlowProductInterface $configuration
     ) {
-        $this->configuration = $scenarioConfiguration;
+        $this->configuration = $configuration;
     }
     /**
      * @inheritdoc
      */
     public function validate()
     {
-        /** @var Metadata[] $metadata */
-        $metadata = $this->configuration->getMetadata();
+        if ($this->configuration instanceof ScenarioConfiguration) {
+            /** @var Metadata[] $metadata */
+            $metadata = $this->configuration->getMetadata();
 
-        $this->validateUseOptions($metadata);
+            $this->validateUseOptions($metadata);
+        }
     }
     /**
      * @param array $metadata

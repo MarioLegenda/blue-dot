@@ -1,14 +1,14 @@
 <?php
 
-namespace BlueDot\Database\Execution\Validation\Implementation;
+namespace BlueDot\Database\Validation\Implementation;
 
 use BlueDot\Configuration\Flow\FlowConfigurationProductInterface;
-use BlueDot\Database\Execution\Validation\ValidatorInterface;
+use BlueDot\Database\Validation\ValidatorInterface;
 use BlueDot\Configuration\Flow\Scenario\Metadata;
 use BlueDot\Configuration\Flow\Simple\SimpleConfiguration;
 use BlueDot\Configuration\Flow\Scenario\ScenarioConfiguration;
 
-class CorrectParametersValidation implements ValidatorInterface
+class BasicCorrectParametersValidation implements ValidatorInterface
 {
     /**
      * @var FlowConfigurationProductInterface|SimpleConfiguration|ScenarioConfiguration $configuration
@@ -35,12 +35,6 @@ class CorrectParametersValidation implements ValidatorInterface
             $configParameters = $workConfig->getConfigParameters();
 
             $this->handleGenericParametersValidation(
-                $userParameters,
-                $configParameters,
-                $resolvedStatementName
-            );
-
-            $this->handleParametersEquality(
                 $userParameters,
                 $configParameters,
                 $resolvedStatementName
@@ -73,7 +67,7 @@ class CorrectParametersValidation implements ValidatorInterface
     }
     /**
      * @param array $userParameters
-     * @param array $configParameters
+     * @param array|null|object $configParameters
      * @param string $resolvedStatementName
      * @throws \RuntimeException
      */
@@ -127,7 +121,6 @@ class CorrectParametersValidation implements ValidatorInterface
         array $configParameters,
         string $resolvedStatementName
     ) {
-
         $configParametersKeys = array_values($configParameters);
         $userParametersKeys = array_keys($userParameters);
 

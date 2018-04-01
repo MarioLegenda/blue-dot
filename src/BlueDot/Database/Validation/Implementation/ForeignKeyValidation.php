@@ -1,24 +1,25 @@
 <?php
 
-namespace BlueDot\Database\Execution\Validation\Implementation;
+namespace BlueDot\Database\Validation\Implementation;
 
+use BlueDot\Common\FlowProductInterface;
 use BlueDot\Configuration\Flow\Scenario\ForeignKey;
 use BlueDot\Configuration\Flow\Scenario\Metadata;
 use BlueDot\Configuration\Flow\Scenario\ScenarioConfiguration;
-use BlueDot\Database\Execution\Validation\ValidatorInterface;
+use BlueDot\Database\Validation\ValidatorInterface;
 
 class ForeignKeyValidation implements ValidatorInterface
 {
     /**
-     * @var ScenarioConfiguration $configuration
+     * @var FlowProductInterface|ScenarioConfiguration $configuration
      */
     private $configuration;
     /**
-     * ForeignKeyValidation constructor.
-     * @param ScenarioConfiguration $configuration
+     * UseOptionValidation constructor.
+     * @param FlowProductInterface $configuration
      */
     public function __construct(
-        ScenarioConfiguration $configuration
+        FlowProductInterface $configuration
     ) {
         $this->configuration = $configuration;
     }
@@ -27,10 +28,12 @@ class ForeignKeyValidation implements ValidatorInterface
      */
     public function validate()
     {
-        /** @var Metadata[] $metadata */
-        $metadata = $this->configuration->getMetadata();
+        if ($this->configuration instanceof ScenarioConfiguration) {
+            /** @var Metadata[] $metadata */
+            $metadata = $this->configuration->getMetadata();
 
-        $this->validateForeignKeys($metadata);
+            $this->validateForeignKeys($metadata);
+        }
     }
     /**
      * @param array $metadata

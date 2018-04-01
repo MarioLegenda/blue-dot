@@ -6,12 +6,13 @@ use BlueDot\Common\FlowProductInterface;
 use BlueDot\Configuration\Flow\FlowConfigurationProductInterface;
 use BlueDot\Configuration\Flow\Scenario\ScenarioConfiguration;
 use BlueDot\Configuration\Flow\Simple\SimpleConfiguration;
-use BlueDot\Database\Execution\Validation\Implementation\CorrectParametersValidation;
-use BlueDot\Database\Execution\Validation\Implementation\CorrectSqlValidation;
-use BlueDot\Database\Execution\Validation\Implementation\ExistsStatementValidation;
-use BlueDot\Database\Execution\Validation\Implementation\ForeignKeyValidation;
-use BlueDot\Database\Execution\Validation\Implementation\UseOptionValidation;
-use BlueDot\Database\Execution\Validation\ValidationResolver;
+use BlueDot\Database\Validation\Implementation\BasicCorrectParametersValidation;
+use BlueDot\Database\Validation\Implementation\CorrectSqlValidation;
+use BlueDot\Database\Validation\Implementation\ExistsStatementValidation;
+use BlueDot\Database\Validation\Implementation\ForeignKeyValidation;
+use BlueDot\Database\Validation\Implementation\ModelValidation;
+use BlueDot\Database\Validation\Implementation\UseOptionValidation;
+use BlueDot\Database\Validation\ValidationResolver;
 use BlueDot\Entity\Entity;
 use BlueDot\Entity\Promise;
 use BlueDot\Entity\PromiseInterface;
@@ -23,10 +24,6 @@ class ExecutionContext
      * @var FlowProductInterface|SimpleConfiguration|ScenarioConfiguration $configuration
      */
     private $configuration;
-    /**
-     * @var array|null $userParameters
-     */
-    private $userParameters;
     /**
      * @var StrategyInterface $strategy
      */
@@ -41,12 +38,13 @@ class ExecutionContext
     private $result;
     /**
      * @param FlowConfigurationProductInterface|SimpleConfiguration|ScenarioConfiguration $configuration
-     * @param array|null $userParameters
+     * @param array|null|object $userParameters
      */
-    public function __construct(FlowConfigurationProductInterface $configuration, array $userParameters = null)
-    {
+    public function __construct(
+        FlowConfigurationProductInterface $configuration,
+        $userParameters = null
+    ) {
         $this->configuration = $configuration;
-        $this->userParameters = $userParameters;
 
         $this->configuration->injectUserParameters($userParameters);
     }
@@ -184,50 +182,12 @@ class ExecutionContext
 
         $validatorResolver
             ->addValidator(new CorrectSqlValidation($this->configuration))
-            ->addValidator(new CorrectParametersValidation($this->configuration));
-
-        if ($this->configuration instanceof ScenarioConfiguration) {
-            $validatorResolver
-                ->addValidator(new ForeignKeyValidation($this->configuration))
-                ->addValidator(new UseOptionValidation($this->configuration))
-                ->addValidator(new ExistsStatementValidation($this->configuration));
-        }
+            ->addValidator(new BasicCorrectParametersValidation($this->configuration))
+            ->addValidator(new ModelValidation($this->configuration))
+            ->addValidator(new ForeignKeyValidation($this->configuration))
+            ->addValidator(new UseOptionValidation($this->configuration))
+            ->addValidator(new ExistsStatementValidation($this->configuration));
 
         $validatorResolver->resolveValidation();
-/*        $type = $this->statement->get('type');
-
-        switch($type) {
-            case 'simple':
-                TaskRunnerFactory::createTaskRunner(function() {
-                    return new SimpleStatementTaskRunner(
-                        $this->statement,
-                        $this->parameters,
-                        new ModelConverter());
-                })
-                    ->addTask(new SimpleStatementParameterValidation())
-                    ->addTask(new SimpleParametersResolver())
-                    ->doTasks();
-
-                return;
-            case 'scenario':
-                TaskRunnerFactory::createTaskRunner(function() {
-                    return new ScenarioStatementTaskRunner(
-                        $this->statement,
-                        $this->parameters
-                    );
-                })
-                    ->addTask(new ScenarioStatementParametersValidation())
-                    ->addTask(new ScenarioParametersResolver())
-                    ->doTasks();
-
-                return;
-        }
-
-        throw new BlueDotRuntimeException(
-            sprintf(
-                'Internal error. Strategy %s has not been found. This is probably a bug. Please, contact whitepostmail@gmail.com or post an issue on Github',
-                $type
-            )
-        );*/
     }
 }

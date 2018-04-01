@@ -2,7 +2,10 @@
 
 namespace BlueDot\Configuration\Flow\Simple;
 
-class WorkConfig implements WorkConfigInterface
+use BlueDot\Common\Enum\TypeInterface;
+use BlueDot\Database\Execution\Enum\Parameter\ParameterTypeFactory;
+
+class WorkConfig
 {
     /**
      * @var string $sql
@@ -41,37 +44,45 @@ class WorkConfig implements WorkConfigInterface
         $this->model = $model;
     }
     /**
-     * @inheritdoc
+     * @return string
      */
     public function getSql(): string
     {
         return $this->sql;
     }
     /**
-     * @inheritdoc
+     * @return array|null
      */
     public function getConfigParameters(): ?array
     {
         return $this->configParameters;
     }
     /**
-     * @inheritdoc
+     * @return null|array|object|object[]
      */
-    public function getUserParameters(): array
+    public function getUserParameters()
     {
+        if (is_null($this->userParameters) or empty($this->userParameters)) {
+            return [];
+        }
+
+        if (!is_array($this->userParameters)) {
+            return [];
+        }
+
         return $this->userParameters;
     }
     /**
-     * @inheritdoc
+     * @return Model|null
      */
     public function getModel(): ?Model
     {
         return $this->model;
     }
     /**
-     * @inheritdoc
+     * @param array|null|object $userParameters
      */
-    public function injectUserParameters(array $userParameters)
+    public function injectUserParameters($userParameters)
     {
         $this->userParameters = $userParameters;
     }

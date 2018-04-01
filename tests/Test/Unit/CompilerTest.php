@@ -14,9 +14,9 @@ use BlueDot\Configuration\Import\ImportCollection;
 use BlueDot\Configuration\Validator\ConfigurationValidator;
 use BlueDot\Configuration\Flow\Simple\Model;
 use BlueDot\Configuration\Flow\Simple\SimpleConfiguration;
-use BlueDot\Configuration\Flow\Simple\WorkConfigInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Yaml\Yaml;
+use BlueDot\Configuration\Flow\Simple\WorkConfig;
 
 use BlueDot\Configuration\Flow\Scenario\Metadata as ScenarioMetadata;
 use BlueDot\Configuration\Flow\Simple\Metadata as SimpleMetadata;
@@ -83,7 +83,7 @@ class CompilerTest extends TestCase
         static::assertEquals($statementName, $compiledConfiguration->getName());
 
         static::assertInstanceOf(SimpleMetadata::class, $compiledConfiguration->getMetadata());
-        static::assertInstanceOf(WorkConfigInterface::class, $compiledConfiguration->getWorkConfig());
+        static::assertInstanceOf(WorkConfig::class, $compiledConfiguration->getWorkConfig());
 
         /** @var SimpleMetadata $metadata */
         $metadata = $compiledConfiguration->getMetadata();
@@ -127,7 +127,7 @@ class CompilerTest extends TestCase
         static::assertEquals($statementName, $compiledConfiguration->getName());
 
         static::assertInstanceOf(SimpleMetadata::class, $compiledConfiguration->getMetadata());
-        static::assertInstanceOf(WorkConfigInterface::class, $compiledConfiguration->getWorkConfig());
+        static::assertInstanceOf(WorkConfig::class, $compiledConfiguration->getWorkConfig());
 
         /** @var \BlueDot\Configuration\Flow\Simple\Metadata $metadata */
         $metadata = $compiledConfiguration->getMetadata();
@@ -148,8 +148,8 @@ class CompilerTest extends TestCase
 
         $model = $workConfig->getModel();
 
-        static::assertInternalType('string', $model->getName());
-        static::assertNotEmpty($model->getName());
+        static::assertInternalType('string', $model->getClass());
+        static::assertNotEmpty($model->getClass());
 
         static::assertEmpty($model->getProperties());
     }
@@ -245,6 +245,8 @@ class CompilerTest extends TestCase
 
         $foreignKeyAssertEntered = false;
         $useOptionAssertEntered = false;
+        $entersIfExistsStatement = false;
+        $entersIfNotExistsStatement = false;
         /** @var ScenarioMetadata $singleMetadata */
         foreach ($metadata as $singleMetadata) {
             static::assertInstanceOf(ScenarioMetadata::class, $singleMetadata);
@@ -255,8 +257,17 @@ class CompilerTest extends TestCase
             static::assertNotEmpty($singleMetadata->getSqlType());
             static::assertInternalType('boolean', $singleMetadata->canBeEmptyResult());
 
-            static::assertNull($singleMetadata->getIfExistsStatementName());
-            static::assertNull($singleMetadata->getIfNotExistsStatementName());
+            if (is_string($singleMetadata->getIfExistsStatementName())) {
+                static::assertInternalType('string', $singleMetadata->getIfExistsStatementName());
+
+                $entersIfExistsStatement = true;
+            }
+
+            if (is_string($singleMetadata->getIfNotExistsStatementName())) {
+                static::assertInternalType('string', $singleMetadata->getIfNotExistsStatementName());
+
+                $entersIfNotExistsStatement = true;
+            }
 
             static::assertEmpty($singleMetadata->getUserParameters());
             static::assertInternalType('array', $singleMetadata->getUserParameters());
@@ -287,6 +298,8 @@ class CompilerTest extends TestCase
             }
         }
 
+        static::assertTrue($entersIfExistsStatement);
+        static::assertTrue($entersIfNotExistsStatement);
         static::assertTrue($useOptionAssertEntered);
         static::assertTrue($foreignKeyAssertEntered);
     }
