@@ -170,8 +170,6 @@ class KernelTest extends TestCase
 
             $kernel->validateKernel();
         } catch (\RuntimeException $e) {
-            echo sprintf("\n%s\n", $e->getMessage());
-
             $invalidParametersExceptionThrown = true;
         }
 
@@ -187,8 +185,6 @@ class KernelTest extends TestCase
 
             $kernel->validateKernel();
         } catch (\RuntimeException $e) {
-            echo sprintf("\n%s\n", $e->getMessage());
-
             $invalidParametersExceptionThrown = true;
         }
 

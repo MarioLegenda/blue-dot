@@ -8,7 +8,6 @@ use BlueDot\Kernel\Connection\Connection;
 use BlueDot\Kernel\Connection\ConnectionFactory;
 use BlueDot\Kernel\Kernel;
 use BlueDot\Kernel\Result\KernelResultInterface;
-use BlueDot\Kernel\Strategy\ScenarioStrategy;
 use BlueDot\Result\InsertQueryResult;
 use BlueDot\Result\NullQueryResult;
 use BlueDot\Result\SelectQueryResult;

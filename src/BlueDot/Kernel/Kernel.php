@@ -28,7 +28,6 @@ use BlueDot\Kernel\Validation\ValidationResolver;
 use BlueDot\Entity\Entity;
 use BlueDot\Entity\Promise;
 use BlueDot\Entity\PromiseInterface;
-use BlueDot\Exception\BlueDotRuntimeException;
 
 class Kernel
 {
@@ -36,10 +35,6 @@ class Kernel
      * @var FlowProductInterface|SimpleConfiguration|ScenarioConfiguration|ServiceConfiguration $configuration
      */
     private $configuration;
-    /**
-     * @var StrategyInterface $strategy
-     */
-    private $strategy;
     /**
      * @var PromiseInterface
      */
@@ -120,7 +115,7 @@ class Kernel
     }
     /**
      * @return Kernel
-     * @throws BlueDotRuntimeException
+     * @throws \RuntimeException
      */
     public function createPromise() : Kernel
     {

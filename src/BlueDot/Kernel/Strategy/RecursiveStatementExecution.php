@@ -53,15 +53,20 @@ class RecursiveStatementExecution
     {
         $this->executeReal($metadataList);
     }
-
+    /**
+     * @return array|object
+     */
     public function getResult()
     {
         $resolvedStatementName = $this->statement->getResolvedScenarioStatementName();
 
         return $this->results->get($resolvedStatementName);
     }
-
-    protected function bindSingleParameter(Parameter $parameter, \PDOStatement $pdoStatement)
+    /**
+     * @param Parameter $parameter
+     * @param \PDOStatement $pdoStatement
+     */
+    private function bindSingleParameter(Parameter $parameter, \PDOStatement $pdoStatement)
     {
         $pdoStatement->bindValue(
             $parameter->getKey(),
@@ -69,7 +74,10 @@ class RecursiveStatementExecution
             $parameter->getType()
         );
     }
-
+    /**
+     * @param array $metadataList
+     * @return $this
+     */
     private function executeReal(array $metadataList)
     {
         /** @var ForeignKey $foreignKey */
@@ -124,7 +132,9 @@ class RecursiveStatementExecution
             throw new \RuntimeException($message);
         }
     }
-
+    /**
+     * @param array $metadataList
+     */
     private function runIndividualStatement(array $metadataList)
     {
         $sql = $this->statement->getSql();
@@ -152,7 +162,10 @@ class RecursiveStatementExecution
 
         $this->saveResult($pdoStatement);
     }
-
+    /**
+     * @param array $metadataList
+     * @param \PDOStatement $pdoStatement
+     */
     private function handleUseOption(
         array $metadataList,
         \PDOStatement $pdoStatement
@@ -206,7 +219,10 @@ class RecursiveStatementExecution
             }
         }
     }
-
+    /**
+     * @param array $metadataList
+     * @param \PDOStatement $pdoStatement
+     */
     private function handleForeignKey(
         array $metadataList,
         \PDOStatement $pdoStatement
@@ -249,7 +265,9 @@ class RecursiveStatementExecution
             );
         }
     }
-
+    /**
+     * @param \PDOStatement $pdoStatement
+     */
     private function saveResult(\PDOStatement $pdoStatement)
     {
         /** @var TypeInterface $statementType */

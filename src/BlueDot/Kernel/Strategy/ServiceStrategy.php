@@ -8,6 +8,7 @@ use BlueDot\Common\StorageInterface;
 use BlueDot\Configuration\Flow\Service\ServiceConfiguration;
 use BlueDot\Exception\BlueDotRuntimeException;
 use BlueDot\Kernel\Connection\Connection;
+use BlueDot\Kernel\Result\KernelResultInterface;
 
 class ServiceStrategy implements StrategyInterface
 {
@@ -20,22 +21,6 @@ class ServiceStrategy implements StrategyInterface
      */
     private $configuration;
     /**
-     * @var StorageInterface $result
-     */
-    private $result;
-    /**
-     * @var array $parameters
-     */
-    private $parameters;
-    /**
-     * @var ArgumentBag $statement
-     */
-    private $statement;
-    /**
-     * @var BlueDotInterface $blueDot
-     */
-    private $blueDot;
-    /**
      * SimpleStrategy constructor.
      * @param ServiceConfiguration $configuration
      * @param Connection $connection
@@ -47,34 +32,27 @@ class ServiceStrategy implements StrategyInterface
         $this->configuration = $configuration;
         $this->connection = $connection;
     }
-
-    public function execute() : StrategyInterface
+    /**
+     * @inheritdoc
+     */
+    public function execute() : KernelResultInterface
     {
-        $dataType = $this->statement->get('data_type');
-        if ($dataType === 'object') {
-            $objectName = $this->statement->get('name');
-
-            $object = new $objectName($this->blueDot, $this->parameters);
-
-            if (!$object instanceof ServiceInterface) {
-                throw new BlueDotRuntimeException(
-                    sprintf(
-                        'Service %s has to implement %s or extend %s',
-                        $this->statement->get('name'),
-                        ServiceInterface::class,
-                        AbstractCallable::class
-                    )
-                );
-            }
-
-            $this->result = $object->run();
-        }
-
-        return $this;
+        $class = $this->configuration->getClass();
     }
-
-    public function getResult()
+    /**
+     * @inheritdoc
+     * @throws \RuntimeException
+     */
+    public function getResult(\PDOStatement $pdoStatement = null) : KernelResultInterface
     {
-        return $this->result;
+        $class = get_class($this);
+
+        $message = sprintf(
+            '%s::getResult() is not implemented in %s',
+            StrategyInterface::class,
+            $class
+        );
+
+        throw new \RuntimeException($message);
     }
 }
