@@ -1,10 +1,10 @@
 <?php
 
-namespace Test\BlueDotCallable;
+namespace Test\Service;
 
 use BlueDot\Configuration\Flow\Service\BaseService;
 
-class CallableService extends BaseService
+class Service extends BaseService
 {
     /**
      * @inheritdoc

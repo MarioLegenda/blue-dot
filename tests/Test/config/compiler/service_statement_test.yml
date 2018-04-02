@@ -7,6 +7,6 @@ configuration:
 
     service:
         service_one:
-            class: Test\BlueDotCallable\CallableService
+            class: Test\Service\Service
         service_two:
-            class: Test\BlueDotCallable\CallableService
+            class: Test\Service\Service

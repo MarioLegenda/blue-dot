@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE entries [
-<!ELEMENT entries (entry)+>
-<!ELEMENT entry (#PCDATA)>
-<!ATTLIST entry id ID #IMPLIED>
-]>
-<entries>
-    <entry id="entry">jdfkdalč</entry>
-</entries>
