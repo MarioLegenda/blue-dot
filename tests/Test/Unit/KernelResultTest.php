@@ -2,11 +2,17 @@
 
 namespace Test\Unit;
 
+use BlueDot\Configuration\Flow\Scenario\ScenarioConfiguration;
 use BlueDot\Configuration\Flow\Simple\SimpleConfiguration;
 use BlueDot\Kernel\Connection\Connection;
 use BlueDot\Kernel\Connection\ConnectionFactory;
 use BlueDot\Kernel\Kernel;
 use BlueDot\Kernel\Result\KernelResultInterface;
+use BlueDot\Kernel\Strategy\ScenarioStrategy;
+use BlueDot\Result\InsertQueryResult;
+use BlueDot\Result\NullQueryResult;
+use BlueDot\Result\SelectQueryResult;
+use BlueDot\Result\UpdateQueryResult;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Yaml\Yaml;
 
@@ -29,6 +35,10 @@ class KernelResultTest extends TestCase
      * @var array $simpleConfig
      */
     private $simpleConfig;
+    /**
+     * @var array $scenarioConfig
+     */
+    private $scenarioConfig;
 
     public function setUp()
     {
@@ -40,10 +50,16 @@ class KernelResultTest extends TestCase
         ]);
 
         $simpleConfig = __DIR__ . '/../config/result/simple_statement_test.yml';
+        $scenarioConfig = __DIR__ . '/../config/result/scenario_statement_test.yml';
 
         $this->simpleConfig = [
             'file' => $simpleConfig,
             'config' => Yaml::parse($simpleConfig)
+        ];
+
+        $this->scenarioConfig = [
+            'file' => $scenarioConfig,
+            'config' => Yaml::parse($scenarioConfig)
         ];
 
         $this->setUpUsers();
@@ -279,6 +295,211 @@ class KernelResultTest extends TestCase
 
         static::assertEquals(1, $result['row_count']);
     }
+
+    public function test_scenario_1()
+    {
+        $statementName = 'scenario.insert_user';
+        $kernel = $this->prepareScenarioStatementKernel(
+            $statementName,
+            [
+                'insert_user' => [
+                    'username' => $this->getFaker()->email,
+                    'name' => $this->getFaker()->name,
+                    'lastname' => $this->getFaker()->lastName,
+                ],
+                'insert_address' => [
+                    'address' => $this->getFaker()->address,
+                ],
+            ]
+        );
+
+        $kernel->validateKernel();
+
+        $strategy = $kernel->createStrategy($this->connection);
+
+        /** @var KernelResultInterface $kernelResult */
+        $kernelResult = $kernel->executeStrategy($strategy);
+
+        static::assertInstanceOf(KernelResultInterface::class, $kernelResult);
+        static::assertInstanceOf(ScenarioConfiguration::class, $kernelResult->getConfiguration());
+
+        $result = $kernelResult->getResult();
+
+        static::assertNotEmpty($result);
+        static::assertInternalType('array', $result);
+
+        static::assertEquals(2, count($result));
+
+        static::assertArrayHasKey('scenario.insert_user.insert_user', $result);
+        static::assertArrayHasKey('scenario.insert_user.insert_address', $result);
+
+        static::assertInstanceOf(InsertQueryResult::class, $result['scenario.insert_user.insert_user']);
+        static::assertInstanceOf(InsertQueryResult::class, $result['scenario.insert_user.insert_address']);
+    }
+
+    public function test_scenario_2()
+    {
+        $statementName = 'scenario.update_user';
+
+        $kernel = $this->prepareScenarioStatementKernel(
+            $statementName,
+            [
+                'find_user_by_id' => [
+                    'user_id' => 1,
+                ],
+                'update_user' => [
+                    'user_id' => 1,
+                    'username' => $this->getFaker()->name,
+                ],
+            ]
+        );
+
+        $kernel->validateKernel();
+
+        $strategy = $kernel->createStrategy($this->connection);
+
+        /** @var KernelResultInterface $kernelResult */
+        $kernelResult = $kernel->executeStrategy($strategy);
+
+        static::assertInstanceOf(KernelResultInterface::class, $kernelResult);
+        static::assertInstanceOf(ScenarioConfiguration::class, $kernelResult->getConfiguration());
+
+        $result = $kernelResult->getResult();
+
+        static::assertNotEmpty($result);
+        static::assertInternalType('array', $result);
+
+        static::assertEquals(2, count($result));
+
+        static::assertArrayHasKey('scenario.update_user.find_user_by_id', $result);
+        static::assertArrayHasKey('scenario.update_user.update_user', $result);
+
+        static::assertInstanceOf(SelectQueryResult::class, $result['scenario.update_user.find_user_by_id']);
+        static::assertInstanceOf(UpdateQueryResult::class, $result['scenario.update_user.update_user']);
+    }
+
+    public function test_scenario_3()
+    {
+        $statementName = 'scenario.update_user';
+
+        $kernel = $this->prepareScenarioStatementKernel(
+            $statementName,
+            [
+                'find_user_by_id' => [
+                    'user_id' => 4353656,
+                ],
+                'update_user' => [
+                    'user_id' => 1,
+                    'username' => $this->getFaker()->name,
+                ],
+            ]
+        );
+
+        $kernel->validateKernel();
+
+        $strategy = $kernel->createStrategy($this->connection);
+
+        /** @var KernelResultInterface $kernelResult */
+        $kernelResult = $kernel->executeStrategy($strategy);
+
+        static::assertInstanceOf(KernelResultInterface::class, $kernelResult);
+        static::assertInstanceOf(ScenarioConfiguration::class, $kernelResult->getConfiguration());
+
+        $result = $kernelResult->getResult();
+
+        static::assertNotEmpty($result);
+        static::assertInternalType('array', $result);
+
+        static::assertEquals(1, count($result));
+
+        static::assertArrayHasKey('scenario.update_user.find_user_by_id', $result);
+        static::assertArrayNotHasKey('scenario.update_user.update_user', $result);
+
+        static::assertInstanceOf(NullQueryResult::class, $result['scenario.update_user.find_user_by_id']);
+    }
+
+    public function test_scenario_4()
+    {
+        $statementName = 'scenario.conditional_insert_user';
+        $kernel = $this->prepareScenarioStatementKernel(
+            $statementName,
+            [
+                'find_user_by_id' => [
+                    'user_id' => 234524535,
+                ],
+                'insert_user' => [
+                    'username' => $this->getFaker()->email,
+                    'name' => $this->getFaker()->name,
+                    'lastname' => $this->getFaker()->lastName,
+                ],
+            ]
+        );
+
+        $kernel->validateKernel();
+
+        $strategy = $kernel->createStrategy($this->connection);
+
+        /** @var KernelResultInterface $kernelResult */
+        $kernelResult = $kernel->executeStrategy($strategy);
+
+        static::assertInstanceOf(KernelResultInterface::class, $kernelResult);
+        static::assertInstanceOf(ScenarioConfiguration::class, $kernelResult->getConfiguration());
+
+        $result = $kernelResult->getResult();
+
+        static::assertNotEmpty($result);
+        static::assertInternalType('array', $result);
+
+        static::assertEquals(2, count($result));
+
+        static::assertArrayHasKey('scenario.conditional_insert_user.find_user_by_id', $result);
+        static::assertArrayHasKey('scenario.conditional_insert_user.insert_user', $result);
+
+        static::assertInstanceOf(NullQueryResult::class, $result['scenario.conditional_insert_user.find_user_by_id']);
+        static::assertInstanceOf(InsertQueryResult::class, $result['scenario.conditional_insert_user.insert_user']);
+    }
+
+    public function test_scenario_5()
+    {
+        $statementName = 'scenario.use_existing_user';
+        $kernel = $this->prepareScenarioStatementKernel(
+            $statementName,
+            [
+                'find_user_by_id' => [
+                    'user_id' => 1,
+                ],
+                'insert_user' => [
+                    'username' => $this->getFaker()->email,
+                    'name' => $this->getFaker()->name,
+                    'lastname' => $this->getFaker()->lastName,
+                ],
+            ]
+        );
+
+        $kernel->validateKernel();
+
+        $strategy = $kernel->createStrategy($this->connection);
+
+        /** @var KernelResultInterface $kernelResult */
+        $kernelResult = $kernel->executeStrategy($strategy);
+
+        static::assertInstanceOf(KernelResultInterface::class, $kernelResult);
+        static::assertInstanceOf(ScenarioConfiguration::class, $kernelResult->getConfiguration());
+
+        $result = $kernelResult->getResult();
+
+        static::assertNotEmpty($result);
+        static::assertInternalType('array', $result);
+
+        static::assertEquals(2, count($result));
+
+        static::assertArrayHasKey('scenario.use_existing_user.find_user_by_id', $result);
+        static::assertArrayHasKey('scenario.use_existing_user.insert_user', $result);
+
+        static::assertInstanceOf(SelectQueryResult::class, $result['scenario.use_existing_user.find_user_by_id']);
+        static::assertInstanceOf(InsertQueryResult::class, $result['scenario.use_existing_user.insert_user']);
+
+    }
     /**
      * @throws \BlueDot\Exception\BlueDotRuntimeException
      * @throws \BlueDot\Exception\CompileException
@@ -331,6 +552,39 @@ class KernelResultTest extends TestCase
     ): Kernel {
         $file = $this->simpleConfig['file'];
         $configArray = $this->simpleConfig['config'];
+
+        $compiler = new Compiler(
+            $file,
+            $configArray['configuration'],
+            new ArgumentValidator(),
+            new StatementValidator(),
+            new ConfigurationValidator($configArray),
+            new ImportCollection()
+        );
+
+        /** @var SimpleConfiguration $compiledConfiguration */
+        $compiledConfiguration = $compiler->compile($statementName);
+
+        $kernel = new Kernel($compiledConfiguration, $parameters);
+
+        $kernel->validateKernel();
+
+        return $kernel;
+    }
+    /**
+     * @param string $statementName
+     * @param array|null $parameters
+     * @return Kernel
+     * @throws \BlueDot\Exception\BlueDotRuntimeException
+     * @throws \BlueDot\Exception\CompileException
+     * @throws \BlueDot\Exception\ConfigurationException
+     */
+    private function prepareScenarioStatementKernel(
+        string $statementName,
+        array $parameters = null
+    ): Kernel {
+        $file = $this->scenarioConfig['file'];
+        $configArray = $this->scenarioConfig['config'];
 
         $compiler = new Compiler(
             $file,

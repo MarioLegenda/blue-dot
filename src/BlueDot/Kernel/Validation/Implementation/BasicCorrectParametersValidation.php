@@ -129,8 +129,8 @@ class BasicCorrectParametersValidation implements ValidatorInterface
         if (!empty($diff)) {
             $message = sprintf(
                 'Some user parameters are missing but you supplied them as config parameters for statement \'%s\'. Config parameters are \'%s\'',
-                implode(', ', $diff),
-                $resolvedStatementName
+                $resolvedStatementName,
+                implode(', ', $diff)
             );
 
             throw new \RuntimeException($message);

@@ -3,6 +3,7 @@
 namespace BlueDot\Component;
 
 use BlueDot\Common\ArgumentBag;
+use BlueDot\Kernel\Result\KernelResultInterface;
 use BlueDot\Kernel\TypeConverter;
 use BlueDot\Entity\Entity;
 use BlueDot\Result\DeleteQueryResult;
@@ -14,16 +15,16 @@ use BlueDot\Result\UpdateQueryResult;
 class CreateRegularComponent
 {
     /**
-     * @var ArgumentBag $report
+     * @var KernelResultInterface $results
      */
-    private $report;
+    private $results;
     /**
      * CreateInsertsComponent constructor.
-     * @param ArgumentBag $report
+     * @param KernelResultInterface $results
      */
-    public function __construct(ArgumentBag $report)
+    public function __construct(KernelResultInterface $results)
     {
-        $this->report = $report;
+        $this->results = $results;
     }
     /**
      * @return Entity

@@ -2,15 +2,16 @@
 
 namespace BlueDot\Kernel\Strategy;
 
-use BlueDot\Common\ArgumentBag;
-use BlueDot\Common\StorageInterface;
-use BlueDot\Component\CreateRegularComponent;
-use BlueDot\Component\CreateReturnEntitiesComponent;
+use BlueDot\Common\Enum\TypeInterface;
+use BlueDot\Configuration\Flow\Scenario\Metadata;
+use BlueDot\Configuration\Flow\Scenario\RootConfiguration;
 use BlueDot\Configuration\Flow\Scenario\ScenarioConfiguration;
-use BlueDot\Exception\BlueDotRuntimeException;
 use BlueDot\Kernel\Connection\Connection;
-use BlueDot\Kernel\Execution\LowLevelStrategy\RecursiveStatementExecution;
 use BlueDot\Kernel\Result\KernelResultInterface;
+use BlueDot\Kernel\Result\Scenario\KernelResult;
+use BlueDot\Kernel\Result\Scenario\KernelResultCollection;
+use BlueDot\Kernel\Strategy\Enum\IfExistsType;
+use BlueDot\Kernel\Strategy\Enum\IfNotExistsType;
 use BlueDot\Result\NullQueryResult;
 
 class ScenarioStrategy implements StrategyInterface
@@ -24,17 +25,13 @@ class ScenarioStrategy implements StrategyInterface
      */
     protected $connection;
     /**
-     * @var ArgumentBag $statement
+     * @var array $metadata
      */
-    protected $statement;
+    protected $metadata;
     /**
-     * @var ArgumentBag $resultReport
+     * @var KernelResultCollection $results
      */
-    protected $resultReport;
-    /**
-     * @var ArgumentBag $statements
-     */
-    private $statements;
+    protected $results;
     /**
      * ScenarioStrategy constructor.
      * @param ScenarioConfiguration $configuration
@@ -46,133 +43,144 @@ class ScenarioStrategy implements StrategyInterface
     ) {
         $this->connection = $connection;
         $this->configuration = $configuration;
+
+        $this->results = new KernelResultCollection();
     }
     /**
-     * @return StrategyInterface
-     * @throws BlueDotRuntimeException
+     * @return KernelResultInterface
+     * @throws \RuntimeException
      * @throws \BlueDot\Exception\ConnectionException
      */
-    public function execute() : StrategyInterface
+    public function execute() : KernelResultInterface
     {
         $this->connection->connect();
 
-        $rootConfig = $this->statement->get('root_config');
+        /** @var RootConfiguration $rootConfiguration */
+        $rootConfiguration = $this->configuration->getRootConfiguration();
 
-        if ($rootConfig->get('atomic') === true and !$this->connection->getPDO()->inTransaction()) {
+        if ($rootConfiguration->isAtomic() and !$this->connection->getPDO()->inTransaction()) {
             $this->connection->getPDO()->beginTransaction();
         }
 
-        $this->statements = $this->statement->get('statements');
+        $this->metadata = $this->configuration->getMetadata();
 
         try {
-            foreach ($this->statements as $statement) {
-                if ($statement->has('if_exists') or $statement->has('if_not_exists')) {
+            /** @var Metadata $item */
+            foreach ($this->metadata as $item) {
+                if ($item->hasIfExistsStatement() or $item->hasIfNotExistsStatement()) {
+                    $existsStatementName = $item->getExistsStatementName();
+                    $fullExistsStatementName = $item->createExistsFullStatementName();
 
-                    $existsType = ($statement->has('if_exists')) ? 'if_exists' : 'if_not_exists';
+                    /** @var TypeInterface $existsType */
+                    $existsType = $item->getExistsStatementType();
 
-                    $existsStatement = $this->statements->get($statement->get('scenario_name').'.'.$statement->get($existsType));
+                    /** @var Metadata $existsStatementMetadata */
+                    $existsStatementMetadata = $this->metadata[$existsStatementName];
 
-                    if ($existsStatement->has('has_to_execute')) {
-                        continue;
-                    }
-
-                    if (!$this->resultReport->has($existsStatement->get('resolved_statement_name'))) {
+                    if (!$this->results->has($fullExistsStatementName)) {
                         $recursiveStatementExecution = new RecursiveStatementExecution(
-                            $existsStatement,
-                            $this->resultReport,
+                            $existsStatementMetadata,
+                            $this->results,
                             $this->connection
                         );
 
-                        $recursiveStatementExecution->execute($this->statements);
+                        $recursiveStatementExecution->execute($this->metadata);
 
                         unset($recursiveStatementExecution);
                     }
 
-                    $existsResult = $this->resultReport->get($existsStatement->get('resolved_statement_name'));
+                    $existsStatementResult = $this->results->get($fullExistsStatementName);
 
-                    if ($statement->has('if_exists')) {
-                        if ($existsResult instanceof NullQueryResult) {
+                    if ($existsType->equals(IfExistsType::fromValue())) {
+                        if ($existsStatementResult instanceof NullQueryResult) {
                             continue;
                         }
                     }
 
-                    if ($statement->has('if_not_exists')) {
-                        if (!$existsResult instanceof NullQueryResult) {
+                    if ($existsType->equals(IfNotExistsType::fromValue())) {
+                        if (!$existsStatementResult instanceof NullQueryResult) {
                             continue;
                         }
                     }
                 }
 
-                if ($statement->has('has_to_execute')) {
-                    continue;
-                }
-
-                if ($this->resultReport->has($statement->get('resolved_statement_name'))) {
+                if ($this->results->has($item->getResolvedScenarioStatementName())) {
                     continue;
                 }
 
                 $recursiveStatementExecution = new RecursiveStatementExecution(
-                    $statement,
-                    $this->resultReport,
+                    $item,
+                    $this->results,
                     $this->connection
                 );
 
-                $recursiveStatementExecution->execute($this->statements);
+                $recursiveStatementExecution->execute($this->metadata);
 
                 unset($recursiveStatementExecution);
             }
         } catch (\PDOException $e) {
-            if ($rootConfig->get('atomic') ===  true) {
-                $this->handleRollback($rootConfig);
+            if ($rootConfiguration->isAtomic()) {
+                $this->handleRollback($rootConfiguration);
             }
 
-            throw new BlueDotRuntimeException('A PDOException has been thrown for statement '.$statement->get('resolved_statement_name').' with message \''.$e->getMessage().'\'');
-        } catch (BlueDotRuntimeException $e) {
-            if ($rootConfig->get('atomic') ===  true) {
-                $this->handleRollback($rootConfig);
+            $message = sprintf(
+                'A PDOException has been thrown for statement \'%s\' with message \'%s\'',
+                $this->configuration->getRootConfiguration()->getScenarioName(),
+                $e->getMessage()
+            );
+
+            throw new \RuntimeException($message);
+        } catch (\RuntimeException $e) {
+            if ($rootConfiguration->isAtomic()) {
+                $this->handleRollback($rootConfiguration);
             }
 
-            throw new BlueDotRuntimeException($e->getMessage());
+            throw new \RuntimeException($e->getMessage());
         }
 
         try {
-            if ($rootConfig->get('atomic') === true) {
+            if ($rootConfiguration->isAtomic()) {
                 $this->connection->getPDO()->commit();
             }
         } catch (\Exception $e) {
-            $this->handleRollback($rootConfig);
+            $this->handleRollback($rootConfiguration);
         }
 
-        return $this;
+        return new KernelResult(
+            $this->configuration,
+            $this->results->toArray()
+        );
     }
     /**
-     * @return StorageInterface
+     * @inheritdoc
+     * @throws \RuntimeException
      */
-    public function getResult() : KernelResultInterface
+    public function getResult(\PDOStatement $pdoStatement = null) : KernelResultInterface
     {
-        $scenarioName = $this->statement->get('root_config')->get('scenario_name');
+        $class = get_class($this);
 
-        if ($this->statement->get('root_config')->has('return_data')) {
-            if (!$this->resultReport->isEmpty()) {
+        $message = sprintf(
+            '%s::getResult() is not implemented in %s',
+            StrategyInterface::class,
+            $class
+        );
 
-                $returnData = $this->statement->get('root_config')->get('return_data')->getAllReturnData();
-
-                return (new CreateReturnEntitiesComponent($returnData, $this->resultReport, $scenarioName))->createEntity();
-            }
-        }
-
-        return (new CreateRegularComponent($this->resultReport))->createEntity();
+        throw new \RuntimeException($message);
     }
     /**
-     * @param ArgumentBag $rootConfig
-     * @throws BlueDotRuntimeException
+     * @param RootConfiguration $rootConfiguration
+     * @throws \RuntimeException
      */
-    private function handleRollback(ArgumentBag $rootConfig)
+    private function handleRollback(RootConfiguration $rootConfiguration)
     {
-        if ($rootConfig->get('atomic') === true) {
+        if ($rootConfiguration->isAtomic()) {
             if (!$this->connection->getPDO()->inTransaction()) {
-                $message = sprintf('Internal error. Scenario %s should be in transaction to rollback but it isn\'t', $rootConfig->get('scenario_name'));
-                throw new BlueDotRuntimeException($message);
+                $message = sprintf(
+                    'Internal error. Scenario %s should be in transaction to rollback but it isn\'t',
+                    $rootConfiguration->getScenarioName()
+                );
+
+                throw new \RuntimeException($message);
             }
 
             $this->connection->getPDO()->rollBack();

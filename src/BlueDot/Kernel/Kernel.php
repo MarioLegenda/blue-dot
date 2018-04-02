@@ -116,7 +116,7 @@ class Kernel
      */
     public function executeStrategy(StrategyInterface $strategy)
     {
-       return  $strategy->execute();
+       return $strategy->execute();
     }
     /**
      * @return Kernel

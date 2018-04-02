@@ -2,6 +2,11 @@
 
 namespace BlueDot\Configuration\Flow\Scenario;
 
+use BlueDot\Common\Enum\TypeInterface;
+use BlueDot\Configuration\Flow\Simple\Enum\SqlTypeFactory;
+use BlueDot\Kernel\Strategy\Enum\IfExistsType;
+use BlueDot\Kernel\Strategy\Enum\IfNotExistsType;
+
 class Metadata
 {
     /**
@@ -128,6 +133,20 @@ class Metadata
         return $this->canBeEmptyResult;
     }
     /**
+     * @return bool
+     */
+    public function hasIfExistsStatement(): bool
+    {
+        return is_string($this->ifExistsStatementName);
+    }
+    /**
+     * @return bool
+     */
+    public function hasIfNotExistsStatement(): bool
+    {
+        return is_string($this->ifNotExistsStatementName);
+    }
+    /**
      * @return string
      */
     public function getIfExistsStatementName(): ?string
@@ -140,6 +159,43 @@ class Metadata
     public function getIfNotExistsStatementName(): ?string
     {
         return $this->ifNotExistsStatementName;
+    }
+    /**
+     * @return TypeInterface
+     */
+    public function getExistsStatementType(): TypeInterface
+    {
+        if ($this->hasIfExistsStatement()) {
+            return IfExistsType::fromValue();
+        }
+
+        if ($this->hasIfNotExistsStatement()) {
+            return IfNotExistsType::fromValue();
+        }
+    }
+    /**
+     * @return string
+     */
+    public function createExistsFullStatementName(): string
+    {
+        return sprintf(
+            '%s.%s',
+            $this->getScenarioName(),
+            $this->getExistsStatementName()
+        );
+    }
+    /**
+     * @return string
+     */
+    public function getExistsStatementName(): string
+    {
+        if ($this->hasIfExistsStatement()) {
+            return $this->getIfExistsStatementName();
+        }
+
+        if ($this->hasIfNotExistsStatement()) {
+            return $this->getIfNotExistsStatementName();
+        }
     }
     /**
      * @return array|null
@@ -175,6 +231,18 @@ class Metadata
         return $this->useOption;
     }
     /**
+     * @return string|null
+     */
+    public function getUseOptionStatementName(): ?string
+    {
+        if ($this->getUseOption() instanceof UseOption) {
+            return sprintf('%s.%s',
+                $this->getScenarioName(),
+                $this->getUseOption()->getStatementName()
+            );
+        }
+    }
+    /**
      * @return ForeignKey|null
      */
     public function getForeignKey(): ?ForeignKey
@@ -182,11 +250,23 @@ class Metadata
         return $this->foreignKey;
     }
     /**
-     * @return string
+     * @return string|null
      */
-    public function getSqlType(): string
+    public function getForeignKeyStatementName(): ?string
     {
-        return $this->sqlType;
+        if ($this->getForeignKey() instanceof ForeignKey) {
+            return sprintf('%s.%s',
+                $this->getScenarioName(),
+                $this->getForeignKey()->getStatementName()
+            );
+        }
+    }
+    /**
+     * @return TypeInterface
+     */
+    public function getSqlType(): TypeInterface
+    {
+        return SqlTypeFactory::getType($this->sqlType);
     }
     /**
      * @param array $userParameters

@@ -1,0 +1,58 @@
+configuration:
+    connection:
+        host: 127.0.0.1
+        user: 'root'
+        password: 'root'
+        database_name: 'blue_dot'
+
+    scenario:
+        insert_user:
+            atomic: true
+            statements:
+                insert_user:
+                    sql: "INSERT INTO user (username, name, lastname) VALUES (:username, :name, :lastname)"
+                    parameters: [username, name, lastname]
+                insert_address:
+                    sql: "INSERT INTO addresses (user_id, address) VALUES (:user_id, :address)"
+                    parameters: [address]
+                    foreign_key:
+                        statement_name: insert_user
+                        bind_to: user_id
+
+        update_user:
+            atomic: true
+            statements:
+                find_user_by_id:
+                    sql: "SELECT * FROM user WHERE id = :user_id"
+                    parameters: [user_id]
+                update_user:
+                    sql: "UPDATE user SET username = :username WHERE id = :user_id"
+                    parameters: [user_id, username]
+                    if_exists: find_user_by_id
+
+        conditional_insert_user:
+            atomic: true
+            statements:
+                find_user_by_id:
+                    sql: "SELECT * FROM user WHERE id = :user_id"
+                    parameters: [user_id]
+                insert_user:
+                    sql: "INSERT INTO user (username, name, lastname) VALUES (:username, :name, :lastname)"
+                    parameters: [username, name, lastname]
+                    if_not_exists: find_user_by_id
+
+        use_existing_user:
+            atomic: true
+            statements:
+                find_user_by_id:
+                    sql: "SELECT * FROM user WHERE id = :user_id"
+                    parameters: [user_id]
+                insert_user:
+                    sql: "INSERT INTO user (username, name, lastname) VALUES (:username, :name, :lastname)"
+                    parameters: [username, name, lastname]
+                    if_exists: find_user_by_id
+                    use:
+                        statement_name: find_user_by_id
+                        values: { find_user_by_id.username: username, find_user_by_id.name: name, find_user_by_id.lastname: lastname }
+
+
