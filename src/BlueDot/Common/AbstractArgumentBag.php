@@ -2,6 +2,8 @@
 
 namespace BlueDot\Common;
 
+use BlueDot\Common\Util\Util;
+
 abstract class AbstractArgumentBag implements StorageInterface, \IteratorAggregate, \ArrayAccess, \Countable
 {
     /**
@@ -14,15 +16,19 @@ abstract class AbstractArgumentBag implements StorageInterface, \IteratorAggrega
     protected $arguments = array();
     /**
      * AbstractArgumentBag constructor.
-     * @param null $storage
-     * @param null $name
+     * @param null|array|StorageInterface $storage
+     * @param null|string $name
      * @throws \RuntimeException
      */
     public function __construct($storage = null, $name = null)
     {
         if ($storage !== null) {
-            foreach ($storage as $key => $item) {
-                $this->add($key, $item);
+            $storageGenerator = ($storage instanceof StorageInterface) ?
+                Util::instance()->createGenerator($storage->toArray()) :
+                Util::instance()->createGenerator($storage);
+
+            foreach ($storageGenerator as $item) {
+                $this->add($item['key'], $item['item']);
             }
         }
 
@@ -76,7 +82,7 @@ abstract class AbstractArgumentBag implements StorageInterface, \IteratorAggrega
             throw new \RuntimeException(ArgumentBag::class.' already contains an argument with name '.$name);
         }
 
-        if (is_int($value)) {
+        if (is_numeric($value)) {
             $value = (int) $value;
         }
 

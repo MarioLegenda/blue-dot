@@ -2,6 +2,8 @@
 
 namespace BlueDot\Result;
 
+use BlueDot\Common\Util\Util;
+
 class SelectQueryResult
 {
     /**
@@ -19,7 +21,7 @@ class SelectQueryResult
      */
     public function __construct(array $queryResult, RowMetadata $metadata)
     {
-        $this->queryResult = $queryResult;
+        $this->queryResult = IntConverter::convert(Util::instance()->createGenerator($queryResult));
         $this->metadata = $metadata;
     }
     /**
