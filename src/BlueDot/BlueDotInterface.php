@@ -2,10 +2,10 @@
 
 namespace BlueDot;
 
-use BlueDot\Kernel\Connection;
 use BlueDot\Entity\PromiseInterface;
 use BlueDot\StatementBuilder\StatementBuilder;
 use BlueDot\Repository\RepositoryInterface;
+use BlueDot\Kernel\Connection\Connection;
 
 interface BlueDotInterface
 {

@@ -2,6 +2,9 @@
 
 namespace BlueDot\Entity;
 
+use BlueDot\Configuration\Flow\Simple\Model;
+use BlueDot\Configuration\Flow\Simple\Property;
+
 class ModelConverter
 {
     /**
@@ -23,7 +26,8 @@ class ModelConverter
         $this->result = $result;
     }
     /**
-     * @return mixed
+     * @return Entity|object
+     * @throws \ReflectionException
      */
     public function convertIntoModel()
     {
@@ -41,10 +45,11 @@ class ModelConverter
     /**
      * @param array $result
      * @return object
+     * @throws \ReflectionException
      */
     private function arrayToModel(array $result)
     {
-        $class = $this->model->getName();
+        $class = $this->model->getClass();
 
         $object = (new \ReflectionClass($class))->newInstanceWithoutConstructor();
 
@@ -73,7 +78,10 @@ class ModelConverter
 
         return $object;
     }
-
+    /**
+     * @param string $column
+     * @return bool
+     */
     private function findProperty(string $column)
     {
         $properties = $this->model->getProperties();

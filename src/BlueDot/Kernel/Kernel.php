@@ -5,8 +5,10 @@ namespace BlueDot\Kernel;
 use BlueDot\Common\FlowProductInterface;
 use BlueDot\Configuration\Flow\FlowConfigurationProductInterface;
 use BlueDot\Configuration\Flow\Scenario\ScenarioConfiguration;
+use BlueDot\Configuration\Flow\Service\ServiceConfiguration;
 use BlueDot\Configuration\Flow\Simple\SimpleConfiguration;
 use BlueDot\Kernel\Connection\Connection;
+use BlueDot\Kernel\Result\KernelResultInterface;
 use BlueDot\Kernel\Strategy\Enum\ScenarioStrategyType;
 use BlueDot\Kernel\Strategy\Enum\ServiceStrategyType;
 use BlueDot\Kernel\Strategy\Enum\SimpleStrategyType;
@@ -31,7 +33,7 @@ use BlueDot\Exception\BlueDotRuntimeException;
 class Kernel
 {
     /**
-     * @var FlowProductInterface|SimpleConfiguration|ScenarioConfiguration $configuration
+     * @var FlowProductInterface|SimpleConfiguration|ScenarioConfiguration|ServiceConfiguration $configuration
      */
     private $configuration;
     /**
@@ -47,7 +49,7 @@ class Kernel
      */
     private $result;
     /**
-     * @param FlowConfigurationProductInterface|SimpleConfiguration|ScenarioConfiguration $configuration
+     * @param FlowConfigurationProductInterface|SimpleConfiguration|ScenarioConfiguration|ServiceConfiguration $configuration
      * @param array|null|object $userParameters
      */
     public function __construct(
@@ -109,6 +111,14 @@ class Kernel
         }
     }
     /**
+     * @param StrategyInterface $strategy
+     * @return KernelResultInterface
+     */
+    public function executeStrategy(StrategyInterface $strategy)
+    {
+       return  $strategy->execute();
+    }
+    /**
      * @return Kernel
      * @throws BlueDotRuntimeException
      */
@@ -140,27 +150,6 @@ class Kernel
         }
 
         return $this->promise;
-    }
-    /**
-     * @return Kernel
-     * @throws BlueDotRuntimeException
-     */
-    public function executeStrategy() : Kernel
-    {
-        $this->createStrategy();
-
-        if (!$this->strategy instanceof StrategyInterface) {
-            throw new BlueDotRuntimeException(
-                sprintf(
-                    'Invalid execution context. Strategy for statement %s has not been constructed. This is a bug. Please, contact whitepostmail@gmail.com or post an issue on Github',
-                    $this->statement->get('resolved_statement_name')
-                )
-            );
-        }
-
-        $this->result = $this->strategy->execute()->getResult();
-
-        return $this;
     }
     /**
      * @return PromiseInterface

@@ -8,12 +8,9 @@ use BlueDot\Configuration\Compiler;
 
 use BlueDot\Configuration\Import\ImportCollection;
 use BlueDot\Configuration\Validator\ConfigurationValidator;
-use BlueDot\Kernel\Connection;
 
-use BlueDot\Kernel\ConnectionFactory;
-use BlueDot\Kernel\Execution\{
-    CallableStrategy, Kernel, PreparedExecution
-};
+use BlueDot\Kernel\Connection\Connection;
+use BlueDot\Kernel\Connection\ConnectionFactory;
 
 use BlueDot\Entity\Promise;
 use BlueDot\Entity\PromiseInterface;

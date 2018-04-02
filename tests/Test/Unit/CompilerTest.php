@@ -39,9 +39,9 @@ class CompilerTest extends TestCase
 
     public function setUp()
     {
-        $simpleConfig = __DIR__.'/../config/simple_statement_test.yml';
-        $scenarioConfig = __DIR__.'/../config/scenario_statement_test.yml';
-        $serviceConfig = __DIR__.'/../config/service_statement_test.yml';
+        $simpleConfig = __DIR__ . '/../config/compiler/simple_statement_test.yml';
+        $scenarioConfig = __DIR__ . '/../config/compiler/scenario_statement_test.yml';
+        $serviceConfig = __DIR__ . '/../config/compiler/service_statement_test.yml';
 
         $this->simpleConfig = [
             'file' => $simpleConfig,
@@ -117,7 +117,7 @@ class CompilerTest extends TestCase
         $metadata = $compiledConfiguration->getMetadata();
 
         static::assertEquals('simple', $metadata->getStatementType());
-        static::assertEquals('select', $metadata->getSqlType());
+        static::assertEquals('select', (string) $metadata->getSqlType());
         static::assertEquals('find_all', $metadata->getStatementName());
         static::assertEquals($statementName, $metadata->getResolvedStatementName());
         static::assertEquals('simple.select', $metadata->getResolvedStatementType());
@@ -161,7 +161,7 @@ class CompilerTest extends TestCase
         $metadata = $compiledConfiguration->getMetadata();
 
         static::assertEquals('simple', $metadata->getStatementType());
-        static::assertEquals('select', $metadata->getSqlType());
+        static::assertEquals('select', (string) $metadata->getSqlType());
         static::assertEquals('find_by_id', $metadata->getStatementName());
         static::assertEquals('simple.select', $metadata->getResolvedStatementType());
         static::assertEquals($statementName, $metadata->getResolvedStatementName());
@@ -221,8 +221,8 @@ class CompilerTest extends TestCase
             static::assertNotEmpty($singleMetadata->getScenarioName());
             static::assertNotEmpty($singleMetadata->getSingleScenarioName());
             static::assertNotEmpty($singleMetadata->getSql());
-            static::assertNotEmpty($singleMetadata->getSqlType());
-            static::assertEquals('select', $singleMetadata->getSqlType());
+            static::assertNotEmpty((string) $singleMetadata->getSqlType());
+            static::assertEquals('select', (string) $singleMetadata->getSqlType());
             static::assertInternalType('boolean', $singleMetadata->canBeEmptyResult());
 
             static::assertNull($singleMetadata->getIfExistsStatementName());
@@ -282,7 +282,7 @@ class CompilerTest extends TestCase
             static::assertNotEmpty($singleMetadata->getScenarioName());
             static::assertNotEmpty($singleMetadata->getSingleScenarioName());
             static::assertNotEmpty($singleMetadata->getSql());
-            static::assertNotEmpty($singleMetadata->getSqlType());
+            static::assertNotEmpty((string) $singleMetadata->getSqlType());
             static::assertInternalType('boolean', $singleMetadata->canBeEmptyResult());
 
             if (is_string($singleMetadata->getIfExistsStatementName())) {

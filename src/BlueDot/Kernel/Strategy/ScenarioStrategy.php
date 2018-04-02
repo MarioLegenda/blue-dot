@@ -10,6 +10,7 @@ use BlueDot\Configuration\Flow\Scenario\ScenarioConfiguration;
 use BlueDot\Exception\BlueDotRuntimeException;
 use BlueDot\Kernel\Connection\Connection;
 use BlueDot\Kernel\Execution\LowLevelStrategy\RecursiveStatementExecution;
+use BlueDot\Kernel\Result\KernelResultInterface;
 use BlueDot\Result\NullQueryResult;
 
 class ScenarioStrategy implements StrategyInterface
@@ -147,7 +148,7 @@ class ScenarioStrategy implements StrategyInterface
     /**
      * @return StorageInterface
      */
-    public function getResult() : StorageInterface
+    public function getResult() : KernelResultInterface
     {
         $scenarioName = $this->statement->get('root_config')->get('scenario_name');
 

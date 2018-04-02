@@ -2,6 +2,9 @@
 
 namespace BlueDot\Configuration\Flow\Simple;
 
+use BlueDot\Common\Enum\TypeInterface;
+use BlueDot\Configuration\Flow\Simple\Enum\SqlTypeFactory;
+
 class Metadata
 {
     /**
@@ -46,35 +49,35 @@ class Metadata
         $this->resolvedStatementName = $resolvedStatementName;
     }
     /**
-     * @inheritdoc
+     * @return string
      */
     public function getStatementType(): string
     {
         return $this->statementType;
     }
     /**
-     * @inheritdoc
+     * @return TypeInterface
      */
-    public function getSqlType(): string
+    public function getSqlType(): TypeInterface
     {
-        return $this->sqlType;
+        return SqlTypeFactory::getType($this->sqlType);
     }
     /**
-     * @inheritdoc
+     * @return string
      */
     public function getStatementName(): string
     {
         return $this->statementName;
     }
     /**
-     * @inheritdoc
+     * @return string
      */
     public function getResolvedStatementType(): string
     {
         return $this->resolvedStatementType;
     }
     /**
-     * @inheritdoc
+     * @return string
      */
     public function getResolvedStatementName(): string
     {

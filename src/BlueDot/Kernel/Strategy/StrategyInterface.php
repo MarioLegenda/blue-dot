@@ -2,16 +2,17 @@
 
 namespace BlueDot\Kernel\Strategy;
 
-use BlueDot\Common\StorageInterface;
+use BlueDot\Kernel\Result\KernelResultInterface;
 
 interface StrategyInterface
 {
     /**
-     * @void
+     * @return KernelResultInterface
      */
-    public function execute();
+    public function execute(): KernelResultInterface;
     /**
-     * @return StorageInterface
+     * @param \PDOStatement
+     * @return KernelResultInterface
      */
-    public function getResult();
+    public function getResult(\PDOStatement $pdoStatement): KernelResultInterface;
 }
