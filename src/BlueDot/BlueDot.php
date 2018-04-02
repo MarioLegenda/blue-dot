@@ -2,7 +2,9 @@
 
 namespace BlueDot;
 
-use BlueDot\Common\{ ArgumentValidator, StatementValidator };
+use BlueDot\Common\{
+    ArgumentValidator, FlowProductInterface, StatementValidator
+};
 
 use BlueDot\Configuration\Compiler;
 
@@ -12,12 +14,12 @@ use BlueDot\Configuration\Validator\ConfigurationValidator;
 use BlueDot\Kernel\Connection\Connection;
 use BlueDot\Kernel\Connection\ConnectionFactory;
 
-use BlueDot\Entity\Promise;
 use BlueDot\Entity\PromiseInterface;
 use BlueDot\Exception\{
     RepositoryException, BlueDotRuntimeException, ConnectionException, ConfigurationException
 };
 
+use BlueDot\Kernel\Kernel;
 use BlueDot\StatementBuilder\StatementBuilder;
 use Symfony\Component\Yaml\Yaml;
 use BlueDot\Repository\RepositoryInterface;
@@ -111,40 +113,20 @@ class BlueDot implements BlueDotInterface
     {
         $this->prepareBlueDot();
 
-        $statement = $this->compiler->compile($name);
+        /** @var FlowProductInterface $configuration */
+        $configuration = $this->compiler->compile($name);
 
-        if ($statement->get('type') === 'callable') {
-            if (!is_array($parameters) and !is_null($parameters)) {
-                throw new BlueDotRuntimeException(
-                    sprintf(
-                        'Invalid callable parameter. If provided, parameter for callable has to be an array'
-                    )
-                );
-            }
+        $kernel = new Kernel($configuration, $parameters);
 
-            $statement = $statement->get($name);
+        $kernel->validateKernel();
 
-            $callableStrategy = new CallableStrategy($statement, $this, $parameters);
+        $strategy = $kernel->createStrategy($this->connection);
 
-            $strategy = $callableStrategy->execute();
+        $kernelResult = $kernel->executeStrategy($strategy);
 
-            $promise = new Promise($strategy->getResult());
+        $entity = $kernel->convertKernelResultToUserFriendlyResult($kernelResult);
 
-            $promise->setName($statement->get('resolved_statement_name'));
 
-            return $promise;
-        }
-
-        if (!$statement->has('connection')) {
-            $statement->add('connection', $this->connection);
-        }
-
-        $context = new Kernel($statement, $parameters);
-
-        return $context
-            ->runTasks()
-            ->executeStrategy()
-            ->getPromise();
     }
     /**
      * @param Connection|null $connection
@@ -336,20 +318,17 @@ class BlueDot implements BlueDotInterface
     private function prepareBlueDot()
     {
         if (!$this->connection instanceof Connection) {
-            throw new ConnectionException(
-                sprintf('No connection present. If you constructed BlueDot without configuration, then you have to provide a connection object with %s that accepts an %s object',
-                    BlueDotInterface::class,
-                    Connection::class
-                )
+            $message =                 sprintf(
+                'No connection present. If you constructed BlueDot without configuration, then you have to provide a connection object with \'%s\' that accepts an \'%s\' object',
+                BlueDotInterface::class,
+                Connection::class
             );
+
+            throw new ConnectionException($message);
         }
 
         if (!$this->compiler instanceof Compiler) {
-            throw new BlueDotRuntimeException('Configuration does not exist. You have not constructed BlueDot with a configuration file. Only statement builder can be used at this point');
-        }
-
-        if (!$this->connection->isOpen()) {
-            $this->connection->connect();
+            throw new \RuntimeException('Configuration does not exist. You have not constructed BlueDot with a configuration file. Only statement builder can be used at this point');
         }
     }
     /**

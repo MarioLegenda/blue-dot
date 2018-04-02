@@ -4,6 +4,7 @@ namespace Test\Unit;
 
 use BlueDot\Configuration\Flow\Scenario\ScenarioConfiguration;
 use BlueDot\Configuration\Flow\Simple\SimpleConfiguration;
+use BlueDot\Entity\Entity;
 use BlueDot\Kernel\Connection\Connection;
 use BlueDot\Kernel\Connection\ConnectionFactory;
 use BlueDot\Kernel\Kernel;
@@ -104,6 +105,16 @@ class KernelResultTest extends TestCase
 
         static::assertEmpty($result['data']);
         static::assertInternalType('int', (int) $result['last_insert_id']);
+
+        $entity = $kernel->convertKernelResultToUserFriendlyResult($kernelResult);
+
+        static::assertInstanceOf(Entity::class, $entity);
+        static::assertTrue($entity->has('sql_type'));
+        static::assertEquals($entity->get('sql_type'), 'insert');
+        static::assertTrue($entity->has('last_insert_id'));
+        static::assertInternalType('int', $entity->get('last_insert_id'));
+        static::assertTrue($entity->has('row_count'));
+        static::assertInternalType('int', $entity->get('row_count'));
     }
 
     public function test_simple_statement_select()
@@ -134,6 +145,63 @@ class KernelResultTest extends TestCase
         static::assertInternalType('int', $result['row_count']);
 
         static::assertEquals(count($result['data']), $result['row_count']);
+
+        $entity = $kernel->convertKernelResultToUserFriendlyResult($kernelResult);
+
+        static::assertInstanceOf(Entity::class, $entity);
+        static::assertTrue($entity->has('sql_type'));
+        static::assertEquals($entity->get('sql_type'), 'select');
+        static::assertTrue($entity->has('row_count'));
+        static::assertInternalType('int', $entity->get('row_count'));
+        static::assertTrue($entity->has('data'));
+        static::assertNotEmpty($entity->get('data'));
+        static::assertInternalType('array', $entity->get('data'));
+    }
+
+    public function test_simple_statement_empty_result()
+    {
+        $statementName = 'simple.select.find_user_by_id';
+
+        $kernel = $this->prepareSimpleStatementKernel(
+            $statementName,
+            [
+                'id' => 345394875,
+            ]
+        );
+
+        $strategy = $kernel->createStrategy($this->connection);
+
+        /** @var KernelResultInterface $kernelResult */
+        $kernelResult = $kernel->executeStrategy($strategy);
+
+        static::assertInstanceOf(KernelResultInterface::class, $kernelResult);
+        static::assertInstanceOf(SimpleConfiguration::class, $kernelResult->getConfiguration());
+
+        $result = $kernelResult->getResult();
+
+        static::assertNotEmpty($result);
+        static::assertInternalType('array', $result);
+
+        static::assertArrayHasKey('data', $result);
+
+        static::assertEmpty($result['data']);
+        static::assertInternalType('array', $result['data']);
+
+        static::assertArrayHasKey('row_count', $result);
+        static::assertInternalType('int', $result['row_count']);
+
+        static::assertEquals(count($result['data']), $result['row_count']);
+
+        $entity = $kernel->convertKernelResultToUserFriendlyResult($kernelResult);
+
+        static::assertInstanceOf(Entity::class, $entity);
+        static::assertTrue($entity->has('sql_type'));
+        static::assertEquals($entity->get('sql_type'), 'select');
+        static::assertTrue($entity->has('row_count'));
+        static::assertInternalType('int', $entity->get('row_count'));
+        static::assertTrue($entity->has('data'));
+        static::assertEmpty($entity->get('data'));
+        static::assertInternalType('array', $entity->get('data'));
     }
 
     public function test_simple_statement_select_with_parameters()
@@ -169,6 +237,17 @@ class KernelResultTest extends TestCase
         static::assertInternalType('int', $result['row_count']);
 
         static::assertEquals(count($result['data']), $result['row_count']);
+
+        $entity = $kernel->convertKernelResultToUserFriendlyResult($kernelResult);
+
+        static::assertInstanceOf(Entity::class, $entity);
+        static::assertTrue($entity->has('sql_type'));
+        static::assertEquals($entity->get('sql_type'), 'select');
+        static::assertTrue($entity->has('row_count'));
+        static::assertInternalType('int', $entity->get('row_count'));
+        static::assertTrue($entity->has('data'));
+        static::assertNotEmpty($entity->get('data'));
+        static::assertInternalType('array', $entity->get('data'));
     }
 
     public function test_simple_statement_update()
@@ -202,6 +281,14 @@ class KernelResultTest extends TestCase
 
         static::assertGreaterThan(1, $result['row_count']);
 
+        $entity = $kernel->convertKernelResultToUserFriendlyResult($kernelResult);
+
+        static::assertInstanceOf(Entity::class, $entity);
+        static::assertTrue($entity->has('sql_type'));
+        static::assertEquals($entity->get('sql_type'), 'update');
+        static::assertTrue($entity->has('row_count'));
+        static::assertInternalType('int', $entity->get('row_count'));
+
         $statementName = 'simple.update.update_user_by_id';
 
         $kernel = $this->prepareSimpleStatementKernel($statementName, [
@@ -231,6 +318,14 @@ class KernelResultTest extends TestCase
         static::assertInternalType('int', $result['row_count']);
 
         static::assertEquals(1, $result['row_count']);
+
+        $entity = $kernel->convertKernelResultToUserFriendlyResult($kernelResult);
+
+        static::assertInstanceOf(Entity::class, $entity);
+        static::assertTrue($entity->has('sql_type'));
+        static::assertEquals($entity->get('sql_type'), 'update');
+        static::assertTrue($entity->has('row_count'));
+        static::assertInternalType('int', $entity->get('row_count'));
     }
 
     public function test_simple_statement_delete()
@@ -261,6 +356,14 @@ class KernelResultTest extends TestCase
         static::assertInternalType('int', $result['row_count']);
 
         static::assertGreaterThan(1, $result['row_count']);
+
+        $entity = $kernel->convertKernelResultToUserFriendlyResult($kernelResult);
+
+        static::assertInstanceOf(Entity::class, $entity);
+        static::assertTrue($entity->has('sql_type'));
+        static::assertEquals($entity->get('sql_type'), 'delete');
+        static::assertTrue($entity->has('row_count'));
+        static::assertInternalType('int', $entity->get('row_count'));
 
         $this->connection->getPDO()->exec('TRUNCATE TABLE user');
         $this->setUpUsers();
@@ -293,6 +396,14 @@ class KernelResultTest extends TestCase
         static::assertInternalType('int', $result['row_count']);
 
         static::assertEquals(1, $result['row_count']);
+
+        $entity = $kernel->convertKernelResultToUserFriendlyResult($kernelResult);
+
+        static::assertInstanceOf(Entity::class, $entity);
+        static::assertTrue($entity->has('sql_type'));
+        static::assertEquals($entity->get('sql_type'), 'delete');
+        static::assertTrue($entity->has('row_count'));
+        static::assertInternalType('int', $entity->get('row_count'));
     }
 
     public function test_scenario_1()

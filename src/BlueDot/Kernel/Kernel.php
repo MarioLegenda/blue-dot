@@ -7,6 +7,7 @@ use BlueDot\Configuration\Flow\FlowConfigurationProductInterface;
 use BlueDot\Configuration\Flow\Scenario\ScenarioConfiguration;
 use BlueDot\Configuration\Flow\Service\ServiceConfiguration;
 use BlueDot\Configuration\Flow\Simple\SimpleConfiguration;
+use BlueDot\Entity\Entity;
 use BlueDot\Kernel\Connection\Connection;
 use BlueDot\Kernel\Result\KernelResultInterface;
 use BlueDot\Kernel\Strategy\Enum\ScenarioStrategyType;
@@ -25,9 +26,7 @@ use BlueDot\Kernel\Validation\Implementation\ModelValidation;
 use BlueDot\Kernel\Validation\Implementation\ServiceValidation;
 use BlueDot\Kernel\Validation\Implementation\UseOptionValidation;
 use BlueDot\Kernel\Validation\ValidationResolver;
-use BlueDot\Entity\Entity;
-use BlueDot\Entity\Promise;
-use BlueDot\Entity\PromiseInterface;
+use BlueDot\Result\UserFriendly\UserFriendlyResultFactory;
 
 class Kernel
 {
@@ -36,15 +35,7 @@ class Kernel
      */
     private $configuration;
     /**
-     * @var PromiseInterface
-     */
-    private $promise;
-    /**
-     * @var Entity $result
-     */
-    private $result;
-    /**
-     * @param FlowConfigurationProductInterface|SimpleConfiguration|ScenarioConfiguration|ServiceConfiguration $configuration
+     * @param FlowConfigurationProductInterface|FlowProductInterface|SimpleConfiguration|ScenarioConfiguration|ServiceConfiguration $configuration
      * @param array|null|object $userParameters
      */
     public function __construct(
@@ -114,56 +105,14 @@ class Kernel
        return $strategy->execute();
     }
     /**
-     * @return Kernel
-     * @throws \RuntimeException
+     * @param KernelResultInterface $kernelResult
+     * @return Entity
      */
-    public function createPromise() : Kernel
-    {
-        if (is_null($this->result)) {
-            throw new BlueDotRuntimeException(
-                sprintf(
-                    'Invalid execution context. Statement %s has not been executed promise cannot be constructed. This is a bug. Please, contact whitepostmail@gmail.com or post an issue on Github',
-                    $this->statement->get('resolved_statement_name')
-                )
-            );
-        }
+    public function convertKernelResultToUserFriendlyResult(
+        KernelResultInterface $kernelResult
+    ): Entity {
+        $userFriendlyResultFactory = new UserFriendlyResultFactory($kernelResult);
 
-        if (!$this->promise instanceof PromiseInterface) {
-            $this->promise = $this->doCreatePromise();
-        }
-
-        return $this;
-    }
-    /**
-     * @return PromiseInterface
-     * @throws BlueDotRuntimeException
-     */
-    public function getPromise() : PromiseInterface
-    {
-        if (!$this->promise instanceof PromiseInterface) {
-            $this->createPromise();
-        }
-
-        return $this->promise;
-    }
-    /**
-     * @return PromiseInterface
-     * @throws BlueDotRuntimeException
-     */
-    private function doCreatePromise() : PromiseInterface
-    {
-        $promise = new Promise($this->result);
-
-        $resolvedStatementName = null;
-
-        if ($this->statement->get('type') === 'scenario') {
-            $resolvedStatementName = sprintf('scenario.%s', $this->statement->get('root_config')->get('scenario_name'));
-        } else {
-            $resolvedStatementName = $this->statement->get('resolved_statement_name');
-        }
-
-        $promise->setName($resolvedStatementName);
-
-        return $promise;
+        return $userFriendlyResultFactory->create();
     }
 }
