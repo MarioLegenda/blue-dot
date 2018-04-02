@@ -331,4 +331,26 @@ class CompilerTest extends TestCase
         static::assertTrue($useOptionAssertEntered);
         static::assertTrue($foreignKeyAssertEntered);
     }
+
+    public function test_service_compiler()
+    {
+        $file = $this->serviceConfig['file'];
+        $configArray = $this->serviceConfig['config'];
+
+        $compiler = new Compiler(
+            $file,
+            $configArray['configuration'],
+            new ArgumentValidator(),
+            new StatementValidator(),
+            new ConfigurationValidator($configArray),
+            new ImportCollection()
+        );
+
+        $scenarioName = 'service.service_one';
+
+        /** @var ServiceConfiguration $compiledConfiguration */
+        $compiledConfiguration = $compiler->compile($scenarioName);
+
+        static::assertInstanceOf(ServiceConfiguration::class, $compiledConfiguration);
+    }
 }

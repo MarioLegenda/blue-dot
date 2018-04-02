@@ -301,6 +301,13 @@ class KernelTest extends TestCase
         $file = $this->serviceConfig['file'];
         $configArray = $this->serviceConfig['config'];
 
+        $connection = ConnectionFactory::createConnection([
+            'host' => 'dummy_host',
+            'database_name' => 'dummy_database_name',
+            'user' => 'dummy_user',
+            'password' => 'dummy_password',
+        ]);
+
         $compiler = new Compiler(
             $file,
             $configArray['configuration'],
@@ -316,7 +323,6 @@ class KernelTest extends TestCase
 
         /** @var ServiceConfiguration $compiledConfiguration */
         $compiledConfiguration = $compiler->compile($statementName);
-
         $kernel = new Kernel($compiledConfiguration);
 
         $kernel->validateKernel();

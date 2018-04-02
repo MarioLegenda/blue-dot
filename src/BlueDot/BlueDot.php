@@ -11,6 +11,7 @@ use BlueDot\Configuration\Compiler;
 use BlueDot\Configuration\Import\ImportCollection;
 use BlueDot\Configuration\Validator\ConfigurationValidator;
 
+use BlueDot\Entity\Promise;
 use BlueDot\Kernel\Connection\Connection;
 use BlueDot\Kernel\Connection\ConnectionFactory;
 
@@ -126,7 +127,7 @@ class BlueDot implements BlueDotInterface
 
         $entity = $kernel->convertKernelResultToUserFriendlyResult($kernelResult);
 
-
+        return new Promise($entity);
     }
     /**
      * @param Connection|null $connection

@@ -160,7 +160,7 @@ class ScenarioStrategy implements StrategyInterface
         $class = get_class($this);
 
         $message = sprintf(
-            '%s::getResult() is not implemented in %s',
+            '\'%s::getResult()\' is not implemented in \'%s\'',
             StrategyInterface::class,
             $class
         );
