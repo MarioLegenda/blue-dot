@@ -30,8 +30,8 @@ class ResultReportContext
                 return new UpdateContext($pdoStatement);
             case 'delete':
                 return new DeleteContext($pdoStatement);
-            case 'table':
-                return new TableContext();
+            case 'other':
+                return new TableContext($pdoStatement);
         }
     }
 }

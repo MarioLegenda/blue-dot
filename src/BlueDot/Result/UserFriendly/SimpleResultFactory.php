@@ -4,6 +4,7 @@ namespace BlueDot\Result\UserFriendly;
 
 use BlueDot\Configuration\Flow\Simple\Enum\DeleteSqlType;
 use BlueDot\Configuration\Flow\Simple\Enum\InsertSqlType;
+use BlueDot\Configuration\Flow\Simple\Enum\OtherSqlType;
 use BlueDot\Configuration\Flow\Simple\Enum\SelectSqlType;
 use BlueDot\Configuration\Flow\Simple\Enum\UpdateSqlType;
 use BlueDot\Configuration\Flow\Simple\SimpleConfiguration;
@@ -77,6 +78,18 @@ class SimpleResultFactory
         }
 
         if ($sqlType->equals(DeleteSqlType::fromValue())) {
+            $result = [
+                'sql_type' => (string) $sqlType,
+                'row_count' => (int) $kernelResult['row_count'],
+            ];
+
+            return new Entity(
+                $result,
+                $resolvedStatementName
+            );
+        }
+
+        if ($sqlType->equals(OtherSqlType::fromValue())) {
             $result = [
                 'sql_type' => (string) $sqlType,
                 'row_count' => (int) $kernelResult['row_count'],

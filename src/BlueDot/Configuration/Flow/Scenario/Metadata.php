@@ -4,6 +4,7 @@ namespace BlueDot\Configuration\Flow\Scenario;
 
 use BlueDot\Common\Enum\TypeInterface;
 use BlueDot\Configuration\Flow\Simple\Enum\SqlTypeFactory;
+use BlueDot\Configuration\Flow\Simple\Enum\SqlTypes;
 use BlueDot\Kernel\Strategy\Enum\IfExistsType;
 use BlueDot\Kernel\Strategy\Enum\IfNotExistsType;
 
@@ -266,7 +267,21 @@ class Metadata
      */
     public function getSqlType(): TypeInterface
     {
-        return SqlTypeFactory::getType($this->sqlType);
+        if ($this->sqlType instanceof TypeInterface) {
+            return $this->sqlType;
+        }
+
+        $sqlTypes = SqlTypes::instance()->toArray();
+
+        if (!array_key_exists($this->sqlType, $sqlTypes)) {
+            $this->sqlType = 'other';
+        }
+
+        if (is_string($this->sqlType)) {
+            $this->sqlType = SqlTypeFactory::getType($this->sqlType);
+        }
+
+        return $this->sqlType;
     }
     /**
      * @param array $userParameters

@@ -423,6 +423,28 @@ class KernelResultTest extends TestCase
 
         static::assertInstanceOf(KernelResultInterface::class, $kernelResult);
         static::assertInstanceOf(OtherSqlType::class, $configuration->getMetadata()->getSqlType());
+
+        $result = $kernel->convertKernelResultToUserFriendlyResult($kernelResult);
+
+        static::assertInstanceOf(Entity::class, $result);
+    }
+
+    public function test_scenario_other_sql_statements()
+    {
+        $statementName = 'scenario.table_creation';
+
+        $kernel = $this->prepareScenarioStatementKernel($statementName);
+
+        $strategy = $kernel->createStrategy($this->connection);
+
+        /** @var KernelResultInterface $kernelResult */
+        $kernelResult = $kernel->executeStrategy($strategy);
+
+        static::assertInstanceOf(KernelResultInterface::class, $kernelResult);
+
+        $result = $kernel->convertKernelResultToUserFriendlyResult($kernelResult);
+
+        static::assertInstanceOf(Entity::class, $result);
     }
 
     public function test_scenario_1()

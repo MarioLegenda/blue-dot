@@ -37,6 +37,14 @@ configuration:
                 parameters: [name, lastname, username]
 
     scenario:
+        table_creation:
+            atomic: true
+            statements:
+                create_user_table:
+                    sql: "CREATE TABLE IF NOT EXISTS user (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) NOT NULL, lastname VARCHAR(255) NOT NULL, username VARCHAR(255) NOT NULL)"
+                create_address_table:
+                    sql: "CREATE TABLE IF NOT EXISTS addresses (id INT AUTO_INCREMENT PRIMARY KEY, address VARCHAR(255) NOT NULL)"
+
         insert_user:
             atomic: true
             statements:

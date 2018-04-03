@@ -81,6 +81,20 @@ class BlueDotTest extends TestCase
         static::assertInstanceOf(PromiseInterface::class, $promise);
         static::assertTrue($promise->isSuccess());
     }
+
+    public function test_blue_dot_other_type_execution()
+    {
+        $blueDot = new BlueDot(__DIR__.'/../config/result/prepared_execution_test.yml');
+
+        /** @var PromiseInterface $promise */
+        $promise = $blueDot->execute('scenario.table_creation');
+
+        static::assertInstanceOf(PromiseInterface::class, $promise);
+        static::assertTrue($promise->isSuccess());
+
+        static::assertInstanceOf(PromiseInterface::class, $promise);
+        static::assertTrue($promise->isSuccess());
+    }
     /**
      * @throws \BlueDot\Exception\ConfigurationException
      */
