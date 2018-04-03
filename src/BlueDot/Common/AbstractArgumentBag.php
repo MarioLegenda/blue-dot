@@ -79,7 +79,13 @@ abstract class AbstractArgumentBag implements StorageInterface, \IteratorAggrega
     public function add(string $name, $value, bool $overwrite = false) : StorageInterface
     {
         if ($this->has($name) and $overwrite === false) {
-            throw new \RuntimeException(ArgumentBag::class.' already contains an argument with name '.$name);
+            $message = sprintf(
+                '\'%s\' already contains an argument with name \'\'',
+                get_class($this),
+                $name
+            );
+
+            throw new \RuntimeException($message);
         }
 
         if (is_numeric($value)) {
@@ -99,7 +105,12 @@ abstract class AbstractArgumentBag implements StorageInterface, \IteratorAggrega
     public function addTo(string $name, $values) : StorageInterface
     {
         if (empty($values)) {
-            throw new \RuntimeException('Invalid \''.$name.'\'. Cannot add empty array');
+            $message = sprintf(
+                'Invalid \'%s\'. Cannot add empty array',
+                $name
+            );
+
+            throw new \RuntimeException($message);
         }
 
         if (!$this->has($name)) {
@@ -109,11 +120,21 @@ abstract class AbstractArgumentBag implements StorageInterface, \IteratorAggrega
         $entry = $this->get($name);
 
         if (!is_array($entry) and !$entry instanceof StorageInterface) {
-            throw new \RuntimeException('Cannot add values to storage for \''.$name.'\'. Storage does not contain an iterable data type');
+            sprintf(
+                'Cannot add values to storage for \'%s\'. Storage does not contain an iterable data type',
+                $name
+            );
+
+            throw new \RuntimeException($message);
         }
 
         if (is_array($entry)) {
-            throw new \RuntimeException('\''.$name.'\' cannot add values to it. Probably because you used StorageInterface::append() method with it and that cannot be done');
+            $message = sprintf(
+                '\'%s\' cannot add values to it. Probably because you used StorageInterface::append() method with it and that cannot be done',
+                $name
+            );
+
+            throw new \RuntimeException($message);
         }
 
         if (is_array($values)) {

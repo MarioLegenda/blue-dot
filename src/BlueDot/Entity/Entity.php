@@ -3,7 +3,6 @@
 namespace BlueDot\Entity;
 
 use BlueDot\Common\AbstractArgumentBag;
-use BlueDot\Common\ArgumentBag;
 use BlueDot\Exception\EntityException;
 
 class Entity extends AbstractArgumentBag
@@ -44,9 +43,10 @@ class Entity extends AbstractArgumentBag
     }
     /**
      * @param array $grouping
-     * @param string $scenarioName
+     * @param string|null $scenarioName
      * @return array
      * @throws EntityException
+     * @throws \BlueDot\Exception\BlueDotRuntimeException
      */
     public function normalizeJoinedResult(array $grouping, string $scenarioName = null)
     {
@@ -79,7 +79,7 @@ class Entity extends AbstractArgumentBag
     {
         $result = array();
 
-        $arguments = $this->arguments;
+        $arguments = $this->arguments['data'];
         if (!empty($replacementResult)) {
             $arguments = $replacementResult;
         }
@@ -129,7 +129,7 @@ class Entity extends AbstractArgumentBag
      */
     private function doFindBy(string $column, $value, array $replacementResult = null)
     {
-        $arguments = $this->arguments;
+        $arguments = $this->arguments['data'];
         if (!empty($replacementResult)) {
             $arguments = $replacementResult;
         }
@@ -249,13 +249,12 @@ class Entity extends AbstractArgumentBag
     }
     /**
      * @param string|null $scenarioName
-     * @throws \BlueDot\Exception\BlueDotRuntimeException
      * @throws \RuntimeException
      * @return array|AbstractArgumentBag
      */
     private function normalize(string $scenarioName = null)
     {
-        $arguments = $this->arguments;
+        $arguments = $this->arguments['data'];
         if (!is_null($scenarioName)) {
             $arguments = $this->get($scenarioName);
 
