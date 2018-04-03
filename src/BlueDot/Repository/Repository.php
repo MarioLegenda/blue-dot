@@ -2,8 +2,6 @@
 
 namespace BlueDot\Repository;
 
-use BlueDot\Exception\RepositoryException;
-
 class Repository implements RepositoryInterface, \Countable, \IteratorAggregate
 {
     /**
@@ -28,9 +26,12 @@ class Repository implements RepositoryInterface, \Countable, \IteratorAggregate
     public function putRepository(string $resource) : RepositoryInterface
     {
         if (!is_file($resource) and !is_dir($resource)) {
-            throw new RepositoryException(
-                sprintf('Invalid repository file or directory. \'%s\' is not a file or a directory', $resource)
+            $message = sprintf(
+                'Invalid repository file or directory. \'%s\' is not a file or a directory',
+                $resource
             );
+
+            throw new \RuntimeException($message);
         }
 
         if (is_file($resource)) {
@@ -47,11 +48,12 @@ class Repository implements RepositoryInterface, \Countable, \IteratorAggregate
     public function useRepository(string $repository) : string
     {
         if (!array_key_exists($repository, $this->repositories)) {
-            throw new RepositoryException(
-                sprintf(
-                    'Invalid repository name. Repository \'%s\' does not exist', $repository
-                )
+            $message = sprintf(
+                'Invalid repository name. Repository \'%s\' does not exist',
+                $repository
             );
+
+            throw new \RuntimeException($message);
         }
 
         $this->currentlyUsingRepository = $repository;
@@ -110,20 +112,20 @@ class Repository implements RepositoryInterface, \Countable, \IteratorAggregate
     /**
      * @param \SplFileInfo $resource
      * @return RepositoryInterface
-     * @throws RepositoryException
+     * @throws \RuntimeException
      */
     private function putFile(\SplFileInfo $resource) : RepositoryInterface
     {
         $repository = explode('.', $resource->getFilename())[0];
 
         if (array_key_exists($repository, $this->repositories)) {
-            throw new RepositoryException(
-                sprintf(
-                    'Invalid repository configuration. Repository \'%s\' already exists under path \'%s\'',
-                    $repository,
-                    $this->repositories[$repository]
-                )
+            $message = sprintf(
+                'Invalid repository configuration. Repository \'%s\' already exists under path \'%s\'',
+                $repository,
+                $this->repositories[$repository]
             );
+
+            throw new \RuntimeException($message);
         }
 
         $path = realpath($resource->getPathname());
@@ -137,14 +139,17 @@ class Repository implements RepositoryInterface, \Countable, \IteratorAggregate
     /**
      * @param string $dir
      * @return RepositoryInterface
-     * @throws RepositoryException
+     * @throws \RuntimeException
      */
     private function putDir(string $dir) : RepositoryInterface
     {
         if (!is_dir($dir)) {
-            throw new RepositoryException(
-                sprintf('Invalid repository directory. \'%s\' is not a directory', $dir)
+            $message = sprintf(
+                'Invalid repository directory. \'%s\' is not a directory',
+                $dir
             );
+
+            throw new \RuntimeException($message);
         }
 
         foreach (new \DirectoryIterator($dir) as $resource) {

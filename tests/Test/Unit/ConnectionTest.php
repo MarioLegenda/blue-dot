@@ -29,8 +29,6 @@ class ConnectionTest extends TestCase
 
     public function test_connection_within_blue_dot()
     {
-        static::markTestSkipped();
-
         $blueDot = new BlueDot();
 
         $blueDot->setConnection($this->createConnection());

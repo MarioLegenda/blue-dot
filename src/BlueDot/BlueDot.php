@@ -17,7 +17,7 @@ use BlueDot\Kernel\Connection\ConnectionFactory;
 
 use BlueDot\Entity\PromiseInterface;
 use BlueDot\Exception\{
-    RepositoryException, BlueDotRuntimeException, ConnectionException, ConfigurationException
+    RepositoryException, ConnectionException, ConfigurationException
 };
 
 use BlueDot\Kernel\Kernel;
@@ -106,12 +106,10 @@ class BlueDot implements BlueDotInterface
     /**
      * @param string $name
      * @param array $parameters
-     * @param bool $cache
      * @return PromiseInterface
-     * @throws BlueDotRuntimeException
      * @throws ConnectionException
      */
-    public function execute(string $name, $parameters = array(), bool $cache = true) : PromiseInterface
+    public function execute(string $name, $parameters = array()) : PromiseInterface
     {
         $this->prepareBlueDot();
 
@@ -163,10 +161,8 @@ class BlueDot implements BlueDotInterface
     /**
      * @param string $repository
      * @return BlueDotInterface
-     * @throws BlueDotRuntimeException
      * @throws ConfigurationException
      * @throws ConnectionException
-     * @throws Exception\CompileException
      * @throws RepositoryException
      */
     public function useRepository(string $repository) : BlueDotInterface
@@ -188,7 +184,6 @@ class BlueDot implements BlueDotInterface
      * @param string $name
      * @param array $parameters
      * @return BlueDotInterface
-     * @throws BlueDotRuntimeException
      * @throws ConnectionException
      */
     public function prepareExecution(string $name, $parameters = array()) : BlueDotInterface
@@ -199,7 +194,7 @@ class BlueDot implements BlueDotInterface
         $configuration = $this->compiler->compile($name);
 
         if (!$this->preparedExecution instanceof PreparedExecution) {
-            $this->preparedExecution = $this->createPreparedExecution();
+            $this->preparedExecution = new PreparedExecution($this->connection);
         }
 
         $kernel = new Kernel($configuration, $parameters);
@@ -225,10 +220,8 @@ class BlueDot implements BlueDotInterface
     }
     /**
      * @param string $configSource
-     * @throws BlueDotRuntimeException
      * @throws ConfigurationException
      * @throws ConnectionException
-     * @throws Exception\CompileException
      */
     private function initBlueDot(string $configSource)
     {
@@ -266,12 +259,12 @@ class BlueDot implements BlueDotInterface
      * @param string $configSource
      * @param array $parsedConfiguration
      * @return Compiler
-     * @throws BlueDotRuntimeException
      * @throws ConfigurationException
-     * @throws Exception\CompileException
      */
-    private function createCompiler(string $configSource, array $parsedConfiguration) : Compiler
-    {
+    private function createCompiler(
+        string $configSource,
+        array $parsedConfiguration
+    ) : Compiler {
         return new Compiler(
             $configSource,
             $parsedConfiguration['configuration'],
@@ -305,13 +298,12 @@ class BlueDot implements BlueDotInterface
         return null;
     }
     /**
-     * @throws BlueDotRuntimeException
      * @throws ConnectionException
      */
     private function prepareBlueDot()
     {
         if (!$this->connection instanceof Connection) {
-            $message =                 sprintf(
+            $message = sprintf(
                 'No connection present. If you constructed BlueDot without configuration, then you have to provide a connection object with \'%s\' that accepts an \'%s\' object',
                 BlueDotInterface::class,
                 Connection::class
@@ -323,12 +315,5 @@ class BlueDot implements BlueDotInterface
         if (!$this->compiler instanceof Compiler) {
             throw new \RuntimeException('Configuration does not exist. You have not constructed BlueDot with a configuration file. Only statement builder can be used at this point');
         }
-    }
-    /**
-     * @return PreparedExecution
-     */
-    private function createPreparedExecution() : PreparedExecution
-    {
-        return new PreparedExecution($this->connection);
     }
 }
