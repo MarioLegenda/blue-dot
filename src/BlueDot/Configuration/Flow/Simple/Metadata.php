@@ -4,6 +4,7 @@ namespace BlueDot\Configuration\Flow\Simple;
 
 use BlueDot\Common\Enum\TypeInterface;
 use BlueDot\Configuration\Flow\Simple\Enum\SqlTypeFactory;
+use BlueDot\Configuration\Flow\Simple\Enum\SqlTypes;
 
 class Metadata
 {
@@ -60,6 +61,16 @@ class Metadata
      */
     public function getSqlType(): TypeInterface
     {
+        if ($this->sqlType instanceof TypeInterface) {
+            return $this->sqlType;
+        }
+
+        $sqlTypes = SqlTypes::instance()->toArray();
+
+        if (!array_key_exists($this->sqlType, $sqlTypes)) {
+            $this->sqlType = 'other';
+        }
+
         if (is_string($this->sqlType)) {
             $this->sqlType = SqlTypeFactory::getType($this->sqlType);
         }
