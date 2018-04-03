@@ -60,8 +60,6 @@ class Compiler
      * @param ValidatorInterface $statementValidator
      * @param ConfigurationValidator $configurationValidator
      * @param ImportCollection $imports
-     * @throws BlueDotRuntimeException
-     * @throws CompileException
      * @throws ConfigurationException
      */
     public function __construct(

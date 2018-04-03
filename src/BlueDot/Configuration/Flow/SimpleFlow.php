@@ -2,6 +2,8 @@
 
 namespace BlueDot\Configuration\Flow;
 
+use BlueDot\Common\Enum\TypeInterface;
+use BlueDot\Configuration\Flow\Simple\Enum\SqlTypeFactory;
 use BlueDot\Configuration\Import\ImportCollection;
 use BlueDot\Configuration\Flow\Simple\Metadata;
 use BlueDot\Configuration\Flow\Simple\Model;
@@ -15,7 +17,7 @@ class SimpleFlow
      * @param string $resolvedStatementName
      * @param array $config
      * @param ImportCollection $importCollection
-     * @return FlowConfigurationProductInterface
+     * @return FlowConfigurationProductInterface|SimpleConfiguration
      * @throws \RuntimeException
      */
     public function create(
@@ -23,7 +25,10 @@ class SimpleFlow
         array $config,
         ImportCollection $importCollection
     ): FlowConfigurationProductInterface {
-        $statementInfo = $this->resolveStatementInfo($resolvedStatementName);
+        $statementInfo = $this->resolveStatementInfo(
+            $resolvedStatementName,
+            $config
+        );
 
         $sql = $this->resolveSql($importCollection, $config['sql']);
         $parameters = $this->resolveConfigParametersIfExists($config);
@@ -51,11 +56,15 @@ class SimpleFlow
     }
     /**
      * @param string $fullStatementName
+     * @param array $config
      * @return array
      */
-    private function resolveStatementInfo(string $fullStatementName): array
-    {
+    private function resolveStatementInfo(
+        string $fullStatementName,
+        array $config
+    ): array{
         $splittedNames = preg_split('#\.#', $fullStatementName);
+        $sql = $config['sql'];
 
         $statementType = $splittedNames[0];
         $sqlType = $splittedNames[1];

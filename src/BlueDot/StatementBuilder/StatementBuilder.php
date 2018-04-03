@@ -2,31 +2,25 @@
 
 namespace BlueDot\StatementBuilder;
 
-use BlueDot\Common\ArgumentBag;
-use BlueDot\Kernel\Connection;
+use BlueDot\Configuration\Flow\Simple\SimpleConfiguration;
+use BlueDot\Configuration\Flow\SimpleFlow;
+use BlueDot\Configuration\Import\ImportCollection;
+use BlueDot\Entity\Promise;
 use BlueDot\Entity\PromiseInterface;
 use BlueDot\Exception\BlueDotRuntimeException;
-use BlueDot\Exception\CompileException;
-use BlueDot\Entity\Model;
-use BlueDot\Exception\StatementBuilderException;
-use BlueDot\Kernel\Execution\Kernel;
-use BlueDot\Entity\Promise;
-use BlueDot\Component\TaskRunner\TaskRunnerFactory;
-use BlueDot\Kernel\Validation\SimpleStatementTaskRunner;
-use BlueDot\Component\ModelConverter;
-use BlueDot\Kernel\Validation\Simple\SimpleStatementParameterValidation;
-use BlueDot\Kernel\Validation\Simple\SimpleParametersResolver;
+use BlueDot\Kernel\Connection\Connection;
+use BlueDot\Kernel\Kernel;
 
 class StatementBuilder
 {
     /**
+     * @var string $sql
+     */
+    private $sql;
+    /**
      * @var Connection|null
      */
     private $connection = null;
-    /**
-     * @var ArgumentBag $statement
-     */
-    private $statement;
     /**
      * @var array $configParameters
      */
@@ -42,12 +36,6 @@ class StatementBuilder
     public function __construct(Connection $connection)
     {
         $this->connection = $connection;
-
-        $statement = new ArgumentBag();
-
-        $statement->add('type', 'simple');
-
-        $this->statement = $statement;
     }
     /**
      * @param string $sql
@@ -55,11 +43,7 @@ class StatementBuilder
      */
     public function addSql(string $sql) : StatementBuilder
     {
-        $sqlType = $this->resolveSqlType($sql);
-
-        $this->statement
-            ->add('statement_type', $sqlType)
-            ->add('sql', $sql);
+        $this->sql = $sql;
 
         return $this;
     }
@@ -84,88 +68,72 @@ class StatementBuilder
         return $this;
     }
     /**
-     * @param string $object
-     * @param array|null $properties
-     * @return StatementBuilder
-     * @throws CompileException
-     * @throws StatementBuilderException
-     */
-    public function addModel(string $object, array $properties = null) : StatementBuilder
-    {
-        if ($this->statement->has('model')) {
-            throw new StatementBuilderException(
-                sprintf('Duplicate model exception. \'%s\' already added as model',
-                    $this->statement->get('model')->getName()
-                )
-            );
-        }
-
-        $properties = (is_array($properties)) ? $properties : array();
-
-        if (!class_exists($object)) {
-            throw new CompileException(sprintf('Invalid model options. Object \'%s\' does not exist', $object));
-        }
-
-        if (!empty($properties)) {
-            foreach ($properties as $key => $value) {
-                if (!is_string($key)) {
-                    throw new CompileException(sprintf('Invalid model options. \'properties\' should be a associative array. %s given for value %s', $key, $value));
-                }
-            }
-        }
-
-        $this->statement->add('model', new Model($object, $properties));
-
-        return $this;
-    }
-    /**
      * @return PromiseInterface
      */
     public function execute() : PromiseInterface
     {
-        $name = 'statement_builder_statement';
-        $resolvedName = $this->statement->get('statement_type').'.'.$name;
-        $resolvedStatementName = 'simple.'.$resolvedName;
-
-        $this->statement->add('resolved_name', $resolvedName);
-        $this->statement->add('statement_name', $name);
-        $this->statement->add('resolved_statement_name', $resolvedStatementName);
-        $this->statement->add('cache', false);
-
-        if (!empty($this->configParameters)) {
-            $this->statement->add('config_parameters', $this->configParameters);
-        }
-
-        $this->statement->add('connection', $this->connection);
-
-        $context = new Kernel($this->statement, $this->userParameters);
-
-        return $context
-            ->runTasks()
-            ->createStrategy()
-            ->executeStrategy()
-            ->createPromise()
-            ->getPromise();
+        return $this->makeResult();
     }
-
-    private function resolveSqlType(string $sql) : string
+    /**
+     * @return PromiseInterface
+     */
+    private function makeResult(): PromiseInterface
     {
-        preg_match('#(\w+\s)#i', $sql, $matches);
+        $configuration = $this->createConfiguration();
 
-        if (empty($matches)) {
-            throw new CompileException(sprintf(
-                'Statement builder could not properly determine sql type for \'%s\'',
-                $sql
-            ));
-        }
+        $kernel = new Kernel($configuration, $this->userParameters);
 
-        $sqlType = trim(strtolower($matches[1]));
+        $kernel->validateKernel();
 
-        if ($sqlType === 'create' or $sqlType === 'use') {
-            $sqlType = 'table';
-        }
+        $strategy = $kernel->createStrategy($this->connection);
 
-        return $sqlType;
+        $kernelResult = $kernel->executeStrategy($strategy);
+
+        $result = $kernel->convertKernelResultToUserFriendlyResult($kernelResult);
+
+        return new Promise($result);
     }
+    /**
+     * @return SimpleConfiguration
+     */
+    private function createConfiguration(): SimpleConfiguration
+    {
+        $autoGeneratedStatementName = sprintf(
+            'simple.%s.%s',
+            $this->determineTypeFromSql($this->sql),
+            substr(md5(rand(99999, 999999)), 0, 6)
+        );
 
+        $config = [
+            'sql' => $this->sql,
+            'parameters' => $this->configParameters,
+        ];
+
+        $simpleFlow = new SimpleFlow();
+
+        return $simpleFlow->create(
+            $autoGeneratedStatementName,
+            $config,
+            new ImportCollection()
+        );
+    }
+    /**
+     * @param string $sql
+     * @return string
+     */
+    private function determineTypeFromSql(string $sql): string
+    {
+        $typeMatch = preg_match('#^[a-zA-Z]+\s#i', $sql, $matches);
+
+        if ($typeMatch === 0) {
+            $message = sprintf(
+                'Statement builder could not determine correct sql type from sql \'%s\'',
+                $sql
+            );
+
+            throw new \RuntimeException($message);
+        }
+
+        return trim(strtolower($matches[0]));
+    }
 }

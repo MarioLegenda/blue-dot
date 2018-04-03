@@ -12,7 +12,7 @@ class Metadata
      */
     private $statementType;
     /**
-     * @var string $sqlType
+     * @var string|TypeInterface $sqlType
      */
     private $sqlType;
     /**
@@ -60,7 +60,11 @@ class Metadata
      */
     public function getSqlType(): TypeInterface
     {
-        return SqlTypeFactory::getType($this->sqlType);
+        if (is_string($this->sqlType)) {
+            $this->sqlType = SqlTypeFactory::getType($this->sqlType);
+        }
+
+        return $this->sqlType;
     }
     /**
      * @return string

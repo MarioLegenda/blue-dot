@@ -27,32 +27,36 @@ class CorrectSqlValidation implements ValidatorInterface
     public function validate()
     {
         if ($this->configuration instanceof SimpleConfiguration) {
-            $sqlType = $this->configuration->getMetadata()->getSqlType();
-            $sql = $this->configuration->getWorkConfig()->getSql();
-
-            $this->validateCorrectSqlType($sqlType, $sql);
+            $this->validateSimpleSqlType();
         }
     }
     /**
-     * @param string $sqlType
-     * @param string $sql
      * @throws \RuntimeException
      */
-    private function validateCorrectSqlType(
-        string $sqlType,
-        string $sql
-    ) {
-        $regex = sprintf('#^%s#i', $sqlType);
+    private function validateSimpleSqlType() {
+        $sqlType = $this->configuration->getMetadata()->getSqlType();
+        $sql = $this->configuration->getWorkConfig()->getSql();
+        $fullStatementName = $this->configuration->getMetadata()->getResolvedStatementName();
 
-        preg_match($regex, $sql, $match);
+        $typeMatch = preg_match('#^[a-zA-Z]+\s#i', $sql, $matches);
 
-        if (empty($match)) {
+        if ($typeMatch === 0) {
             $message = sprintf(
-                'Invalid sql type. \'%s\' is a statement under \'%s\' but is not a \'%s\' statement for sql: \'%s\'',
-                $this->configuration->getName(),
-                $this->configuration->getMetadata()->getResolvedStatementType(),
-                $this->configuration->getMetadata()->getSqlType(),
-                $this->configuration->getWorkConfig()->getSql()
+                'Sql type could not be determined from sql \'%s\' for statement \'%s\'',
+                $sql,
+                $fullStatementName
+            );
+
+            throw new \RuntimeException($message);
+        }
+
+        $matchedType = trim(strtolower($matches[0]));
+
+        if ($matchedType !== (string) $sqlType) {
+            $message = sprintf(
+                'Sql type does not match the statement declaration in sql \'%s\' for statement \'%s\'',
+                $sql,
+                $fullStatementName
             );
 
             throw new \RuntimeException($message);
