@@ -1,0 +1,51 @@
+configuration:
+    connection:
+        host: 127.0.0.1
+        user: 'root'
+        password: 'root'
+        database_name: 'blue_dot'
+
+    simple:
+        select:
+            find_all_users:
+                sql: 'SELECT * FROM user'
+
+            find_user_by_id_with_object_return:
+                sql: 'SELECT * FROM user WHERE id = :id'
+                parameters: [id]
+                model:
+                    object: Test\Model\User
+            find_user_by_id:
+                sql: 'SELECT * FROM user WHERE id = :id'
+                parameters: [id]
+        delete:
+            delete_all_users:
+                sql: 'DELETE FROM user'
+            delete_user_by_id:
+                sql: 'DELETE FROM user WHERE id = :id'
+                parameters: [id]
+        update:
+            update_all_users:
+                sql: 'UPDATE user SET username = :username'
+                parameters: [username]
+            update_user_by_id:
+                sql: 'UPDATE user SET username = :username WHERE id = :id'
+                parameters: [username, id]
+        insert:
+            insert_user:
+                sql: 'INSERT INTO user (name, lastname, username) VALUES (:name, :lastname, :username)'
+                parameters: [name, lastname, username]
+
+    scenario:
+        insert_user:
+            atomic: true
+            statements:
+                insert_user:
+                    sql: "INSERT INTO user (username, name, lastname) VALUES (:username, :name, :lastname)"
+                    parameters: [username, name, lastname]
+                insert_address:
+                    sql: "INSERT INTO addresses (user_id, address) VALUES (:user_id, :address)"
+                    parameters: [address]
+                    foreign_key:
+                        statement_name: insert_user
+                        bind_to: user_id

@@ -21,6 +21,7 @@ use BlueDot\Exception\{
 };
 
 use BlueDot\Kernel\Kernel;
+use BlueDot\Kernel\Strategy\PreparedExecution;
 use BlueDot\StatementBuilder\StatementBuilder;
 use Symfony\Component\Yaml\Yaml;
 use BlueDot\Repository\RepositoryInterface;
@@ -127,7 +128,7 @@ class BlueDot implements BlueDotInterface
 
         $entity = $kernel->convertKernelResultToUserFriendlyResult($kernelResult);
 
-        return new Promise($entity);
+        return new Promise($entity, $entity->getName());
     }
     /**
      * @param Connection|null $connection
@@ -162,9 +163,11 @@ class BlueDot implements BlueDotInterface
     /**
      * @param string $repository
      * @return BlueDotInterface
-     * @throws RepositoryException
+     * @throws BlueDotRuntimeException
      * @throws ConfigurationException
      * @throws ConnectionException
+     * @throws Exception\CompileException
+     * @throws RepositoryException
      */
     public function useRepository(string $repository) : BlueDotInterface
     {
@@ -192,40 +195,29 @@ class BlueDot implements BlueDotInterface
     {
         $this->prepareBlueDot();
 
-        $statement = $this->compiler->compile($name);
-
-        if ($statement->get('type') !== 'simple') {
-            throw new BlueDotRuntimeException(
-                sprintf(
-                    'Invalid prepared execution statement \'%s\'. Only simple statements can be prepared for execution',
-                    $statement->get('resolved_statement_name')
-                )
-            );
-        }
+        /** @var FlowProductInterface $configuration */
+        $configuration = $this->compiler->compile($name);
 
         if (!$this->preparedExecution instanceof PreparedExecution) {
             $this->preparedExecution = $this->createPreparedExecution();
         }
 
-        if (!$statement->has('connection')) {
-            $statement->add('connection', $this->connection);
-        }
+        $kernel = new Kernel($configuration, $parameters);
 
-        $executionContext = new Kernel($statement, $parameters);
-
-        $executionContext->runTasks();
-
-        $this->preparedExecution->addStrategy($name, $executionContext->getStrategy());
+        $this->preparedExecution->addKernel($kernel);
 
         return $this;
     }
     /**
      * @return array
      * @throws ConnectionException
+     * @throws \Exception
      */
     public function executePrepared() : array
     {
-        $promises = $this->preparedExecution->execute()->getPromises();
+        $this->preparedExecution->execute();
+
+        $promises = $this->preparedExecution->getPromises();
 
         $this->preparedExecution->clear();
 

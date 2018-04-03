@@ -98,11 +98,14 @@ class Kernel
     }
     /**
      * @param StrategyInterface $strategy
+     * @param bool $delayedTransactionCommit
      * @return KernelResultInterface
      */
-    public function executeStrategy(StrategyInterface $strategy)
-    {
-       return $strategy->execute();
+    public function executeStrategy(
+        StrategyInterface $strategy,
+        bool $delayedTransactionCommit = false
+    ) {
+       return $strategy->execute($delayedTransactionCommit);
     }
     /**
      * @param KernelResultInterface $kernelResult

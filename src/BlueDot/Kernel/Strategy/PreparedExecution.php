@@ -2,30 +2,23 @@
 
 namespace BlueDot\Kernel\Strategy;
 
-use BlueDot\Kernel\Connection;
+use BlueDot\Common\Util\Util;
+use BlueDot\Kernel\Connection\Connection;
 use BlueDot\Entity\Promise;
-use BlueDot\Entity\PromiseInterface;
-use BlueDot\Exception\BlueDotRuntimeException;
 use BlueDot\Exception\ConnectionException;
+use BlueDot\Kernel\Kernel;
 
 class PreparedExecution
 {
-    /**
-     * @var array $statementNames
-     */
-    private $statementNames = array();
-    /**
-     * @var Connection $connection
-     */
     private $connection;
     /**
      * @var array $promises
      */
     private $promises = array();
     /**
-     * @var StrategyInterface[] $strategies
+     * @var Kernel[] $kernels
      */
-    private $strategies = array();
+    private $kernels = array();
     /**
      * PreparedExecution constructor.
      * @param Connection $connection
@@ -35,23 +28,24 @@ class PreparedExecution
         $this->connection = $connection;
     }
     /**
-     * @param string $name
-     * @param StrategyInterface $strategy
+     * @param Kernel $kernel
      * @return PreparedExecution
      */
-    public function addStrategy(string $name, StrategyInterface $strategy) : PreparedExecution
+    public function addKernel(Kernel $kernel) : PreparedExecution
     {
-        $this->statementNames[] = $name;
-        $this->strategies[] = $strategy;
+        $this->kernels[] = $kernel;
 
         return $this;
     }
     /**
      * @return PreparedExecution
      * @throws ConnectionException
+     * @throws \Exception
      */
     public function execute() : PreparedExecution
     {
+        $this->connection->connect();
+
         if ($this->connection->getPDO()->inTransaction()) {
             throw new ConnectionException(
                 sprintf(
@@ -63,14 +57,32 @@ class PreparedExecution
         try {
             $this->connection->getPDO()->beginTransaction();
 
-            foreach ($this->strategies as $key => $strategy) {
-                $result = $strategy->execute()->getResult();
+            $kernelsGenerator = Util::instance()->createGenerator($this->kernels);
 
-                $promise = $this->createPromise($result);
+            foreach ($kernelsGenerator as $item) {
+                /** @var Kernel $kernel */
+                $kernel = $item['item'];
 
-                $promise->setName($this->statementNames[$key]);
+                $kernel->validateKernel();
 
-                $this->promises[$promise->getName()][] = $promise;
+                $strategy = $kernel->createStrategy($this->connection);
+
+                $kernelResult = $kernel->executeStrategy($strategy, true);
+
+                $entity = $kernel->convertKernelResultToUserFriendlyResult($kernelResult);
+
+                $promise = new Promise(
+                    $entity,
+                    $entity->getName()
+                );
+
+                if (array_key_exists($promise->getName(), $this->promises)) {
+                    $this->promises[$promise->getName()][] = $promise;
+
+                    continue;
+                }
+
+                $this->promises[] = $promise;
             }
 
             $this->connection->getPDO()->commit();
@@ -82,7 +94,6 @@ class PreparedExecution
             throw $e;
         }
 
-
         return $this;
     }
     /**
@@ -90,8 +101,10 @@ class PreparedExecution
      */
     public function clear() : PreparedExecution
     {
-        $this->strategies = array();
+        $this->kernels = array();
         $this->promises = array();
+
+        gc_collect_cycles();
 
         return $this;
     }
@@ -101,10 +114,5 @@ class PreparedExecution
     public function getPromises() : array
     {
         return $this->promises;
-    }
-
-    private function createPromise($result) : PromiseInterface
-    {
-        return new Promise($result);
     }
 }

@@ -41,7 +41,7 @@ class ServiceStrategy implements StrategyInterface
     /**
      * @inheritdoc
      */
-    public function execute() : KernelResultInterface
+    public function execute(bool $delayedTransactionCommit) : KernelResultInterface
     {
         $class = $this->configuration->getClass();
         $userParameters = $this->configuration->getUserParameters();

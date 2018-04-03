@@ -19,11 +19,6 @@ interface PromiseInterface
      */
     public function failure(\Closure $callback) : PromiseInterface;
     /**
-     * @param string $name
-     * @return mixed
-     */
-    public function setName(string $name);
-    /**
      * @return string|null
      */
     public function getName();

@@ -23,10 +23,12 @@ class Promise implements PromiseInterface
     /**
      * Promise constructor.
      * @param Entity|object|null $entity
+     * @param string|null $name
      */
-    public function __construct($entity = null)
+    public function __construct($entity = null, string $name = null)
     {
         $this->entity = $entity;
+        $this->name = $name;
     }
     /**
      * @inheritdoc
@@ -87,14 +89,6 @@ class Promise implements PromiseInterface
         }
 
         return $this;
-    }
-    /**
-     * @param string $name
-     * @return string
-     */
-    public function setName(string $name)
-    {
-        return $this->name = $name;
     }
     /**
      * @return string|null

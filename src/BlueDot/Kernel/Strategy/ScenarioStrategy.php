@@ -47,19 +47,19 @@ class ScenarioStrategy implements StrategyInterface
         $this->results = new KernelResultCollection();
     }
     /**
-     * @return KernelResultInterface
-     * @throws \RuntimeException
-     * @throws \BlueDot\Exception\ConnectionException
+     * @inheritdoc
      */
-    public function execute() : KernelResultInterface
+    public function execute(bool $delayedTransactionCommit) : KernelResultInterface
     {
         $this->connection->connect();
 
         /** @var RootConfiguration $rootConfiguration */
         $rootConfiguration = $this->configuration->getRootConfiguration();
 
-        if ($rootConfiguration->isAtomic() and !$this->connection->getPDO()->inTransaction()) {
-            $this->connection->getPDO()->beginTransaction();
+        if ($delayedTransactionCommit !== true) {
+            if ($rootConfiguration->isAtomic() and !$this->connection->getPDO()->inTransaction()) {
+                $this->connection->getPDO()->beginTransaction();
+            }
         }
 
         $this->metadata = $this->configuration->getMetadata();
@@ -119,8 +119,10 @@ class ScenarioStrategy implements StrategyInterface
                 unset($recursiveStatementExecution);
             }
         } catch (\PDOException $e) {
-            if ($rootConfiguration->isAtomic()) {
-                $this->handleRollback($rootConfiguration);
+            if ($delayedTransactionCommit !== true) {
+                if ($rootConfiguration->isAtomic()) {
+                    $this->handleRollback($rootConfiguration);
+                }
             }
 
             $message = sprintf(
@@ -131,16 +133,20 @@ class ScenarioStrategy implements StrategyInterface
 
             throw new \RuntimeException($message);
         } catch (\RuntimeException $e) {
-            if ($rootConfiguration->isAtomic()) {
-                $this->handleRollback($rootConfiguration);
+            if ($delayedTransactionCommit !== true) {
+                if ($rootConfiguration->isAtomic()) {
+                    $this->handleRollback($rootConfiguration);
+                }
             }
 
             throw new \RuntimeException($e->getMessage());
         }
 
         try {
-            if ($rootConfiguration->isAtomic()) {
-                $this->connection->getPDO()->commit();
+            if ($delayedTransactionCommit !== true) {
+                if ($rootConfiguration->isAtomic()) {
+                    $this->connection->getPDO()->commit();
+                }
             }
         } catch (\Exception $e) {
             $this->handleRollback($rootConfiguration);

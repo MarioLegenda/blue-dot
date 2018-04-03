@@ -703,8 +703,6 @@ class KernelResultTest extends TestCase
         static::assertInternalType('int', $insertResult['last_insert_id']);
     }
     /**
-     * @throws \BlueDot\Exception\BlueDotRuntimeException
-     * @throws \BlueDot\Exception\CompileException
      * @throws \BlueDot\Exception\ConfigurationException
      */
     private function setUpUsers()
@@ -744,8 +742,6 @@ class KernelResultTest extends TestCase
      * @param string $statementName
      * @param array|null $parameters
      * @return Kernel
-     * @throws \BlueDot\Exception\BlueDotRuntimeException
-     * @throws \BlueDot\Exception\CompileException
      * @throws \BlueDot\Exception\ConfigurationException
      */
     private function prepareSimpleStatementKernel(
@@ -777,8 +773,6 @@ class KernelResultTest extends TestCase
      * @param string $statementName
      * @param array|null $parameters
      * @return Kernel
-     * @throws \BlueDot\Exception\BlueDotRuntimeException
-     * @throws \BlueDot\Exception\CompileException
      * @throws \BlueDot\Exception\ConfigurationException
      */
     private function prepareScenarioStatementKernel(

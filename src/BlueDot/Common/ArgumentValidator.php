@@ -23,6 +23,11 @@ class ArgumentValidator implements ValidatorInterface
             return $this;
         }
 
-        throw new BlueDotRuntimeException('Invalid execute statement name. Given '.$argument);
+        $message = sprintf(
+            'Invalid execute statement name. Given \'%s\'',
+            $argument
+        );
+
+        throw new BlueDotRuntimeException($message);
     }
 }

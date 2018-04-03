@@ -7,9 +7,10 @@ use BlueDot\Kernel\Result\KernelResultInterface;
 interface StrategyInterface
 {
     /**
+     * @param bool $delayedTransactionCommit
      * @return KernelResultInterface
      */
-    public function execute(): KernelResultInterface;
+    public function execute(bool $delayedTransactionCommit): KernelResultInterface;
     /**
      * @param \PDOStatement
      * @return KernelResultInterface

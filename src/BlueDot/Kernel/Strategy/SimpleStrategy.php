@@ -28,10 +28,6 @@ class SimpleStrategy implements StrategyInterface
      */
     protected $connection;
     /**
-     * @var ArgumentBag $resultReport
-     */
-    protected $resultReport;
-    /**
      * SimpleStrategy constructor.
      * @param SimpleConfiguration $configuration
      * @param Connection $connection
@@ -46,21 +42,27 @@ class SimpleStrategy implements StrategyInterface
     /**
      * @inheritdoc
      */
-    public function execute(): KernelResultInterface
+    public function execute(bool $delayedTransactionCommit): KernelResultInterface
     {
         try {
             $this->connection->connect();
 
-            $this->connection->getPDO()->beginTransaction();
+            if ($delayedTransactionCommit !== true) {
+                $this->connection->getPDO()->beginTransaction();
+            }
 
             $result = $this->doExecute();
 
-            $this->connection->getPDO()->commit();
+            if ($delayedTransactionCommit !== true) {
+                $this->connection->getPDO()->commit();
+            }
 
             return $result;
 
         } catch (\PDOException $e) {
-            $this->connection->getPDO()->rollBack();
+            if ($delayedTransactionCommit !== true) {
+                $this->connection->getPDO()->rollBack();
+            }
 
             $message = sprintf(
                 'A PDOException was thrown for statement \'%s\' with message \'%s\'',
