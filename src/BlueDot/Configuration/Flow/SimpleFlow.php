@@ -64,7 +64,6 @@ class SimpleFlow
         array $config
     ): array{
         $splittedNames = preg_split('#\.#', $fullStatementName);
-        $sql = $config['sql'];
 
         $statementType = $splittedNames[0];
         $sqlType = $splittedNames[1];

@@ -18,6 +18,7 @@ class SqlTypes implements ArrayNotationInterface, \IteratorAggregate
         'update' => UpdateSqlType::class,
         'insert' => InsertSqlType::class,
         'delete' => DeleteSqlType::class,
+        'other' => OtherSqlType::class,
     ];
     /**
      * @return SqlTypes

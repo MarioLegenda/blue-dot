@@ -4,6 +4,7 @@ namespace BlueDot\Kernel\Validation\Implementation;
 
 use BlueDot\Configuration\Flow\FlowConfigurationProductInterface;
 use BlueDot\Configuration\Flow\Scenario\ScenarioConfiguration;
+use BlueDot\Configuration\Flow\Simple\Enum\OtherSqlType;
 use BlueDot\Kernel\Validation\ValidatorInterface;
 use BlueDot\Configuration\Flow\Simple\SimpleConfiguration;
 
@@ -52,14 +53,17 @@ class CorrectSqlValidation implements ValidatorInterface
 
         $matchedType = trim(strtolower($matches[0]));
 
-        if ($matchedType !== (string) $sqlType) {
-            $message = sprintf(
-                'Sql type does not match the statement declaration in sql \'%s\' for statement \'%s\'',
-                $sql,
-                $fullStatementName
-            );
+        if (!$sqlType->equals(OtherSqlType::fromValue())) {
+            if ($matchedType !== (string) $sqlType) {
+                $message = sprintf(
+                    'Sql type \'%s\' does not match the statement declaration in sql \'%s\' for statement \'%s\'',
+                    $sqlType,
+                    $sql,
+                    $fullStatementName
+                );
 
-            throw new \RuntimeException($message);
+                throw new \RuntimeException($message);
+            }
         }
     }
 }

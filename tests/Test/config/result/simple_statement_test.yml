@@ -35,3 +35,6 @@ configuration:
             insert_user:
                 sql: 'INSERT INTO user (name, lastname, username) VALUES (:name, :lastname, :username)'
                 parameters: [name, lastname, username]
+        other:
+            create_test_table:
+                sql: "CREATE TABLE IF NOT EXISTS other (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) NOT NULL)"

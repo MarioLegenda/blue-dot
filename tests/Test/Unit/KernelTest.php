@@ -17,7 +17,6 @@ use BlueDot\Kernel\Strategy\ServiceStrategy;
 use BlueDot\Kernel\Strategy\SimpleStrategy;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Yaml\Yaml;
-use Test\Model\User;
 
 class KernelTest extends TestCase
 {

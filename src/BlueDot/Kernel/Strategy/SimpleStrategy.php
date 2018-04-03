@@ -6,6 +6,7 @@ use BlueDot\Common\ArgumentBag;
 use BlueDot\Common\Enum\TypeInterface;
 use BlueDot\Configuration\Flow\Simple\Enum\DeleteSqlType;
 use BlueDot\Configuration\Flow\Simple\Enum\InsertSqlType;
+use BlueDot\Configuration\Flow\Simple\Enum\OtherSqlType;
 use BlueDot\Configuration\Flow\Simple\Enum\SelectSqlType;
 use BlueDot\Configuration\Flow\Simple\Enum\UpdateSqlType;
 use BlueDot\Configuration\Flow\Simple\Model;
@@ -148,6 +149,18 @@ class SimpleStrategy implements StrategyInterface
         }
 
         if ($sqlType->equals(DeleteSqlType::fromValue())) {
+            $result = [];
+
+            $result['data'] = [];
+            $result['row_count'] = $pdoStatement->rowCount();
+
+            return new KernelResult(
+                $this->configuration,
+                $result
+            );
+        }
+
+        if ($sqlType->equals(OtherSqlType::fromValue())) {
             $result = [];
 
             $result['data'] = [];

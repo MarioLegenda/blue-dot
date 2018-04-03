@@ -3,7 +3,6 @@
 namespace Test\Unit;
 
 use BlueDot\BlueDot;
-use BlueDot\BlueDotInterface;
 use BlueDot\Common\ArgumentValidator;
 use BlueDot\Common\StatementValidator;
 use BlueDot\Configuration\Compiler;

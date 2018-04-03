@@ -81,7 +81,8 @@ class ConfigurationValidator
                 ->isArrayIfExists('insert')
                 ->isArrayIfExists('update')
                 ->isArrayIfExists('delete')
-                ->applyToSubelementsIfTheyExist(array('select', 'insert', 'update', 'delete'), function($nodeName, ArrayNode $node) {
+                ->isArrayIfExists('other')
+                ->applyToSubelementsIfTheyExist(array('select', 'insert', 'update', 'delete', 'other'), function($nodeName, ArrayNode $node) {
                     if ($node->isEmpty()) {
                         throw new ConfigurationException('\''.$nodeName.'\' cannot be empty');
                     }

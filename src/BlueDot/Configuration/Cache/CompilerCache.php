@@ -78,9 +78,4 @@ class CompilerCache
 
         return $replacedDot;
     }
-
-    private function deNormalize(string $cacheKey): string
-    {
-
-    }
 }

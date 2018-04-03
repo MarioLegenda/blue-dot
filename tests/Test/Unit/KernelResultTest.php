@@ -3,6 +3,7 @@
 namespace Test\Unit;
 
 use BlueDot\Configuration\Flow\Scenario\ScenarioConfiguration;
+use BlueDot\Configuration\Flow\Simple\Enum\OtherSqlType;
 use BlueDot\Configuration\Flow\Simple\SimpleConfiguration;
 use BlueDot\Entity\Entity;
 use BlueDot\Kernel\Connection\Connection;
@@ -404,6 +405,24 @@ class KernelResultTest extends TestCase
         static::assertEquals($entity->get('sql_type'), 'delete');
         static::assertTrue($entity->has('row_count'));
         static::assertInternalType('int', $entity->get('row_count'));
+    }
+
+    public function test_simple_statement_other()
+    {
+        $statementName = 'simple.other.create_test_table';
+
+        $kernel = $this->prepareSimpleStatementKernel($statementName);
+
+        $strategy = $kernel->createStrategy($this->connection);
+
+        /** @var KernelResultInterface $kernelResult */
+        $kernelResult = $kernel->executeStrategy($strategy);
+
+        /** @var SimpleConfiguration $configuration */
+        $configuration = $kernelResult->getConfiguration();
+
+        static::assertInstanceOf(KernelResultInterface::class, $kernelResult);
+        static::assertInstanceOf(OtherSqlType::class, $configuration->getMetadata()->getSqlType());
     }
 
     public function test_scenario_1()
