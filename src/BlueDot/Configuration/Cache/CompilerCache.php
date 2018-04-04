@@ -2,6 +2,8 @@
 
 namespace BlueDot\Configuration\Cache;
 
+use BlueDot\Configuration\Compiler;
+
 class CompilerCache
 {
     /**
@@ -21,9 +23,9 @@ class CompilerCache
     }
     /**
      * @param string $cacheKey
-     * @param array $data
+     * @param Compiler $compiler
      */
-    public function putInCache(string $cacheKey, array $data)
+    public function putInCache(string $cacheKey, Compiler $compiler)
     {
         if (!$this->isInCache($cacheKey)) {
             $normalized = $this->normalize($cacheKey);
@@ -33,7 +35,7 @@ class CompilerCache
 
             $handle = fopen($filePath, 'w+');
 
-            fputs($handle, serialize($data));
+            fputs($handle, serialize($compiler));
 
             fclose($handle);
 
@@ -42,10 +44,10 @@ class CompilerCache
     }
     /**
      * @param string $cacheKey
-     * @return array|null
+     * @return Compiler
      * @throws \RuntimeException
      */
-    public function getFromCache(string $cacheKey): array
+    public function getFromCache(string $cacheKey): Compiler
     {
         $normalized = $this->normalize($cacheKey);
 

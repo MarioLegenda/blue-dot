@@ -3,9 +3,10 @@
 namespace BlueDot;
 
 use BlueDot\Common\{
-    ArgumentValidator, FlowProductInterface, StatementValidator
+    ArgumentValidator, Enum\TypeInterface, FlowProductInterface, StatementValidator
 };
 
+use BlueDot\Configuration\Cache\CompilerCache;
 use BlueDot\Configuration\Compiler;
 
 use BlueDot\Configuration\Import\ImportCollection;
@@ -20,6 +21,8 @@ use BlueDot\Exception\{
     RepositoryException, ConnectionException, ConfigurationException
 };
 
+use BlueDot\Kernel\Environment\EnvironmentFactory;
+use BlueDot\Kernel\Environment\Type\ProdEnv;
 use BlueDot\Kernel\Kernel;
 use BlueDot\Kernel\Strategy\PreparedExecution;
 use BlueDot\StatementBuilder\StatementBuilder;
@@ -30,9 +33,13 @@ use BlueDot\Repository\Repository;
 class BlueDot implements BlueDotInterface
 {
     /**
-     * @var string $configSource
+     * @var TypeInterface $environment
      */
-    private $configSource;
+    private $environment;
+    /**
+     * @var CompilerCache $compilerCache
+     */
+    private $compilerCache;
     /**
      * @var Compiler $compiler
      */
@@ -52,7 +59,9 @@ class BlueDot implements BlueDotInterface
     /**
      * BlueDot constructor.
      * @param string|null $configSource
+     * @param string $environment
      * @throws ConfigurationException
+     * @throws RepositoryException
      * @throws ConnectionException
      *
      * It is valid to construct BlueDot with empty parameters, but
@@ -60,16 +69,19 @@ class BlueDot implements BlueDotInterface
      * to be set. This allows querying multiple databases with one instance
      * of BlueDot
      */
-    public function __construct(string $configSource = null)
-    {
+    public function __construct(
+        string $configSource = null,
+        string $environment = 'dev'
+    ) {
+        $this->environment = EnvironmentFactory::create($environment);
+        $this->compilerCache = new CompilerCache();
+
         if (is_null($configSource)) {
             return $this;
         }
 
         if (is_file($configSource)) {
-            $this->repository()->putRepository($configSource);
-
-            $this->initBlueDot($configSource);
+            $this->resolveFileSourceInit($configSource);
         }
     }
     /**
@@ -98,14 +110,11 @@ class BlueDot implements BlueDotInterface
      * @return BlueDotInterface
      * @throws ConfigurationException
      * @throws ConnectionException
+     * @throws RepositoryException
      */
     public function setConfiguration(string $configSource) : BlueDotInterface
     {
-        $this->repository()->putRepository($configSource);
-
-        $this->initBlueDot($configSource);
-
-        $this->configSource = $configSource;
+        $this->resolveFileSourceInit($configSource);
 
         return $this;
     }
@@ -237,7 +246,7 @@ class BlueDot implements BlueDotInterface
 
         $this->connection = $this->createConnection($parsedConfiguration);
 
-        $this->compiler = $this->createCompiler($configSource, $parsedConfiguration);
+        $this->compiler = $this->resolveCompiler($configSource, $parsedConfiguration);
     }
     /**
      * @param string $configSource
@@ -310,6 +319,14 @@ class BlueDot implements BlueDotInterface
      */
     private function prepareBlueDot()
     {
+        if (is_null($this->repository()->getCurrentlyUsingRepository())) {
+            $message = sprintf(
+                'There is no currently using repository. If you constructed BlueDot out of a directory which hold repository files, you have to specify which repository you which to use. Use BlueDot::repository()::getWorkingRepositories() to get a list of all available repositories'
+            );
+
+            throw new \RuntimeException($message);
+        }
+
         if (!$this->connection instanceof Connection) {
             $message = sprintf(
                 'No connection present. If you constructed BlueDot without configuration, then you have to provide a connection object with \'%s\' that accepts an \'%s\' object',
@@ -323,5 +340,47 @@ class BlueDot implements BlueDotInterface
         if (!$this->compiler instanceof Compiler) {
             throw new \RuntimeException('Configuration does not exist. You have not constructed BlueDot with a configuration file. Only statement builder can be used at this point');
         }
+    }
+    /**
+     * @param string $configSource
+     * @param array $parsedConfiguration
+     * @return Compiler
+     * @throws ConfigurationException
+     */
+    private function resolveCompiler(
+        string $configSource,
+        array $parsedConfiguration
+    ): Compiler {
+        try {
+            if ($this->environment->equals(ProdEnv::fromValue())) {
+                if (!$this->compilerCache->isInCache($configSource)) {
+                    $compiler = $this->createCompiler($configSource, $parsedConfiguration);
+
+                    $this->compilerCache->putInCache($configSource, $compiler);
+                }
+
+                return $this->compilerCache->getFromCache($configSource);
+            }
+        } catch(\Throwable $e) {
+            // NOT IMPLEMENTED. There could be user privileges problems when in vendor directory.
+            // This should not be a blocking issue.
+            // A Compiler always has to be created
+        }
+
+        return $this->createCompiler($configSource, $parsedConfiguration);
+    }
+    /**
+     * @param string $configSource
+     * @throws ConfigurationException
+     * @throws ConnectionException
+     * @throws RepositoryException
+     */
+    private function resolveFileSourceInit(string $configSource)
+    {
+        $this->repository()->putRepository($configSource);
+
+        $firstRepository = array_keys($this->repository->getWorkingRepositories())[0];
+
+        $this->useRepository($firstRepository);
     }
 }

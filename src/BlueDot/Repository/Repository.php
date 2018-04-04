@@ -44,6 +44,7 @@ class Repository implements RepositoryInterface, \Countable, \IteratorAggregate
     }
     /**
      * @inheritdoc
+     * @internal
      */
     public function useRepository(string $repository) : string
     {
