@@ -101,10 +101,12 @@ class FilterTest extends TestCase
 
         static::assertInstanceOf(Entity::class, $entity);
 
-        static::assertArrayHasKey('id', $entity->toArray());
-        static::assertArrayHasKey('username', $entity->toArray());
-        static::assertArrayHasKey('lastname', $entity->toArray());
-        static::assertArrayHasKey('name', $entity->toArray());
+        $data = $entity->get('data');
+
+        static::assertArrayHasKey('id', $data);
+        static::assertArrayHasKey('username', $data);
+        static::assertArrayHasKey('lastname', $data);
+        static::assertArrayHasKey('name', $data);
     }
 
     public function test_normalize_joined_result_filter()
@@ -152,10 +154,12 @@ class FilterTest extends TestCase
 
         static::assertInstanceOf(Entity::class, $entity);
 
-        static::assertArrayHasKey('id', $entity->toArray());
-        static::assertArrayHasKey('username', $entity->toArray());
-        static::assertArrayHasKey('lastname', $entity->toArray());
-        static::assertArrayHasKey('name', $entity->toArray());
+        $data = $entity->get('data');
+
+        static::assertArrayHasKey('id', $data);
+        static::assertArrayHasKey('username', $data);
+        static::assertArrayHasKey('lastname', $data);
+        static::assertArrayHasKey('name', $data);
     }
 
     public function test_filter_on_invalid_sql_type()
@@ -189,12 +193,19 @@ class FilterTest extends TestCase
 
         $scenarioResult = $result->get('scenario.select_user.select_user');
 
+        static::assertArrayHasKey('row_count', $scenarioResult);
+
         static::assertNotEmpty($scenarioResult);
         static::assertInternalType('array', $scenarioResult);
+        static::assertArrayHasKey('data', $scenarioResult);
+        static::assertNotEmpty($scenarioResult['data']);
+        static::assertInternalType('array', $scenarioResult['data']);
 
-        static::assertArrayHasKey('username', $scenarioResult);
-        static::assertArrayHasKey('name', $scenarioResult);
-        static::assertArrayHasKey('lastname', $scenarioResult);
+        $data = $scenarioResult['data'];
+
+        static::assertArrayHasKey('username', $data);
+        static::assertArrayHasKey('name', $data);
+        static::assertArrayHasKey('lastname', $data);
     }
 
     public function test_filter_on_invalid_scenario_type()

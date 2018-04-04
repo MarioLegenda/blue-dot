@@ -81,9 +81,11 @@ class EntityFiltersTest extends TestCase
         /** @var Entity $entity */
         $entity = $entity->normalizeIfOneExists();
 
+        $data = $entity->get('data');
+
         foreach ($this->columns as $column) {
-            static::assertTrue($entity->has($column));
-            static::assertNotEmpty($entity->get($column));
+            static::assertArrayHasKey($column, $data);
+            static::assertNotEmpty($data[$column]);
         }
     }
 

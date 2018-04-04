@@ -64,7 +64,7 @@ class Entity extends AbstractArgumentBag implements FilterableEntityInterface
             }
         }
 
-        return new Entity($result, $this->getName());
+        return new Entity(['data' => $result], $this->getName());
     }
     /**
      * @inheritdoc
@@ -257,6 +257,7 @@ class Entity extends AbstractArgumentBag implements FilterableEntityInterface
         string $column,
         $value
     ):FilterableEntityInterface {
+        /** @var Entity $result */
         $result = $this->findBy($column, $value);
 
         if (count($result) !== 1) {
