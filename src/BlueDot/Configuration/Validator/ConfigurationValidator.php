@@ -169,7 +169,32 @@ class ConfigurationValidator
                                     ->cannotBeEmptyIfExists('foreign_key')
                                     ->stepIntoIfExists('foreign_key')
                                     ->cannotBeEmpty('statement_name')->isString('statement_name')
-                                    ->cannotBeEmpty('bind_to')->isString('bind_to');
+                                    ->cannotBeEmpty('bind_to')->isString('bind_to')
+                                ->isArrayIfExists('filter')
+                                ->stepIntoIfExists('filter')
+                                    ->isStringIfExists('by_column')
+                                    ->isArrayIfExists('find')
+                                        ->stepIntoIfExists('find')
+                                            ->closureValidator('find', function($nodeName, ArrayNode $node) {
+                                                $maxValues = 2;
+                                                if (count($node) !== $maxValues) {
+                                                    $message = sprintf(
+                                                'Node \'%s\' has to be an array and have %d values',
+                                                      $nodeName,
+                                                      $maxValues
+                                                    );
+
+                                                    throw new ConfigurationException($message);
+                                                }
+                                            })
+                                        ->stepOut()
+                                    ->isBooleanIfExists('normalize_if_one_exists')
+                                    ->isArrayIfExists('normalize_joined_result')
+                                    ->stepIntoIfExists('normalize_joined_result')
+                                        ->cannotBeEmpty('linking_column')
+                                        ->isString('linking_column')
+                                        ->cannotBeEmpty('columns')
+                                        ->isArray('columns');
                         }
                     });
                 }

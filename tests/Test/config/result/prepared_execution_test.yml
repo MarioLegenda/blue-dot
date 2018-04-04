@@ -58,6 +58,9 @@ configuration:
             update_all_users:
                 sql: 'UPDATE user SET username = :username'
                 parameters: [username]
+                filter:
+                    find: [id, 1]
+                    normalize_if_one_exists: true
             update_user_by_id:
                 sql: 'UPDATE user SET username = :username WHERE id = :id'
                 parameters: [username, id]
@@ -87,3 +90,21 @@ configuration:
                     foreign_key:
                         statement_name: insert_user
                         bind_to: user_id
+
+        select_user:
+            atomic: true
+            statements:
+                select_user:
+                    sql: "SELECT * FROM user"
+                    filter:
+                        find: [id, 1]
+                        normalize_if_one_exists: true
+
+        invalid_filter_insert_user:
+            atomic: true
+            statements:
+                insert_user:
+                    sql: "INSERT INTO user (username, name, lastname) VALUES (:username, :name, :lastname)"
+                    parameters: [username, name, lastname]
+                    filter:
+                        normalize_if_one_exists: true

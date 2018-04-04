@@ -3,6 +3,7 @@
 namespace BlueDot\Configuration\Flow\Scenario;
 
 use BlueDot\Common\Enum\TypeInterface;
+use BlueDot\Configuration\Filter\Filter;
 use BlueDot\Configuration\Flow\Simple\Enum\SqlTypeFactory;
 use BlueDot\Configuration\Flow\Simple\Enum\SqlTypes;
 use BlueDot\Kernel\Strategy\Enum\IfExistsType;
@@ -59,6 +60,10 @@ class Metadata
      */
     private $foreignKey;
     /**
+     * @var Filter|null
+     */
+    private $filter;
+    /**
      * Metadata constructor.
      * @param string $resolvedScenarioStatementName
      * @param string $sql
@@ -70,6 +75,7 @@ class Metadata
      * @param array|null $configParameters
      * @param UseOption|null $useOption
      * @param ForeignKey|null $foreignKey
+     * @param Filter|null $filter
      */
     public function __construct(
         string $resolvedScenarioStatementName,
@@ -81,7 +87,8 @@ class Metadata
         array $userParameters = null,
         array $configParameters = null,
         UseOption $useOption = null,
-        ForeignKey $foreignKey = null
+        ForeignKey $foreignKey = null,
+        Filter $filter = null
     ) {
         $brokenResolvedScenarioName = explode('.', $resolvedScenarioStatementName);
 
@@ -97,6 +104,7 @@ class Metadata
         $this->configParameters = $configParameters;
         $this->useOption = $useOption;
         $this->foreignKey = $foreignKey;
+        $this->filter = $filter;
     }
     /**
      * @return string
@@ -282,6 +290,13 @@ class Metadata
         }
 
         return $this->sqlType;
+    }
+    /**
+     * @return Filter|null
+     */
+    public function getFilter(): ?Filter
+    {
+        return $this->filter;
     }
     /**
      * @param array $userParameters

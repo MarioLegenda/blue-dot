@@ -96,9 +96,15 @@ class BlueDot implements BlueDotInterface
     /**
      * @param string $configSource
      * @return BlueDotInterface
+     * @throws ConfigurationException
+     * @throws ConnectionException
      */
     public function setConfiguration(string $configSource) : BlueDotInterface
     {
+        $this->repository()->putRepository($configSource);
+
+        $this->initBlueDot($configSource);
+
         $this->configSource = $configSource;
 
         return $this;
@@ -214,7 +220,7 @@ class BlueDot implements BlueDotInterface
 
         $promises = $this->preparedExecution->getPromises();
 
-        $this->preparedExecution = null;
+        $this->preparedExecution->clear();
 
         gc_collect_cycles();
 

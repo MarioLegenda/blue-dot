@@ -135,7 +135,7 @@ class FilterTest extends TestCase
         $entity = $promise->getResult();
 
         static::assertNotEmpty($entity->toArray());
-        static::assertEquals(1, count($entity->toArray()));
+        static::assertEquals(2, count($entity->toArray()));
     }
 
     public function test_normalize_if_one_exists_filter()
@@ -158,6 +158,64 @@ class FilterTest extends TestCase
         static::assertArrayHasKey('name', $entity->toArray());
     }
 
+    public function test_filter_on_invalid_sql_type()
+    {
+        $blueDot = new BlueDot(__DIR__.'/../config/result/prepared_execution_test.yml');
+
+        $entersInvalidSqlTypeForFilterException = false;
+        try {
+            $blueDot->execute('simple.update.update_all_users', [
+                'username' => $this->getFaker()->name,
+            ]);
+        } catch (\RuntimeException $e) {
+            $entersInvalidSqlTypeForFilterException = true;
+        }
+
+        static::assertTrue($entersInvalidSqlTypeForFilterException);
+    }
+
+    public function test_cascade_filter_on_scenario()
+    {
+        $blueDot = new BlueDot(__DIR__.'/../config/result/prepared_execution_test.yml');
+
+        $promise = $blueDot->execute('scenario.select_user');
+
+        static::assertInstanceOf(PromiseInterface::class, $promise);
+        static::assertTrue($promise->isSuccess());
+
+        $result = $promise->getResult();
+
+        static::assertInstanceOf(Entity::class, $result);
+
+        $scenarioResult = $result->get('scenario.select_user.select_user');
+
+        static::assertNotEmpty($scenarioResult);
+        static::assertInternalType('array', $scenarioResult);
+
+        static::assertArrayHasKey('username', $scenarioResult);
+        static::assertArrayHasKey('name', $scenarioResult);
+        static::assertArrayHasKey('lastname', $scenarioResult);
+    }
+
+    public function test_filter_on_invalid_scenario_type()
+    {
+        $blueDot = new BlueDot(__DIR__.'/../config/result/prepared_execution_test.yml');
+
+        $entersInvalidSqlTypeForFilterException = false;
+        try {
+            $blueDot->execute('scenario.invalid_filter_insert_user', [
+                'insert_user' => [
+                    'username' => $this->getFaker()->name,
+                    'lastname' => $this->getFaker()->lastName,
+                    'name' => $this->getFaker()->name,
+                ],
+            ]);
+        } catch (\RuntimeException $e) {
+            $entersInvalidSqlTypeForFilterException = true;
+        }
+
+        static::assertTrue($entersInvalidSqlTypeForFilterException);
+    }
     /**
      * @throws \BlueDot\Exception\ConfigurationException
      */

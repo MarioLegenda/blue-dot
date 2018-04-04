@@ -21,6 +21,7 @@ use BlueDot\Kernel\Strategy\StrategyTypeFactory;
 use BlueDot\Kernel\Validation\Implementation\BasicCorrectParametersValidation;
 use BlueDot\Kernel\Validation\Implementation\CorrectSqlValidation;
 use BlueDot\Kernel\Validation\Implementation\ExistsStatementValidation;
+use BlueDot\Kernel\Validation\Implementation\FilterValidator;
 use BlueDot\Kernel\Validation\Implementation\ForeignKeyValidation;
 use BlueDot\Kernel\Validation\Implementation\ModelValidation;
 use BlueDot\Kernel\Validation\Implementation\ServiceValidation;
@@ -59,6 +60,7 @@ class Kernel
             ->addValidator(new CorrectSqlValidation($this->configuration))
             ->addValidator(new BasicCorrectParametersValidation($this->configuration))
             ->addValidator(new ModelValidation($this->configuration))
+            ->addValidator(new FilterValidator($this->configuration))
             ->addValidator(new ForeignKeyValidation($this->configuration))
             ->addValidator(new UseOptionValidation($this->configuration))
             ->addValidator(new ExistsStatementValidation($this->configuration))

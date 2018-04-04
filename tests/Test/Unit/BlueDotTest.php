@@ -57,6 +57,20 @@ class BlueDotTest extends TestCase
         $this->connection->getPDO()->exec('TRUNCATE TABLE user');
     }
 
+    public function test_blue_dot_features()
+    {
+        $configSource = __DIR__.'/../config/result/prepared_execution_test.yml';
+
+        $blueDot = new BlueDot();
+
+        $blueDot->setConfiguration($configSource);
+
+        $promise = $blueDot->execute('simple.select.find_all_users');
+
+        static::assertInstanceOf(PromiseInterface::class, $promise);
+        static::assertTrue($promise->isSuccess());
+    }
+
     public function test_blue_dot_execution()
     {
         $blueDot = new BlueDot(__DIR__.'/../config/result/prepared_execution_test.yml');

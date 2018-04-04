@@ -3,6 +3,11 @@
 namespace BlueDot\Configuration\Flow;
 
 use BlueDot\Common\Util\Util;
+use BlueDot\Configuration\Filter\ByColumn;
+use BlueDot\Configuration\Filter\Filter;
+use BlueDot\Configuration\Filter\FindExact;
+use BlueDot\Configuration\Filter\NormalizeIfOneExists;
+use BlueDot\Configuration\Filter\NormalizeJoinedResult;
 use BlueDot\Configuration\Flow\Scenario\ForeignKey;
 use BlueDot\Configuration\Flow\Scenario\Metadata;
 use BlueDot\Configuration\Flow\Scenario\RootConfiguration;
@@ -73,6 +78,7 @@ class ScenarioFlow
             $configParameters = $this->resolveConfigParametersIfExists($actualStatement);
             $useOption = $this->resolveUseOptionIfExists($actualStatement);
             $foreignKey = $this->resolveForeignKeyIfExists($actualStatement);
+            $filter = $this->resolveFilters($actualStatement);
 
             $metadata[$statementName] = new Metadata(
                 $resolvedStatementName,
@@ -84,11 +90,62 @@ class ScenarioFlow
                 null,
                 $configParameters,
                 $useOption,
-                $foreignKey
+                $foreignKey,
+                $filter
             );
         }
 
         return $metadata;
+    }
+    /**
+     * @param array $config
+     * @return Filter|null
+     */
+    private function resolveFilters(array $config): ?Filter
+    {
+        if (!array_key_exists('filter', $config)) {
+            return null;
+        }
+
+        $filters = $config['filter'];
+
+        $resolvedFilters = [];
+        foreach ($filters as $filterName => $filterData) {
+            if ($filterName === 'by_column') {
+                $resolvedFilters[] = new ByColumn(
+                    $filterData,
+                    'extractColumn'
+                );
+            }
+
+            if ($filterName === 'find') {
+                $column = $filterData[0];
+                $value = $filterData[1];
+
+                $resolvedFilters[] = new FindExact(
+                    $column,
+                    $value,
+                    'find'
+                );
+            }
+
+            if ($filterName === 'normalize_if_one_exists') {
+                $resolvedFilters[] = new NormalizeIfOneExists('normalizeIfOneExists');
+            }
+
+            if ($filterName === 'normalize_joined_result') {
+                $linkingColumn = $filterData['linking_column'];
+                $columns = $filterData['columns'];
+
+                $resolvedFilters[] = new NormalizeJoinedResult(
+                    $linkingColumn,
+                    $columns,
+                    'normalizeJoinedResult'
+                );
+            }
+        }
+
+        return new Filter($resolvedFilters);
     }
     /**
      * @param array $statement

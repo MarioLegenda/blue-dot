@@ -39,20 +39,19 @@ class UserFriendlyResultFactory
         $configuration = $this->kernelResult->getConfiguration();
 
         if ($configuration instanceof SimpleConfiguration) {
-            $entity = SimpleResultFactory::instance()->create($this->kernelResult);
-
-            /** @var Filter $filter */
-            $filter = $configuration->getWorkConfig()->getFilter();
-
-            if ($filter instanceof Filter) {
-                return $this->filterApplier->apply($entity, $filter);
-            }
-
-            return $entity;
+            return SimpleResultFactory::instance()->create(
+                $this->kernelResult,
+                $this->filterApplier
+            );
         }
 
         if ($configuration instanceof ScenarioConfiguration) {
-            return ScenarioResultFactory::instance()->create($this->kernelResult);
+            $originalEntity = ScenarioResultFactory::instance()->create(
+                $this->kernelResult,
+                $this->filterApplier
+            );
+
+            return $originalEntity;
         }
     }
 }

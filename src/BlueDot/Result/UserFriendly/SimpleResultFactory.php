@@ -2,6 +2,7 @@
 
 namespace BlueDot\Result\UserFriendly;
 
+use BlueDot\Configuration\Filter\Filter;
 use BlueDot\Configuration\Flow\Simple\Enum\DeleteSqlType;
 use BlueDot\Configuration\Flow\Simple\Enum\InsertSqlType;
 use BlueDot\Configuration\Flow\Simple\Enum\OtherSqlType;
@@ -10,6 +11,7 @@ use BlueDot\Configuration\Flow\Simple\Enum\UpdateSqlType;
 use BlueDot\Configuration\Flow\Simple\SimpleConfiguration;
 use BlueDot\Entity\Entity;
 use BlueDot\Kernel\Result\KernelResultInterface;
+use BlueDot\Result\FilterApplier;
 
 class SimpleResultFactory
 {
@@ -28,10 +30,13 @@ class SimpleResultFactory
     }
     /**
      * @param KernelResultInterface $kernelResult
+     * @param FilterApplier $filterApplier
      * @return Entity
      */
-    public function create(KernelResultInterface $kernelResult): Entity
-    {
+    public function create(
+        KernelResultInterface $kernelResult,
+        FilterApplier $filterApplier
+    ): Entity {
         /** @var SimpleConfiguration $configuration */
         $configuration = $kernelResult->getConfiguration();
 
@@ -59,10 +64,14 @@ class SimpleResultFactory
                 'data' => $kernelResult['data'],
             ];
 
-            return new Entity(
+            $filter = $configuration->getWorkConfig()->getFilter();
+
+            $entity = new Entity(
                 $result,
                 $resolvedStatementName
             );
+
+            return $this->applyFilter($entity, $filterApplier, $filter);
         }
 
         if ($sqlType->equals(UpdateSqlType::fromValue())) {
@@ -100,5 +109,26 @@ class SimpleResultFactory
                 $resolvedStatementName
             );
         }
+    }
+    /**
+     * @param Filter|null $filter
+     * @param FilterApplier $filterApplier
+     * @param Entity $entity
+     * @return Entity
+     */
+    private function applyFilter(
+        Entity $entity,
+        FilterApplier $filterApplier,
+        Filter $filter = null
+    ): Entity {
+        if ($filter instanceof Filter) {
+            $appliedFilterEntity = $filterApplier->apply($entity, $filter);
+
+            $appliedFilterEntity->add('row_count', $entity->get('row_count'));
+
+            return $appliedFilterEntity;
+        }
+
+        return $entity;
     }
 }
