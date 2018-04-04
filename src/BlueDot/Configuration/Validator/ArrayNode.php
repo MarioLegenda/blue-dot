@@ -4,7 +4,7 @@ namespace BlueDot\Configuration\Validator;
 
 use BlueDot\Exception\ConfigurationException;
 
-class ArrayNode implements \IteratorAggregate
+class ArrayNode implements \IteratorAggregate, \Countable
 {
     /**
      * @var string $nodeName
@@ -23,9 +23,11 @@ class ArrayNode implements \IteratorAggregate
      */
     private $workingNode;
     /**
+     * ArrayNode constructor.
      * @param string $rootNode
      * @param array $workingNode
-     * @param ArrayNode $parentNode
+     * @param ArrayNode|null $parentNode
+     * @throws ConfigurationException
      */
     public function __construct(string $rootNode, array $workingNode, ArrayNode $parentNode = null)
     {
@@ -171,8 +173,8 @@ class ArrayNode implements \IteratorAggregate
     /**
      * @param string $nodeName
      * @param array $node
-     * @param bool $throwException
      * @return ArrayNode
+     * @throws ConfigurationException
      */
     public function keyExists(string $nodeName, array $node = array()) : ArrayNode
     {
@@ -351,7 +353,12 @@ class ArrayNode implements \IteratorAggregate
 
         return $this;
     }
-
+    /**
+     * @param $nodeName
+     * @param array $values
+     * @return ArrayNode
+     * @throws ConfigurationException
+     */
     public function hasToBeOneOf($nodeName, array $values) : ArrayNode
     {
         if ($this->conditionalIgnore === false) {
@@ -365,7 +372,6 @@ class ArrayNode implements \IteratorAggregate
         return $this;
     }
     /**
-     * @param string $nodeName
      * @return bool
      */
     public function isEmpty() : bool
@@ -379,12 +385,26 @@ class ArrayNode implements \IteratorAggregate
     {
         return new \ArrayIterator($this->workingNode);
     }
-
+    /**
+     * @return array|ArrayNode|null
+     */
     private function getParent()
     {
         return $this->parentNode;
     }
-
+    /**
+     * @return int
+     */
+    public function count(): int
+    {
+        return count($this->workingNode);
+    }
+    /**
+     * @param string $nodeName
+     * @param array $node
+     * @return $this
+     * @throws ConfigurationException
+     */
     private function internalKeyExists(string $nodeName, array $node)
     {
         if (!array_key_exists($nodeName, $node)) {

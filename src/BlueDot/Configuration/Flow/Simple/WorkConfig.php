@@ -3,6 +3,7 @@
 namespace BlueDot\Configuration\Flow\Simple;
 
 use BlueDot\Common\Enum\TypeInterface;
+use BlueDot\Configuration\Filter\Filter;
 use BlueDot\Kernel\Execution\Enum\Parameter\ParameterTypeFactory;
 
 class WorkConfig
@@ -11,6 +12,10 @@ class WorkConfig
      * @var string $sql
      */
     private $sql;
+    /**
+     * @var Filter $filter
+     */
+    private $filter;
     /**
      * @var array $configParameters
      */
@@ -26,15 +31,18 @@ class WorkConfig
     /**
      * WorkConfig constructor.
      * @param string $sql
+     * @param Filter $filter
      * @param array|null $configParameters
      * @param Model|null $model
      */
     public function __construct(
         string $sql,
+        Filter $filter = null,
         array $configParameters = null,
         Model $model = null
     ) {
         $this->sql = $sql;
+        $this->filter = $filter;
 
         if (is_null($configParameters)) {
             $configParameters = [];
@@ -85,5 +93,12 @@ class WorkConfig
     public function injectUserParameters($userParameters)
     {
         $this->userParameters = $userParameters;
+    }
+    /**
+     * @return Filter|null
+     */
+    public function getFilter(): ?Filter
+    {
+        return $this->filter;
     }
 }

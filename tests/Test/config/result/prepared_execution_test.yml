@@ -10,6 +10,36 @@ configuration:
             find_all_users:
                 sql: 'SELECT * FROM user'
 
+            by_column_filter_find_all_users:
+                sql: 'SELECT * FROM user'
+                filter:
+                    by_column: id
+
+            find_exact_filter_find_all_users:
+                sql: 'SELECT * FROM user'
+                filter:
+                    find: [id, 1]
+
+            normalize_if_one_exists_filter_find_all_users:
+                sql: 'SELECT * FROM user WHERE id = 1'
+                filter:
+                    normalize_if_one_exists: true
+
+            cascading_filter_find_all_users:
+                sql: 'SELECT * FROM user'
+                filter:
+                    find: [id, 1]
+                    normalize_if_one_exists: true
+
+            normalize_joined_result_find_all_users:
+                sql: 'SELECT * FROM user'
+                filter:
+                    normalize_joined_result:
+                        linking_column: 'id'
+                        columns: ['username']
+                    find: [id, 7]
+                    normalize_if_one_exists: true
+
             find_user_by_id_with_object_return:
                 sql: 'SELECT * FROM user WHERE id = :id'
                 parameters: [id]

@@ -2,10 +2,12 @@
 
 namespace BlueDot\Result\UserFriendly;
 
+use BlueDot\Configuration\Filter\Filter;
 use BlueDot\Configuration\Flow\Scenario\ScenarioConfiguration;
 use BlueDot\Configuration\Flow\Simple\SimpleConfiguration;
 use BlueDot\Entity\Entity;
 use BlueDot\Kernel\Result\KernelResultInterface;
+use BlueDot\Result\FilterApplier;
 
 class UserFriendlyResultFactory
 {
@@ -14,13 +16,20 @@ class UserFriendlyResultFactory
      */
     private $kernelResult;
     /**
+     * @var FilterApplier $filterApplier
+     */
+    private $filterApplier;
+    /**
      * UserFriendlyResultFactory constructor.
      * @param KernelResultInterface $kernelResult
+     * @param FilterApplier $filterApplier
      */
     public function __construct(
-        KernelResultInterface $kernelResult
+        KernelResultInterface $kernelResult,
+        FilterApplier $filterApplier
     ) {
         $this->kernelResult = $kernelResult;
+        $this->filterApplier = $filterApplier;
     }
     /**
      * @return Entity
@@ -30,13 +39,20 @@ class UserFriendlyResultFactory
         $configuration = $this->kernelResult->getConfiguration();
 
         if ($configuration instanceof SimpleConfiguration) {
-            return SimpleResultFactory::instance()->create($this->kernelResult);
+            $entity = SimpleResultFactory::instance()->create($this->kernelResult);
+
+            /** @var Filter $filter */
+            $filter = $configuration->getWorkConfig()->getFilter();
+
+            if ($filter instanceof Filter) {
+                return $this->filterApplier->apply($entity, $filter);
+            }
+
+            return $entity;
         }
 
         if ($configuration instanceof ScenarioConfiguration) {
             return ScenarioResultFactory::instance()->create($this->kernelResult);
         }
     }
-
-
 }

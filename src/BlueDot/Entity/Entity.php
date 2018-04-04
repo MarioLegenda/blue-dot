@@ -3,80 +3,89 @@
 namespace BlueDot\Entity;
 
 use BlueDot\Common\AbstractArgumentBag;
+use BlueDot\Common\Util\Util;
 use BlueDot\Exception\EntityException;
 
-class Entity extends AbstractArgumentBag
+class Entity extends AbstractArgumentBag implements FilterableEntityInterface
 {
     /**
-     * @param string $column
-     * @param mixed $value
-     * @return array
-     * @throws EntityException
-     *
-     * Finds multiple results by column and value and returns a an array
+     * @inheritdoc
      */
-    public function findBy(string $column, $value) : array
+    public function findBy(string $column, $value): FilterableEntityInterface
     {
         return $this->doFindBy($column, $value);
     }
     /**
-     * @param string $column
-     * @param $value
-     * @throws EntityException
-     * @return mixed
-     *
-     * Finds a single result from an array of result by its value and returns a new Entity
+     * @inheritdoc
      */
-    public function find(string $column, $value)
+    public function find(string $column, $value): FilterableEntityInterface
     {
         return $this->doFind($column, $value);
     }
     /**
-     * @param string $column
-     * @param string|null $alias
-     * @return array
-     * @throws EntityException
+     * @inheritdoc
      */
-    public function extractColumn(string $column, string $alias = null) : array
-    {
+    public function extractColumn(
+        string $column,
+        string $alias = null
+    ): FilterableEntityInterface {
         return $this->doExtractColumn($column, $alias);
     }
+
     /**
-     * @param array $grouping
-     * @param string|null $scenarioName
-     * @return array
-     * @throws EntityException
-     * @throws \BlueDot\Exception\BlueDotRuntimeException
+     * @inheritdoc
      */
-    public function normalizeJoinedResult(array $grouping, string $scenarioName = null)
-    {
+    public function normalizeJoinedResult(
+        array $grouping,
+        string $scenarioName = null
+    ): FilterableEntityInterface {
         return $this->doNormalizeJoinedResult($grouping, $scenarioName);
     }
     /**
-     * @return Entity
-     * @throws EntityException
+     * @inheritdoc
      */
-    public function normalizeIfOneExists() : Entity
+    public function normalizeIfOneExists() : FilterableEntityInterface
     {
-        if (count($this->arguments) === 1) {
-            if (is_object($this->arguments[0])) {
-                throw new EntityException(
-                    sprintf('Invalid argument. You cannot normalize an object in Entity::normalizeIfOneExists()')
+        $arguments = $this->arguments['data'];
+        $result = [];
+        if (count($arguments) === 1) {
+            if (is_object($arguments[0])) {
+                $message = sprintf(
+                    'Invalid argument. You cannot normalize an object in Entity::normalizeIfOneExists()'
                 );
+
+                throw new EntityException($message);
             }
 
-            $firstKey = array_keys($this->arguments)[0];
+            $firstKey = array_keys($arguments)[0];
 
             if (is_int($firstKey)) {
-                $this->arguments = $this->arguments[0];
+                $result = $arguments[0];
             }
         }
 
-        return $this;
+        return new Entity($result, $this->getName());
+    }
+    /**
+     * @inheritdoc
+     */
+    public function count(): int
+    {
+        return count($this->arguments['data']);
     }
 
-    private function doExtractColumn(string $column, string $alias = null, array $replacementResult = null)
-    {
+    /**
+     * @param string $column
+     * @param string|null $alias
+     * @param array|null $replacementResult
+     * @return FilterableEntityInterface
+     * @throws EntityException
+     */
+    private function doExtractColumn(
+        string $column,
+        string $alias = null,
+        array $replacementResult = null
+    ): FilterableEntityInterface {
         $result = array();
 
         $arguments = $this->arguments['data'];
@@ -84,7 +93,10 @@ class Entity extends AbstractArgumentBag
             $arguments = $replacementResult;
         }
 
-        foreach ($arguments as $argument) {
+        $argumentsGenerator = Util::instance()->createGenerator($arguments);
+        foreach ($argumentsGenerator as $item) {
+            $argument = $item['item'];
+
             if (is_object($argument)) {
                 $method = 'get'.str_replace('_', '', ucwords($column, '_'));
 
@@ -118,24 +130,30 @@ class Entity extends AbstractArgumentBag
             }
         }
 
-        return $result;
+        return new Entity(['data' => $result], $this->getName());
     }
     /**
      * @param string $column
      * @param $value
      * @param array|null $replacementResult
-     * @return array
+     * @return FilterableEntityInterface
      * @throws EntityException
      */
-    private function doFindBy(string $column, $value, array $replacementResult = null)
-    {
+    private function doFindBy(
+        string $column,
+        $value,
+        array $replacementResult = null
+    ): FilterableEntityInterface {
         $arguments = $this->arguments['data'];
         if (!empty($replacementResult)) {
             $arguments = $replacementResult;
         }
 
         $results = array();
-        foreach ($arguments as $argument) {
+        $argumentsGenerator = Util::instance()->createGenerator($arguments);
+        foreach ($argumentsGenerator as $item) {
+            $argument = $item['item'];
+
             if (is_object($argument)) {
                 $method = 'get'.str_replace('_', '', ucwords($column, '_'));
 
@@ -165,14 +183,13 @@ class Entity extends AbstractArgumentBag
             }
         }
 
-        return $results;
+        return new Entity(['data' => $results], $this->getName());
     }
     /**
      * @param array $grouping
      * @param string|null $scenarioName
-     * @return array
+     * @return FilterableEntityInterface
      * @throws EntityException
-     * @throws \BlueDot\Exception\BlueDotRuntimeException
      */
     private function doNormalizeJoinedResult(array $grouping, string $scenarioName = null)
     {
@@ -183,7 +200,10 @@ class Entity extends AbstractArgumentBag
         $traversedValues = array();
         $result = array();
         $temp = array();
-        foreach ($arguments as $argument) {
+        $argumentsGenerator = Util::instance()->createGenerator($arguments);
+        foreach ($argumentsGenerator as $item) {
+            $argument = $item['item'];
+
             if (array_key_exists($grouping->getLinkingColumn(), $argument)) {
                 $linkingColumn = $grouping->getLinkingColumn();
                 $columnValue = $argument[$linkingColumn];
@@ -193,14 +213,18 @@ class Entity extends AbstractArgumentBag
                     continue;
                 }
 
+                /** @var Entity $foundResults */
                 $foundResults = $this->doFindBy($linkingColumn, $columnValue, $arguments);
                 $extracted = array();
 
                 foreach ($columns as $column) {
-                    $extractedColumnValues = $this->doExtractColumn($column, null, $foundResults);
+                    /** @var Entity $extractedColumnValues */
+                    $extractedColumnValues = $this->doExtractColumn($column, null, $foundResults->toArray()['data']);
 
-                    if (!empty($extractedColumnValues)) {
-                        $extracted[$column] = array($column => array_unique($extractedColumnValues[$column]));
+                    $extractedColumnValuesArray = $extractedColumnValues->toArray()['data'];
+
+                    if (!empty($extractedColumnValuesArray)) {
+                        $extracted[$column] = array($column => array_unique($extractedColumnValuesArray[$column]));
                     }
                 }
 
@@ -221,16 +245,18 @@ class Entity extends AbstractArgumentBag
             }
         }
 
-        return $result;
+        return new Entity(['data' => $result], $this->getName());
     }
     /**
      * @param string $column
      * @param $value
-     * @return array|mixed
+     * @return FilterableEntityInterface
      * @throws EntityException
      */
-    private function doFind(string $column, $value)
-    {
+    private function doFind(
+        string $column,
+        $value
+    ):FilterableEntityInterface {
         $result = $this->findBy($column, $value);
 
         if (count($result) !== 1) {
@@ -245,7 +271,7 @@ class Entity extends AbstractArgumentBag
             return $result[0];
         }
 
-        return $result;
+        return new Entity($result, $this->getName());
     }
     /**
      * @param string|null $scenarioName

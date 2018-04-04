@@ -26,6 +26,7 @@ use BlueDot\Kernel\Validation\Implementation\ModelValidation;
 use BlueDot\Kernel\Validation\Implementation\ServiceValidation;
 use BlueDot\Kernel\Validation\Implementation\UseOptionValidation;
 use BlueDot\Kernel\Validation\ValidationResolver;
+use BlueDot\Result\FilterApplier;
 use BlueDot\Result\UserFriendly\UserFriendlyResultFactory;
 
 class Kernel
@@ -114,7 +115,10 @@ class Kernel
     public function convertKernelResultToUserFriendlyResult(
         KernelResultInterface $kernelResult
     ): Entity {
-        $userFriendlyResultFactory = new UserFriendlyResultFactory($kernelResult);
+        $userFriendlyResultFactory = new UserFriendlyResultFactory(
+            $kernelResult,
+            new FilterApplier()
+        );
 
         return $userFriendlyResultFactory->create();
     }

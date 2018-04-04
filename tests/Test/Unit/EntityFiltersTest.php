@@ -55,11 +55,13 @@ class EntityFiltersTest extends TestCase
 
         $entity = new Entity($result);
 
+        /** @var Entity $idResult */
         $idResult = $entity->extractColumn('id');
 
-        static::assertEquals(1, count($idResult));
-        static::assertArrayHasKey('id', $idResult);
-        static::assertEquals(10, count($idResult['id']));
+        static::assertTrue($idResult->has('data'));
+        static::assertEquals(1, count($idResult->get('data')));
+        static::assertArrayHasKey('id', $idResult->get('data'));
+        static::assertEquals(10, count($idResult->get('data')['id']));
     }
 
     public function test_normalizeIfOneExists()
@@ -69,13 +71,15 @@ class EntityFiltersTest extends TestCase
 
         $entity = new Entity($result);
 
+        /** @var Entity $idResult */
         $idResult = $entity->find('id', $id);
 
         static::assertEquals(1, count($idResult));
 
         $entity = new Entity($idResult);
 
-        $entity->normalizeIfOneExists();
+        /** @var Entity $entity */
+        $entity = $entity->normalizeIfOneExists();
 
         foreach ($this->columns as $column) {
             static::assertTrue($entity->has($column));
@@ -89,6 +93,7 @@ class EntityFiltersTest extends TestCase
 
         $entity = new Entity($normalizationArray);
 
+        /** @var Entity $normalized */
         $normalized = $entity->normalizeJoinedResult([
             'linking_column' => 'id',
             'columns' => [
@@ -97,14 +102,13 @@ class EntityFiltersTest extends TestCase
             ],
         ]);
 
-        static::assertEquals(10, count($normalized));
+        static::assertEquals(10, count($normalized->toArray()['data']));
 
-        foreach ($normalized as $item) {
+        foreach ($normalized['data'] as $item) {
             static::assertGreaterThan(1, $item['lastname']);
             static::assertGreaterThan(1, $item['username']);
         }
     }
-
     /**
      * @param int $numOfEntries
      * @return array

@@ -3,6 +3,11 @@
 namespace BlueDot\Configuration\Flow;
 
 use BlueDot\Common\Enum\TypeInterface;
+use BlueDot\Configuration\Filter\ByColumn;
+use BlueDot\Configuration\Filter\Filter;
+use BlueDot\Configuration\Filter\FindExact;
+use BlueDot\Configuration\Filter\NormalizeIfOneExists;
+use BlueDot\Configuration\Filter\NormalizeJoinedResult;
 use BlueDot\Configuration\Flow\Simple\Enum\SqlTypeFactory;
 use BlueDot\Configuration\Import\ImportCollection;
 use BlueDot\Configuration\Flow\Simple\Metadata;
@@ -33,6 +38,7 @@ class SimpleFlow
         $sql = $this->resolveSql($importCollection, $config['sql']);
         $parameters = $this->resolveConfigParametersIfExists($config);
         $model = $this->resolveModelIfExists($config);
+        $filter = $this->resolveFilter($config);
 
         $metadata = new Metadata(
             $statementInfo['statement_type'],
@@ -44,6 +50,7 @@ class SimpleFlow
 
         $workConfig = new WorkConfig(
             $sql,
+            $filter,
             $parameters,
             $model
         );
@@ -125,5 +132,55 @@ class SimpleFlow
         }
 
         return null;
+    }
+    /**
+     * @param array $config
+     * @return Filter
+     */
+    private function resolveFilter(array $config): ?Filter
+    {
+        if (!array_key_exists('filter', $config)) {
+            return null;
+        }
+
+        $filters = $config['filter'];
+
+        $resolvedFilters = [];
+        foreach ($filters as $filterName => $filterData) {
+            if ($filterName === 'by_column') {
+                $resolvedFilters[] = new ByColumn(
+                    $filterData,
+                    'extractColumn'
+                );
+            }
+
+            if ($filterName === 'find') {
+                $column = $filterData[0];
+                $value = $filterData[1];
+
+                $resolvedFilters[] = new FindExact(
+                    $column,
+                    $value,
+                    'find'
+                );
+            }
+
+            if ($filterName === 'normalize_if_one_exists') {
+                $resolvedFilters[] = new NormalizeIfOneExists('normalizeIfOneExists');
+            }
+
+            if ($filterName === 'normalize_joined_result') {
+                $linkingColumn = $filterData['linking_column'];
+                $columns = $filterData['columns'];
+
+                $resolvedFilters[] = new NormalizeJoinedResult(
+                    $linkingColumn,
+                    $columns,
+                    'normalizeJoinedResult'
+                );
+            }
+        }
+
+        return new Filter($resolvedFilters);
     }
 }
