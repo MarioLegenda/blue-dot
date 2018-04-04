@@ -2,6 +2,7 @@
 
 namespace BlueDot\Configuration\Flow\Scenario;
 
+use BlueDot\Common\Util\Util;
 use BlueDot\Configuration\Flow\FlowConfigurationProductInterface;
 
 class ScenarioConfiguration implements FlowConfigurationProductInterface
@@ -49,7 +50,12 @@ class ScenarioConfiguration implements FlowConfigurationProductInterface
             return null;
         }
 
-        foreach ($userParameters as $scenarioStatementName => $parameters) {
+        $userParametersGenerator = Util::instance()->createGenerator($userParameters);
+
+        foreach ($userParametersGenerator as $item) {
+            $scenarioStatementName = $item['key'];
+            $parameters = $item['item'];
+
             if (array_key_exists($scenarioStatementName, $this->metadata)) {
                 /** @var Metadata $metadata */
                 $metadata = $this->metadata[$scenarioStatementName];

@@ -214,7 +214,9 @@ class BlueDot implements BlueDotInterface
 
         $promises = $this->preparedExecution->getPromises();
 
-        $this->preparedExecution->clear();
+        $this->preparedExecution = null;
+
+        gc_collect_cycles();
 
         return $promises;
     }

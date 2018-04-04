@@ -3,6 +3,7 @@
 namespace BlueDot\Kernel\Strategy;
 
 use BlueDot\Common\Enum\TypeInterface;
+use BlueDot\Common\Util\Util;
 use BlueDot\Configuration\Flow\Scenario\Metadata;
 use BlueDot\Configuration\Flow\Scenario\RootConfiguration;
 use BlueDot\Configuration\Flow\Scenario\ScenarioConfiguration;
@@ -24,10 +25,6 @@ class ScenarioStrategy implements StrategyInterface
      * @var Connection $connection
      */
     protected $connection;
-    /**
-     * @var array $metadata
-     */
-    protected $metadata;
     /**
      * @var KernelResultCollection $results
      */
@@ -62,11 +59,15 @@ class ScenarioStrategy implements StrategyInterface
             }
         }
 
-        $this->metadata = $this->configuration->getMetadata();
+        $metadata = $this->configuration->getMetadata();
+
+        $metadataGenerator = Util::instance()->createGenerator($metadata);
 
         try {
-            /** @var Metadata $item */
-            foreach ($this->metadata as $item) {
+            foreach ($metadataGenerator as $metadataItem) {
+                /** @var Metadata $item */
+                $item = $metadataItem['item'];
+
                 if ($item->hasIfExistsStatement() or $item->hasIfNotExistsStatement()) {
                     $existsStatementName = $item->getExistsStatementName();
                     $fullExistsStatementName = $item->createExistsFullStatementName();
@@ -75,7 +76,7 @@ class ScenarioStrategy implements StrategyInterface
                     $existsType = $item->getExistsStatementType();
 
                     /** @var Metadata $existsStatementMetadata */
-                    $existsStatementMetadata = $this->metadata[$existsStatementName];
+                    $existsStatementMetadata = $metadata[$existsStatementName];
 
                     if (!$this->results->has($fullExistsStatementName)) {
                         $recursiveStatementExecution = new RecursiveStatementExecution(
@@ -84,7 +85,7 @@ class ScenarioStrategy implements StrategyInterface
                             $this->connection
                         );
 
-                        $recursiveStatementExecution->execute($this->metadata);
+                        $recursiveStatementExecution->execute($metadata);
 
                         unset($recursiveStatementExecution);
                     }
@@ -114,7 +115,7 @@ class ScenarioStrategy implements StrategyInterface
                     $this->connection
                 );
 
-                $recursiveStatementExecution->execute($this->metadata);
+                $recursiveStatementExecution->execute($metadata);
 
                 unset($recursiveStatementExecution);
             }

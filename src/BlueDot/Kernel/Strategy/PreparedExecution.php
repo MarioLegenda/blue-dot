@@ -101,8 +101,8 @@ class PreparedExecution
      */
     public function clear() : PreparedExecution
     {
-        $this->kernels = array();
-        $this->promises = array();
+        $this->kernels = [];
+        $this->promises = [];
 
         gc_collect_cycles();
 

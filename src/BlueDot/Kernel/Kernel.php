@@ -105,8 +105,12 @@ class Kernel
     public function executeStrategy(
         StrategyInterface $strategy,
         bool $delayedTransactionCommit = false
-    ) {
-       return $strategy->execute($delayedTransactionCommit);
+    ): KernelResultInterface {
+      $kernelResult = $strategy->execute($delayedTransactionCommit);
+
+      gc_collect_cycles();
+
+      return $kernelResult;
     }
     /**
      * @param KernelResultInterface $kernelResult
