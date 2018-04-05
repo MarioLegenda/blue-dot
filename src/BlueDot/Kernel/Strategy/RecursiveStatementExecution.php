@@ -58,7 +58,7 @@ class RecursiveStatementExecution
      */
     public function getResult()
     {
-        $resolvedStatementName = $this->statement->getResolvedScenarioStatementName();
+        $resolvedStatementName = $this->statement->getSingleScenarioName();
 
         return $this->results->get($resolvedStatementName);
     }
@@ -85,7 +85,7 @@ class RecursiveStatementExecution
         /** @var TypeInterface $sqlType */
         $sqlType = $this->statement->getSqlType();
 
-        $resolvedStatementName = $this->statement->getResolvedScenarioStatementName();
+        $resolvedStatementName = $this->statement->getSingleScenarioName();
 
         try {
             if ($foreignKey instanceof ForeignKey and $sqlType->equals(InsertSqlType::fromValue())) {
@@ -100,12 +100,10 @@ class RecursiveStatementExecution
                     );
                 }
 
-                $foreignKeyFullStatementName = $this->statement->getForeignKeyStatementName();
-
                 /** @var Metadata $foreignKeyStatement */
                 $foreignKeyStatement = $metadataList[$foreignKey->getStatementName()];
 
-                if (!$this->results->has($foreignKeyFullStatementName)) {
+                if (!$this->results->has($foreignKey->getStatementName())) {
                     $recursiveStatementExecution = new RecursiveStatementExecution(
                         $foreignKeyStatement,
                         $this->results,
@@ -176,7 +174,7 @@ class RecursiveStatementExecution
             $useOptionStatementName = $this->statement->getUseOptionStatementName();
             $useStatement = $metadataList[$useOption->getStatementName()];
 
-            if (!$this->results->has($useOptionStatementName)) {
+            if (!$this->results->has($useOption->getStatementName())) {
                 $recursiveStatementExecution = new RecursiveStatementExecution(
                     $useStatement,
                     $this->results,
@@ -188,10 +186,10 @@ class RecursiveStatementExecution
 
                 unset($recursiveStatementExecution);
 
-                $this->results->add($useOptionStatementName, $result);
+                $this->results->add($useOption->getStatementName(), $result);
             }
 
-            $useOptionResult = $this->results->get($useOptionStatementName);
+            $useOptionResult = $this->results->get($useOption->getStatementName());
 
             if (!$useOptionResult instanceof SelectQueryResult) {
                 throw new \RuntimeException(
@@ -233,7 +231,7 @@ class RecursiveStatementExecution
             $foreignKeyStatementName = $this->statement->getForeignKeyStatementName();
             $foreignKeyStatement = $metadataList[$foreignKey->getStatementName()];
 
-            if (!$this->results->has($foreignKeyStatementName)) {
+            if (!$this->results->has($foreignKey->getStatementName())) {
                 $recursiveStatementExecution = new RecursiveStatementExecution(
                     $foreignKeyStatement,
                     $this->results,
@@ -242,12 +240,15 @@ class RecursiveStatementExecution
 
                 $recursiveStatementExecution->execute($metadataList);
 
-                $this->results->add($foreignKeyStatementName, $recursiveStatementExecution->getResult());
+                $this->results->add(
+                    $foreignKey->getStatementName(),
+                    $recursiveStatementExecution->getResult()
+                );
 
                 unset($recursiveStatementExecution);
             }
 
-            $foreignKeyResult = $this->results->get($foreignKeyStatementName);
+            $foreignKeyResult = $this->results->get($foreignKey->getStatementName());
 
             if (!$foreignKeyResult instanceof InsertQueryResult and !$foreignKeyResult instanceof MultipleInsertQueryResult) {
                 throw new \RuntimeException(sprintf(
@@ -273,7 +274,7 @@ class RecursiveStatementExecution
         /** @var TypeInterface $statementType */
         $statementType = $this->statement->getSqlType();
 
-        $resolvedStatementName = $this->statement->getResolvedScenarioStatementName();
+        $resolvedStatementName = $this->statement->getSingleScenarioName();
 
         $queryResult = ResultReportContext::context(array(
             'statement_type' => (string) $statementType,

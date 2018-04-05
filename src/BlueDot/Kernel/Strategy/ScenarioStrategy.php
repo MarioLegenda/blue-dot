@@ -78,7 +78,7 @@ class ScenarioStrategy implements StrategyInterface
                     /** @var Metadata $existsStatementMetadata */
                     $existsStatementMetadata = $metadata[$existsStatementName];
 
-                    if (!$this->results->has($fullExistsStatementName)) {
+                    if (!$this->results->has($existsStatementName)) {
                         $recursiveStatementExecution = new RecursiveStatementExecution(
                             $existsStatementMetadata,
                             $this->results,
@@ -90,7 +90,7 @@ class ScenarioStrategy implements StrategyInterface
                         unset($recursiveStatementExecution);
                     }
 
-                    $existsStatementResult = $this->results->get($fullExistsStatementName);
+                    $existsStatementResult = $this->results->get($existsStatementName);
 
                     if ($existsType->equals(IfExistsType::fromValue())) {
                         if ($existsStatementResult instanceof NullQueryResult) {
@@ -105,7 +105,7 @@ class ScenarioStrategy implements StrategyInterface
                     }
                 }
 
-                if ($this->results->has($item->getResolvedScenarioStatementName())) {
+                if ($this->results->has($item->getSingleScenarioName())) {
                     continue;
                 }
 

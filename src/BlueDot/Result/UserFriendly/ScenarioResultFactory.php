@@ -85,7 +85,7 @@ class ScenarioResultFactory
                     'data' => $queryResult->getQueryResult(),
                 ];
 
-                $singleStatementName = explode('.', $item['key'])[2];
+                $singleStatementName = $item['key'];
 
                 /** @var Metadata $statementMetadata */
                 $statementMetadata = $metadata[$singleStatementName];

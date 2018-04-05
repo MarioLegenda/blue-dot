@@ -481,18 +481,18 @@ class KernelResultTest extends TestCase
 
         static::assertEquals(2, count($result));
 
-        static::assertArrayHasKey('scenario.insert_user.insert_user', $result);
-        static::assertArrayHasKey('scenario.insert_user.insert_address', $result);
+        static::assertArrayHasKey('insert_user', $result);
+        static::assertArrayHasKey('insert_address', $result);
 
-        static::assertInstanceOf(InsertQueryResult::class, $result['scenario.insert_user.insert_user']);
-        static::assertInstanceOf(InsertQueryResult::class, $result['scenario.insert_user.insert_address']);
+        static::assertInstanceOf(InsertQueryResult::class, $result['insert_user']);
+        static::assertInstanceOf(InsertQueryResult::class, $result['insert_address']);
 
         $entity = $kernel->convertKernelResultToUserFriendlyResult($kernelResult);
 
         static::assertInstanceOf(Entity::class, $entity);
-        static::assertTrue($entity->has('scenario.insert_user.insert_user'));
+        static::assertTrue($entity->has('insert_user'));
 
-        $result1 = $entity->get('scenario.insert_user.insert_user');
+        $result1 = $entity->get('insert_user');
 
         static::assertNotEmpty($result1);
         static::assertInternalType('array', $result1);
@@ -503,7 +503,7 @@ class KernelResultTest extends TestCase
         static::assertArrayHasKey('last_insert_id', $result1);
         static::assertInternalType('int', $result1['last_insert_id']);
 
-        $result2 = $entity->get('scenario.insert_user.insert_address');
+        $result2 = $entity->get('insert_address');
 
         static::assertNotEmpty($result2);
         static::assertInternalType('array', $result2);
@@ -549,18 +549,18 @@ class KernelResultTest extends TestCase
 
         static::assertEquals(2, count($result));
 
-        static::assertArrayHasKey('scenario.update_user.find_user_by_id', $result);
-        static::assertArrayHasKey('scenario.update_user.update_user', $result);
+        static::assertArrayHasKey('find_user_by_id', $result);
+        static::assertArrayHasKey('update_user', $result);
 
-        static::assertInstanceOf(SelectQueryResult::class, $result['scenario.update_user.find_user_by_id']);
-        static::assertInstanceOf(UpdateQueryResult::class, $result['scenario.update_user.update_user']);
+        static::assertInstanceOf(SelectQueryResult::class, $result['find_user_by_id']);
+        static::assertInstanceOf(UpdateQueryResult::class, $result['update_user']);
 
         $entity = $kernel->convertKernelResultToUserFriendlyResult($kernelResult);
 
         static::assertInstanceOf(Entity::class, $entity);
-        static::assertTrue($entity->has('scenario.update_user.find_user_by_id'));
+        static::assertTrue($entity->has('find_user_by_id'));
 
-        $selectResult = $entity->get('scenario.update_user.find_user_by_id');
+        $selectResult = $entity->get('find_user_by_id');
 
         static::assertArrayHasKey('row_count', $selectResult);
         static::assertGreaterThan(0, $selectResult['row_count']);
@@ -604,18 +604,18 @@ class KernelResultTest extends TestCase
 
         static::assertEquals(1, count($result));
 
-        static::assertArrayHasKey('scenario.update_user.find_user_by_id', $result);
-        static::assertArrayNotHasKey('scenario.update_user.update_user', $result);
+        static::assertArrayHasKey('find_user_by_id', $result);
+        static::assertArrayNotHasKey('update_user', $result);
 
-        static::assertInstanceOf(NullQueryResult::class, $result['scenario.update_user.find_user_by_id']);
+        static::assertInstanceOf(NullQueryResult::class, $result['find_user_by_id']);
 
         $entity = $kernel->convertKernelResultToUserFriendlyResult($kernelResult);
 
         static::assertInstanceOf(Entity::class, $entity);
-        static::assertTrue($entity->has('scenario.update_user.find_user_by_id'));
-        static::assertNull($entity->get('scenario.update_user.find_user_by_id'));
+        static::assertTrue($entity->has('find_user_by_id'));
+        static::assertNull($entity->get('find_user_by_id'));
 
-        static::assertFalse($entity->has('scenario.update_user.update_user'));
+        static::assertFalse($entity->has('update_user'));
     }
 
     public function test_scenario_4()
@@ -652,22 +652,22 @@ class KernelResultTest extends TestCase
 
         static::assertEquals(2, count($result));
 
-        static::assertArrayHasKey('scenario.conditional_insert_user.find_user_by_id', $result);
-        static::assertArrayHasKey('scenario.conditional_insert_user.insert_user', $result);
+        static::assertArrayHasKey('find_user_by_id', $result);
+        static::assertArrayHasKey('insert_user', $result);
 
-        static::assertInstanceOf(NullQueryResult::class, $result['scenario.conditional_insert_user.find_user_by_id']);
-        static::assertInstanceOf(InsertQueryResult::class, $result['scenario.conditional_insert_user.insert_user']);
+        static::assertInstanceOf(NullQueryResult::class, $result['find_user_by_id']);
+        static::assertInstanceOf(InsertQueryResult::class, $result['insert_user']);
 
         $entity = $kernel->convertKernelResultToUserFriendlyResult($kernelResult);
 
         static::assertInstanceOf(Entity::class, $entity);
 
-        static::assertTrue($entity->has('scenario.conditional_insert_user.find_user_by_id'));
-        static::assertNull($entity->get('scenario.conditional_insert_user.find_user_by_id'));
+        static::assertTrue($entity->has('find_user_by_id'));
+        static::assertNull($entity->get('find_user_by_id'));
 
-        static::assertTrue($entity->has('scenario.conditional_insert_user.insert_user'));
+        static::assertTrue($entity->has('insert_user'));
 
-        $insertResult = $entity->get('scenario.conditional_insert_user.insert_user');
+        $insertResult = $entity->get('insert_user');
 
         static::assertNotEmpty($insertResult);
         static::assertInternalType('array', $insertResult);
@@ -713,17 +713,17 @@ class KernelResultTest extends TestCase
 
         static::assertEquals(2, count($result));
 
-        static::assertArrayHasKey('scenario.use_existing_user.find_user_by_id', $result);
-        static::assertArrayHasKey('scenario.use_existing_user.insert_user', $result);
+        static::assertArrayHasKey('find_user_by_id', $result);
+        static::assertArrayHasKey('insert_user', $result);
 
-        static::assertInstanceOf(SelectQueryResult::class, $result['scenario.use_existing_user.find_user_by_id']);
-        static::assertInstanceOf(InsertQueryResult::class, $result['scenario.use_existing_user.insert_user']);
+        static::assertInstanceOf(SelectQueryResult::class, $result['find_user_by_id']);
+        static::assertInstanceOf(InsertQueryResult::class, $result['insert_user']);
 
         $entity = $kernel->convertKernelResultToUserFriendlyResult($kernelResult);
 
         static::assertInstanceOf(Entity::class, $entity);
 
-        $selectResult = $entity->get('scenario.use_existing_user.find_user_by_id');
+        $selectResult = $entity->get('find_user_by_id');
 
         static::assertArrayHasKey('row_count', $selectResult);
         static::assertGreaterThan(0, $selectResult['row_count']);
@@ -732,7 +732,7 @@ class KernelResultTest extends TestCase
         static::assertNotEmpty($selectResult['data']);
         static::assertInternalType('array', $selectResult['data']);
 
-        $insertResult = $entity->get('scenario.use_existing_user.insert_user');
+        $insertResult = $entity->get('insert_user');
 
         static::assertNotEmpty($insertResult);
         static::assertInternalType('array', $insertResult);

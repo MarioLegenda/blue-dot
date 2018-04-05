@@ -191,7 +191,7 @@ class FilterTest extends TestCase
 
         static::assertInstanceOf(Entity::class, $result);
 
-        $scenarioResult = $result->get('scenario.select_user.select_user');
+        $scenarioResult = $result->get('select_user');
 
         static::assertArrayHasKey('row_count', $scenarioResult);
 
