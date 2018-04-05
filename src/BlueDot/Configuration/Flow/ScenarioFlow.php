@@ -30,13 +30,11 @@ class ScenarioFlow
         array $config,
         ImportCollection $importCollection
     ): ScenarioConfiguration {
-
-        $resolvedScenarioName = sprintf('scenario.%s', $scenarioName);
         $scenarioModel = $this->resolveScenarioModelIfExists($config);
         $atomic = $config['atomic'];
 
         $rootConfiguration = new RootConfiguration(
-            $resolvedScenarioName,
+            $scenarioName,
             $atomic,
             $scenarioModel
         );

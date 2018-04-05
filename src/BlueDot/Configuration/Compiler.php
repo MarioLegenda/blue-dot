@@ -25,6 +25,10 @@ class Compiler
      */
     private $statementValidator;
     /**
+     * @var array $gatheredConfiguration
+     */
+    private $gatheredConfiguration = [];
+    /**
      * @var ValidatorInterface|StatementValidator $argumentValidator
      */
     private $argumentValidator;
@@ -95,11 +99,11 @@ class Compiler
     {
         $this->argumentValidator->validate($name);
 
-        if ($this->configurationCollection->hasConfiguration($name)) {
-            return $this->configurationCollection->getConfiguration($name);
+        if (!array_key_exists($name, $this->gatheredConfiguration)) {
+            throw new \RuntimeException(sprintf('Statement \'%s\' not found', $name));
         }
 
-        throw new \RuntimeException(sprintf('Statement \'%s\' not found', $name));
+        return $this->compileConfiguration($name);
     }
     /**
      * @return bool
@@ -109,6 +113,48 @@ class Compiler
         return $this->isCompiled;
     }
     /**
+     * @param string $name
+     * @return Flow\FlowConfigurationProductInterface|Flow\Simple\SimpleConfiguration
+     */
+    private function compileConfiguration(string $name)
+    {
+        $statementType = explode('.', $name)[0];
+
+        if ($statementType === 'simple') {
+            $simpleFlow = new SimpleFlow();
+
+            $statementConfig = $this->gatheredConfiguration[$name];
+
+            return $simpleFlow->create(
+                $name,
+                $statementConfig,
+                $this->imports
+            );
+        }
+
+        if ($statementType === 'scenario') {
+            $scenarioFlow = new ScenarioFlow();
+
+            $statementConfig = $this->gatheredConfiguration[$name];
+            return $scenarioFlow->create(
+                $name,
+                $statementConfig,
+                $this->imports
+            );
+        }
+
+        if ($statementType === 'service') {
+            $serviceFlow = new ServiceFlow();
+
+            $statementConfig = $this->gatheredConfiguration[$name];
+
+            return $serviceFlow->create(
+                $name,
+                $statementConfig
+            );
+        }
+    }
+    /**
      * @void
      */
     private function compileReal()
@@ -116,10 +162,6 @@ class Compiler
         $this->compileSimpleStatements();
         $this->compileScenarioStatement();
         $this->compileServiceStatement();
-
-        $this->configurationCollection = new ConfigurationCollection(
-            Util::instance()->createGenerator($this->builtStatements)
-        );
     }
     /**
      * @void
@@ -133,19 +175,11 @@ class Compiler
         $simpleConfigurationGenerator = Util::instance()
             ->createGenerator($this->configuration['simple']);
 
-        $simpleFlow = new SimpleFlow();
-
         foreach ($simpleConfigurationGenerator as $typeConfig) {
             foreach ($typeConfig['item'] as $statementName => $statementConfig) {
                 $resolvedStatementName = sprintf('simple.%s.%s', $typeConfig['key'], $statementName);
 
-                $configuration = $simpleFlow->create(
-                    $resolvedStatementName,
-                    $statementConfig,
-                    $this->imports
-                );
-
-                $this->builtStatements[$resolvedStatementName] = $configuration;
+                $this->gatheredConfiguration[$resolvedStatementName] = $statementConfig;
             }
         }
     }
@@ -161,20 +195,12 @@ class Compiler
         $scenarioConfiguration = Util::instance()
             ->createGenerator($this->configuration['scenario']);
 
-        $scenarioFlow = new ScenarioFlow();
-
         foreach ($scenarioConfiguration as $scenarioConfigs) {
             $scenarioName = $scenarioConfigs['key'];
+
             $resolvedScenarioName = sprintf('scenario.%s', $scenarioName);
-            $returnData = null;
 
-            $configuration = $scenarioFlow->create(
-                $scenarioName,
-                $scenarioConfigs['item'],
-                $this->imports
-            );
-
-            $this->builtStatements[$resolvedScenarioName] = $configuration;
+            $this->gatheredConfiguration[$resolvedScenarioName] = $scenarioConfigs['item'];
         }
     }
     /**
@@ -189,18 +215,11 @@ class Compiler
         $serviceConfiguration = Util::instance()
             ->createGenerator($this->configuration['service']);
 
-        $serviceFlow = new ServiceFlow();
-
         foreach ($serviceConfiguration as $callableConfigs) {
             $serviceName = $callableConfigs['key'];
             $resolvedServiceName = sprintf('service.%s', $serviceName);
 
-            $serviceConfig = $serviceFlow->create(
-                $resolvedServiceName,
-                $callableConfigs
-            );
-
-            $this->builtStatements[$resolvedServiceName] = $serviceConfig;
+            $this->gatheredConfiguration[$resolvedServiceName] = $callableConfigs;
         }
     }
     /**
