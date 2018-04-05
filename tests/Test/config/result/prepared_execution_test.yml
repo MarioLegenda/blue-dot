@@ -5,18 +5,20 @@ configuration:
         password: 'root'
         database_name: 'blue_dot'
 
+    sql_import: 'import/import.yml'
+
     simple:
         select:
             find_all_users:
-                sql: 'SELECT * FROM user'
+                sql: select.find_all_users
 
             by_column_filter_find_all_users:
-                sql: 'SELECT * FROM user'
+                sql: select.find_all_users
                 filter:
                     by_column: id
 
             find_exact_filter_find_all_users:
-                sql: 'SELECT * FROM user'
+                sql: select.find_all_users
                 filter:
                     find: [id, 1]
 
@@ -26,13 +28,13 @@ configuration:
                     normalize_if_one_exists: true
 
             cascading_filter_find_all_users:
-                sql: 'SELECT * FROM user'
+                sql: select.find_all_users
                 filter:
                     find: [id, 1]
                     normalize_if_one_exists: true
 
             normalize_joined_result_find_all_users:
-                sql: 'SELECT * FROM user'
+                sql: select.find_all_users
                 filter:
                     normalize_joined_result:
                         linking_column: 'id'
@@ -95,7 +97,7 @@ configuration:
             atomic: true
             statements:
                 select_user:
-                    sql: "SELECT * FROM user"
+                    sql: select.find_all_users
                     filter:
                         find: [id, 1]
                         normalize_if_one_exists: true

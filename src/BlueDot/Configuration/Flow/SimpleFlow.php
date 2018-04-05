@@ -109,7 +109,7 @@ class SimpleFlow
         string $sql
     ): string {
         if ($importCollection->hasImport('sql_import')) {
-            $import = $importCollection->getImport('sql_import', $sql);
+            $import = $importCollection->getImport('sql_import');
 
             if ($import->hasValue($sql)) {
                 return $import->getValue($sql);

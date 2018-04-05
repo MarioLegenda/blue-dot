@@ -224,7 +224,7 @@ class ScenarioFlow
             $possibleImport = $statement['sql'];
             $import = $importCollection->getImport('sql_import');
 
-            if ($importCollection->hasValue($possibleImport)) {
+            if ($import->hasValue($possibleImport)) {
                 return $import->getValue($possibleImport);
             }
         }

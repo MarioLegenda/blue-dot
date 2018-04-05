@@ -38,6 +38,6 @@ class CompilerCacheTest extends TestCase
         $blueDot->useRepository('scenario_statement_test');
         $blueDot->useRepository('simple_statement_test');
 
-        static::assertEquals(5, count(scandir($configDir)));
+        static::assertEquals(6, count(scandir($configDir)));
     }
 }

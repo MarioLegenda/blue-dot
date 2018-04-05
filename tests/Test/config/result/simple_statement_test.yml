@@ -5,10 +5,12 @@ configuration:
         password: 'root'
         database_name: 'blue_dot'
 
+    sql_import: import/import.yml
+
     simple:
         select:
             find_all_users:
-                sql: 'SELECT * FROM user'
+                sql: select.find_all_users
 
             find_user_by_id_with_object_return:
                 sql: 'SELECT * FROM user WHERE id = :id'
