@@ -13,18 +13,23 @@ class RootConfiguration
      */
     private $atomic;
     /**
-     * @var ReturnData $returnData
+     * @var ScenarioModel $scenarioModel
      */
-    private $returnData;
-
+    private $scenarioModel;
+    /**
+     * RootConfiguration constructor.
+     * @param string $scenarioName
+     * @param bool $atomic
+     * @param ScenarioModel|null $scenarioModel
+     */
     public function __construct(
         string $scenarioName,
         bool $atomic,
-        ReturnData $returnData = null
+        ScenarioModel $scenarioModel = null
     ) {
         $this->scenarioName = $scenarioName;
         $this->atomic = $atomic;
-        $this->returnData;
+        $this->scenarioModel = $scenarioModel;
     }
     /**
      * @return string
@@ -41,10 +46,10 @@ class RootConfiguration
         return $this->atomic;
     }
     /**
-     * @return ReturnData|null
+     * @return ScenarioModel|null
      */
-    public function getReturnData(): ?ReturnData
+    public function getReturnData(): ?ScenarioModel
     {
-        return $this->returnData;
+        return $this->scenarioModel;
     }
 }

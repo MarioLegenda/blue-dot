@@ -12,6 +12,7 @@ use BlueDot\Configuration\Flow\Scenario\ForeignKey;
 use BlueDot\Configuration\Flow\Scenario\Metadata;
 use BlueDot\Configuration\Flow\Scenario\RootConfiguration;
 use BlueDot\Configuration\Flow\Scenario\ScenarioConfiguration;
+use BlueDot\Configuration\Flow\Scenario\ScenarioModel;
 use BlueDot\Configuration\Flow\Scenario\ScenarioReturnEntity;
 use BlueDot\Configuration\Flow\Scenario\UseOption;
 use BlueDot\Configuration\Import\ImportCollection;
@@ -23,7 +24,6 @@ class ScenarioFlow
      * @param array $config
      * @param ImportCollection $importCollection
      * @return ScenarioConfiguration
-     * @throws \BlueDot\Exception\ConfigurationException
      */
     public function create(
         string $scenarioName,
@@ -32,13 +32,13 @@ class ScenarioFlow
     ): ScenarioConfiguration {
 
         $resolvedScenarioName = sprintf('scenario.%s', $scenarioName);
-        $returnData = $this->resolveReturnDataIfExists($config);
+        $scenarioModel = $this->resolveScenarioModelIfExists($config);
         $atomic = $config['atomic'];
 
         $rootConfiguration = new RootConfiguration(
             $resolvedScenarioName,
             $atomic,
-            $returnData
+            $scenarioModel
         );
 
         $metadata = $this->resolveStatementsMetadata(
@@ -276,19 +276,20 @@ class ScenarioFlow
     }
     /**
      * @param array $config
-     * @return ScenarioReturnEntity|null
-     * @throws \BlueDot\Exception\ConfigurationException
+     * @return ScenarioModel|null
      */
-    private function resolveReturnDataIfExists(array $config): ?ScenarioReturnEntity
+    private function resolveScenarioModelIfExists(array $config): ?ScenarioModel
     {
-        if (array_key_exists('return_data', $config)) {
-            if (empty($scenarioConfigs['return_data'])) {
-                throw new \RuntimeException(
-                    sprintf('Invalid configuration. If provided, \'return_data\' has to be a non empty array')
-                );
-            }
+        if (array_key_exists('scenario_model', $config)) {
+            $scenarioModel = $config['scenario_model'];
 
-            return new ScenarioReturnEntity($scenarioConfigs['return_data']);
+            $class = $scenarioModel['class'];
+            $binders = (array_key_exists('binders', $scenarioModel)) ? $scenarioModel['binders'] : null;
+
+            return new ScenarioModel(
+                $class,
+                $binders
+            );
         }
 
         return null;

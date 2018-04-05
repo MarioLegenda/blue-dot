@@ -92,6 +92,12 @@ class ConfigurationValidator
 
                         $nodeValue = new ArrayNode($key, $nodeValue);
                         $nodeValue
+                            ->isArrayIfExists('scenario_model')
+                            ->stepIntoIfExists('scenario_model')
+                                ->cannotBeEmpty('class')
+                                ->isString('class')
+                                ->cannotBeEmptyIfExists('binders')
+                                ->isArrayIfExists('binders')
                             ->cannotBeEmpty('sql')
                             ->isString('sql')
                             ->isArrayIfExists('parameters')
