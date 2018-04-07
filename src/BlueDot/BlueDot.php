@@ -136,8 +136,6 @@ class BlueDot implements BlueDotInterface
             new Kernel($configuration, $parameters, $this) :
             new Kernel($configuration, $parameters);
 
-        $kernel = new Kernel($configuration, $parameters);
-
         $kernel->validateKernel();
 
         $strategy = $kernel->createStrategy($this->connection);
