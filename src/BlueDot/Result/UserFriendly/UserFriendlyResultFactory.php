@@ -4,6 +4,7 @@ namespace BlueDot\Result\UserFriendly;
 
 use BlueDot\Configuration\Filter\Filter;
 use BlueDot\Configuration\Flow\Scenario\ScenarioConfiguration;
+use BlueDot\Configuration\Flow\Service\ServiceConfiguration;
 use BlueDot\Configuration\Flow\Simple\SimpleConfiguration;
 use BlueDot\Entity\Entity;
 use BlueDot\Kernel\Result\KernelResultInterface;
@@ -46,12 +47,17 @@ class UserFriendlyResultFactory
         }
 
         if ($configuration instanceof ScenarioConfiguration) {
-            $originalEntity = ScenarioResultFactory::instance()->create(
+            return ScenarioResultFactory::instance()->create(
                 $this->kernelResult,
                 $this->filterApplier
             );
+        }
 
-            return $originalEntity;
+        if ($configuration instanceof ServiceConfiguration) {
+            return ServiceResultFactory::instance()->create(
+                $this->kernelResult,
+                $this->filterApplier
+            );
         }
     }
 }

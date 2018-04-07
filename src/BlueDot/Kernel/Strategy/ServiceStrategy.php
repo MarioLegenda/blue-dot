@@ -3,14 +3,11 @@
 namespace BlueDot\Kernel\Strategy;
 
 use BlueDot\BlueDotInterface;
-use BlueDot\Common\ArgumentBag;
-use BlueDot\Common\StorageInterface;
 use BlueDot\Configuration\Flow\Service\ServiceConfiguration;
 use BlueDot\Configuration\Flow\Service\ServiceInterface;
-use BlueDot\Exception\BlueDotRuntimeException;
 use BlueDot\Kernel\Connection\Connection;
 use BlueDot\Kernel\Result\KernelResultInterface;
-use BlueDot\Kernel\Result\Simple\KernelResult;
+use BlueDot\Kernel\Result\Service\KernelResult;
 
 class ServiceStrategy implements StrategyInterface
 {
