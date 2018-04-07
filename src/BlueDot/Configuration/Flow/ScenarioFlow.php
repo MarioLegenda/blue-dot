@@ -13,7 +13,6 @@ use BlueDot\Configuration\Flow\Scenario\Metadata;
 use BlueDot\Configuration\Flow\Scenario\RootConfiguration;
 use BlueDot\Configuration\Flow\Scenario\ScenarioConfiguration;
 use BlueDot\Configuration\Flow\Scenario\ScenarioModel;
-use BlueDot\Configuration\Flow\Scenario\ScenarioReturnEntity;
 use BlueDot\Configuration\Flow\Scenario\UseOption;
 use BlueDot\Configuration\Import\ImportCollection;
 

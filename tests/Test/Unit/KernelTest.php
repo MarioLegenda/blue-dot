@@ -2,6 +2,7 @@
 
 namespace Test\Unit;
 
+use BlueDot\BlueDot;
 use BlueDot\Common\ArgumentValidator;
 use BlueDot\Common\StatementValidator;
 use BlueDot\Configuration\Compiler;
@@ -322,7 +323,7 @@ class KernelTest extends TestCase
 
         /** @var ServiceConfiguration $compiledConfiguration */
         $compiledConfiguration = $compiler->compile($statementName);
-        $kernel = new Kernel($compiledConfiguration);
+        $kernel = new Kernel($compiledConfiguration, null, new BlueDot());
 
         $kernel->validateKernel();
         $strategy = $kernel->createStrategy($connection);

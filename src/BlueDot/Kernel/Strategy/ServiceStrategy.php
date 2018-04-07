@@ -30,13 +30,16 @@ class ServiceStrategy implements StrategyInterface
      * SimpleStrategy constructor.
      * @param ServiceConfiguration $configuration
      * @param Connection $connection
+     * @param BlueDotInterface $blueDot
      */
     public function __construct(
+        BlueDotInterface $blueDot,
         ServiceConfiguration $configuration,
         Connection $connection
     ) {
         $this->configuration = $configuration;
         $this->connection = $connection;
+        $this->blueDot = $blueDot;
     }
     /**
      * @inheritdoc

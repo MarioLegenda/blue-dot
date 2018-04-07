@@ -9,6 +9,7 @@ use BlueDot\Common\{
 use BlueDot\Configuration\Cache\CompilerCache;
 use BlueDot\Configuration\Compiler;
 
+use BlueDot\Configuration\Flow\Service\ServiceConfiguration;
 use BlueDot\Configuration\Import\ImportCollection;
 use BlueDot\Configuration\Validator\ConfigurationValidator;
 
@@ -130,6 +131,10 @@ class BlueDot implements BlueDotInterface
 
         /** @var FlowProductInterface $configuration */
         $configuration = $this->compiler->compile($name);
+
+        $kernel = ($configuration instanceof ServiceConfiguration) ?
+            new Kernel($configuration, $parameters, $this) :
+            new Kernel($configuration, $parameters);
 
         $kernel = new Kernel($configuration, $parameters);
 

@@ -2,6 +2,7 @@
 
 namespace BlueDot\Kernel;
 
+use BlueDot\BlueDotInterface;
 use BlueDot\Common\FlowProductInterface;
 use BlueDot\Configuration\Flow\FlowConfigurationProductInterface;
 use BlueDot\Configuration\Flow\Scenario\ScenarioConfiguration;
@@ -37,14 +38,21 @@ class Kernel
      */
     private $configuration;
     /**
+     * @var BlueDotInterface $blueDot
+     */
+    private $blueDot;
+    /**
      * @param FlowConfigurationProductInterface|FlowProductInterface|SimpleConfiguration|ScenarioConfiguration|ServiceConfiguration $configuration
      * @param array|null|object $userParameters
+     * @param BlueDotInterface|null $blueDot
      */
     public function __construct(
         FlowConfigurationProductInterface $configuration,
-        $userParameters = null
+        $userParameters = null,
+        BlueDotInterface $blueDot = null
     ) {
         $this->configuration = $configuration;
+        $this->blueDot = $blueDot;
 
         $this->configuration->injectUserParameters($userParameters);
     }
@@ -94,6 +102,7 @@ class Kernel
 
         if ($type->equals(ServiceStrategyType::fromValue())) {
             return new ServiceStrategy(
+                $this->blueDot,
                 $this->configuration,
                 $connection
             );
