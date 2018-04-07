@@ -49,6 +49,14 @@ class ServiceConfiguration implements FlowConfigurationProductInterface
      */
     public function getUserParameters(): array
     {
+        if (is_null($this->userParameters) or empty($this->userParameters)) {
+            return [];
+        }
+
+        if (!is_array($this->userParameters)) {
+            return [];
+        }
+
         return $this->userParameters;
     }
     /**
