@@ -2,7 +2,9 @@
 
 namespace BlueDot\Result\UserFriendly;
 
+use BlueDot\Common\Enum\TypeInterface;
 use BlueDot\Configuration\Filter\Filter;
+use BlueDot\Configuration\Flow\Enum\MultipleParametersType;
 use BlueDot\Configuration\Flow\Simple\Enum\DeleteSqlType;
 use BlueDot\Configuration\Flow\Simple\Enum\InsertSqlType;
 use BlueDot\Configuration\Flow\Simple\Enum\OtherSqlType;
@@ -40,6 +42,9 @@ class SimpleResultFactory
         /** @var SimpleConfiguration $configuration */
         $configuration = $kernelResult->getConfiguration();
 
+        /** @var TypeInterface $userParametersType */
+        $userParametersType = $configuration->getWorkConfig()->getUserParametersType();
+        /** @var TypeInterface $sqlType */
         $sqlType = $configuration->getMetadata()->getSqlType();
         $kernelResult = $kernelResult->getResult();
         $resolvedStatementName = $configuration->getMetadata()->getResolvedStatementName();
@@ -50,6 +55,10 @@ class SimpleResultFactory
                 'last_insert_id' => (int) $kernelResult['last_insert_id'],
                 'row_count' => (int) $kernelResult['row_count'],
             ];
+
+            if ($userParametersType->equals(MultipleParametersType::fromValue())) {
+                $result['inserted_ids'] = $kernelResult['inserted_ids'];
+            }
 
             return new Entity(
                 $result,

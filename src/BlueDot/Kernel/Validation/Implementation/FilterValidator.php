@@ -5,6 +5,7 @@ namespace BlueDot\Kernel\Validation\Implementation;
 use BlueDot\Common\Enum\TypeInterface;
 use BlueDot\Common\Util\Util;
 use BlueDot\Configuration\Filter\Filter;
+use BlueDot\Configuration\Flow\Enum\MultipleParametersType;
 use BlueDot\Configuration\Flow\FlowConfigurationProductInterface;
 use BlueDot\Configuration\Flow\Scenario\Metadata;
 use BlueDot\Configuration\Flow\Scenario\ScenarioConfiguration;
@@ -50,6 +51,22 @@ class FilterValidator implements ValidatorInterface
         $filter = $workConfig->getFilter();
         /** @var TypeInterface $sqlType */
         $sqlType = $metadata->getSqlType();
+        /** @var TypeInterface $userParametersType */
+        $userParametersType = $workConfig->getUserParametersType();
+
+        if ($userParametersType instanceof TypeInterface) {
+            if (
+                $userParametersType->equals(MultipleParametersType::fromValue()) and
+                $filter instanceof Filter
+            ) {
+                $message = sprintf(
+                    'Not permitted filter statement. You used multiple parameters so this statement executes multiple times and cannot be filtered in statement \'%s\'',
+                    $metadata->getResolvedStatementName()
+                );
+
+                throw new \RuntimeException($message);
+            }
+        }
 
         if ($filter instanceof Filter) {
             if (!$sqlType->equals(SelectSqlType::fromValue())) {

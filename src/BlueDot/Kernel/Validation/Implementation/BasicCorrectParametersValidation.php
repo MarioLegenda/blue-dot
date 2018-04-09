@@ -2,6 +2,9 @@
 
 namespace BlueDot\Kernel\Validation\Implementation;
 
+use BlueDot\Common\Enum\TypeInterface;
+use BlueDot\Configuration\Flow\Enum\MultipleParametersType;
+use BlueDot\Configuration\Flow\Enum\SingleParameterType;
 use BlueDot\Configuration\Flow\FlowConfigurationProductInterface;
 use BlueDot\Kernel\Validation\ValidatorInterface;
 use BlueDot\Configuration\Flow\Scenario\Metadata;
@@ -33,11 +36,18 @@ class BasicCorrectParametersValidation implements ValidatorInterface
             $resolvedStatementName = $this->configuration->getMetadata()->getResolvedStatementName();
             $userParameters = $workConfig->getUserParameters();
             $configParameters = $workConfig->getConfigParameters();
+            $userParametersType = $workConfig->getUserParametersType();
 
             $this->handleGenericParametersValidation(
                 $userParameters,
                 $configParameters,
                 $resolvedStatementName
+            );
+
+            $this->handleParametersTypeValidation(
+                $userParameters,
+                $resolvedStatementName,
+                $userParametersType
             );
         }
 
@@ -76,20 +86,6 @@ class BasicCorrectParametersValidation implements ValidatorInterface
         array $configParameters,
         string $resolvedStatementName
     ) {
-        $userParameterKeys = array_keys($userParameters);
-
-        foreach ($userParameterKeys as $key) {
-            if (!is_string($key)) {
-                $message = sprintf(
-                    'User parameters have to be an associative array. Non string key given for statement \'%s\' with user parameters with keys \'%s\'',
-                    $resolvedStatementName,
-                    implode(', ', $userParameterKeys)
-                );
-
-                throw new \RuntimeException($message);
-            }
-        }
-
         if (!empty($configParameters) and empty($userParameters)) {
             $message = sprintf(
                 'You supplied config parameters but no user parameters. Config parameters are \'%s\' for statement \'%s\'',
@@ -116,7 +112,7 @@ class BasicCorrectParametersValidation implements ValidatorInterface
      * @param string $resolvedStatementName
      * @throws \RuntimeException
      */
-    public function handleParametersEquality(
+    private function handleParametersEquality(
         array $userParameters,
         array $configParameters,
         string $resolvedStatementName
@@ -134,6 +130,88 @@ class BasicCorrectParametersValidation implements ValidatorInterface
             );
 
             throw new \RuntimeException($message);
+        }
+    }
+    /**
+     * @param array $userParameters
+     * @param string $resolvedStatementName
+     * @param TypeInterface|null $userParametersType
+     * @throws \RuntimeException
+     * @return null
+     */
+    private function handleParametersTypeValidation(
+        array $userParameters,
+        string $resolvedStatementName,
+        TypeInterface $userParametersType = null
+    ) {
+        if (!$userParametersType instanceof TypeInterface) {
+            return null;
+        }
+
+        if ($userParametersType->equals(SingleParameterType::fromValue())) {
+            $this->validateSingleKeys($userParameters, $resolvedStatementName);
+        }
+
+        if ($userParametersType->equals(MultipleParametersType::fromValue())) {
+            foreach ($userParameters as $index => $userParameter) {
+                if (!is_int($index)) {
+                    $message = sprintf(
+                        'Invalid parameters. If you choose for one statement to make multiple inserts/updates/deletes, then parameters have to be a multidimensional array containing single parameters. If you choose single insert/update/delete, then parameters have to be a single associative string array in statement \'%s\'',
+                        $resolvedStatementName
+                    );
+
+                    throw new \RuntimeException($message);
+                }
+
+                if (!is_array($userParameter)) {
+                    $message = sprintf(
+                        'Invalid parameters. If you choose for one statement to make multiple inserts/updates/deletes, then parameters have to be a multidimensional array containing single parameters. If you choose single insert/update/delete, then parameters have to be a single associative string array in statement \'%s\'',
+                        $resolvedStatementName
+                    );
+
+                    throw new \RuntimeException($message);
+                }
+
+                $this->validateSingleKeys($userParameter, $resolvedStatementName);
+            }
+        }
+    }
+    /**
+     * @param array $userParameters
+     * @param string $resolvedStatementName
+     * @throws \RuntimeException
+     */
+    private function validateSingleKeys(
+        array $userParameters,
+        string $resolvedStatementName
+    ) {
+        $userParameterKeys = array_keys($userParameters);
+
+        foreach ($userParameterKeys as $key) {
+            if (!is_string($key)) {
+                $message = sprintf(
+                    'Invalid parameters. If you choose for one statement to make multiple inserts/updates/deletes, then parameters have to be a multidimensional array containing single parameters. If you choose single insert/update/delete, then parameters have to be a single associative string array in statement \'%s\'',
+                    $resolvedStatementName
+                );
+
+                throw new \RuntimeException($message);
+            }
+
+            $parameterValue = $userParameters[$key];
+
+            if (
+                is_array($parameterValue) or
+                is_object($parameterValue) or
+                is_resource($parameterValue) or
+                empty($parameterValue)
+            ) {
+                $message = sprintf(
+                    'Invalid parameter. Parameter value cannot be an object, array, resource or an empty value in statement \'%s\'',
+                    $resolvedStatementName
+                );
+
+                throw new \RuntimeException($message);
+            }
         }
     }
 }

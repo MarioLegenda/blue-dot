@@ -9,6 +9,7 @@ use BlueDot\Configuration\Compiler;
 use BlueDot\Configuration\Flow\Simple\SimpleConfiguration;
 use BlueDot\Configuration\Import\ImportCollection;
 use BlueDot\Configuration\Validator\ConfigurationValidator;
+use BlueDot\Entity\Entity;
 use BlueDot\Entity\PromiseInterface;
 use BlueDot\Kernel\Connection\Connection;
 use BlueDot\Kernel\Connection\ConnectionFactory;
@@ -56,6 +57,9 @@ class BlueDotTest extends TestCase
 
         $this->connection->getPDO()->exec('TRUNCATE TABLE user');
         $this->connection->getPDO()->exec('TRUNCATE TABLE addresses');
+        $this->connection->getPDO()->exec('TRUNCATE TABLE normalized_user');
+
+        $this->connection->close();
     }
 
     public function test_blue_dot_features()
@@ -117,6 +121,51 @@ class BlueDotTest extends TestCase
                 'address' => $this->getFaker()->address,
             ],
         ]);
+
+        static::assertInstanceOf(PromiseInterface::class, $promise);
+        static::assertTrue($promise->isSuccess());
+    }
+
+    public function test_multiple_insert_for_simple_statements()
+    {
+        $blueDot = new BlueDot(__DIR__.'/../config/result/prepared_execution_test.yml');
+
+        $parameters = [];
+
+        for ($i = 0; $i < 10; $i++) {
+            $parameters[] = [
+                'name' => $this->getFaker()->name,
+                'lastname' => $this->getFaker()->lastName,
+                'username' => $this->getFaker()->userName,
+            ];
+        }
+
+        $promise = $blueDot->execute('simple.insert.insert_user', $parameters);
+
+        static::assertInstanceOf(PromiseInterface::class, $promise);
+        static::assertTrue($promise->isSuccess());
+
+        /** @var Entity $result */
+        $entity = $promise->getResult();
+
+        static::assertTrue($entity->has('inserted_ids'));
+        static::assertNotEmpty($entity->get('inserted_ids'));
+        static::assertInternalType('array', $entity->get('inserted_ids'));
+
+        static::assertTrue($entity->has('last_insert_id'));
+        static::assertInternalType('int', $entity->get('last_insert_id'));
+    }
+
+    public function test_multiple_select_for_simple_statements()
+    {
+        $blueDot = new BlueDot(__DIR__.'/../config/result/prepared_execution_test.yml');
+
+        $parameters = [];
+        for ($i = 1; $i < 10; $i++) {
+            $parameters[] = ['id' => $i];
+        }
+
+        $promise = $blueDot->execute('simple.select.find_user_by_id', $parameters);
 
         static::assertInstanceOf(PromiseInterface::class, $promise);
         static::assertTrue($promise->isSuccess());

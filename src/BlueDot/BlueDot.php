@@ -125,7 +125,7 @@ class BlueDot implements BlueDotInterface
      * @return PromiseInterface
      * @throws ConnectionException
      */
-    public function execute(string $name, $parameters = array()) : PromiseInterface
+    public function execute(string $name, $parameters = []) : PromiseInterface
     {
         $this->prepareBlueDot();
 

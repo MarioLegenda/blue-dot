@@ -66,6 +66,10 @@ class StatementBuilderTest extends TestCase
         parent::tearDown();
 
         $this->connection->getPDO()->exec('TRUNCATE TABLE user');
+        $this->connection->getPDO()->exec('TRUNCATE TABLE addresses');
+        $this->connection->getPDO()->exec('TRUNCATE TABLE normalized_user');
+
+        $this->connection->close();
     }
 
     public function test_statement_builder()

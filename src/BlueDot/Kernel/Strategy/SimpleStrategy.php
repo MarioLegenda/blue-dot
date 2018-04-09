@@ -4,6 +4,8 @@ namespace BlueDot\Kernel\Strategy;
 
 use BlueDot\Common\ArgumentBag;
 use BlueDot\Common\Enum\TypeInterface;
+use BlueDot\Configuration\Flow\Enum\MultipleParametersType;
+use BlueDot\Configuration\Flow\Enum\SingleParameterType;
 use BlueDot\Configuration\Flow\Simple\Enum\DeleteSqlType;
 use BlueDot\Configuration\Flow\Simple\Enum\InsertSqlType;
 use BlueDot\Configuration\Flow\Simple\Enum\OtherSqlType;
@@ -15,6 +17,7 @@ use BlueDot\Kernel\Connection\Connection;
 use BlueDot\Kernel\Parameter\Parameter;
 use BlueDot\Entity\Entity;
 use BlueDot\Entity\ModelConverter;
+use BlueDot\Kernel\Result\KernelCollectionResultConverter;
 use BlueDot\Kernel\Result\KernelResultInterface;
 use BlueDot\Kernel\Result\Simple\KernelResult;
 
@@ -79,9 +82,33 @@ class SimpleStrategy implements StrategyInterface
      */
     private function doExecute(): KernelResultInterface
     {
-        $sql = $this->configuration->getWorkConfig()->getSql();
-        $userParameters = $this->configuration->getWorkConfig()->getUserParameters();
+        $workConfig = $this->configuration->getWorkConfig();
 
+        $sql = $workConfig->getSql();
+        $userParameters = $workConfig->getUserParameters();
+        $userParametersType = $workConfig->getUserParametersType();
+
+        if (!$userParametersType instanceof TypeInterface) {
+            return $this->singleExecute($sql, $userParameters);
+        }
+
+        if ($userParametersType->equals(SingleParameterType::fromValue())) {
+            return $this->singleExecute($sql, $userParameters);
+        }
+
+        if ($userParametersType->equals(MultipleParametersType::fromValue())) {
+            return $this->multipleExecute($sql, $userParameters);
+        }
+    }
+    /**
+     * @param string $sql
+     * @param array $userParameters
+     * @return KernelResultInterface
+     */
+    private function singleExecute(
+        string $sql,
+        array $userParameters
+    ): KernelResultInterface {
         $pdoStatement = $this->connection->getPDO()->prepare($sql);
 
         if (!empty($userParameters)) {
@@ -95,6 +122,23 @@ class SimpleStrategy implements StrategyInterface
         $result = $this->getResult($pdoStatement);
 
         return $result;
+    }
+
+    private function multipleExecute(
+        string $sql,
+        array $userParameters
+    ) {
+        $kernelResultSet = [];
+        foreach ($userParameters as $userParameter) {
+            $kernelResultSet[] = $this->singleExecute($sql, $userParameter);
+        }
+
+        $kernelCollectionResultConverter = new KernelCollectionResultConverter(
+            $this->configuration,
+            $kernelResultSet
+        );
+
+        return $kernelCollectionResultConverter->convertToSingleKernelResult();
     }
     /**
      * @param \PDOStatement $pdoStatement
@@ -193,7 +237,7 @@ class SimpleStrategy implements StrategyInterface
 
         $result['data'] = [];
         $result['row_count'] = 1;
-        $result['last_insert_id'] = $this->connection->getPDO()->lastInsertId();
+        $result['last_insert_id'] = (int) $this->connection->getPDO()->lastInsertId();
 
         return new KernelResult(
             $this->configuration,

@@ -2,6 +2,7 @@
 
 namespace BlueDot\Configuration\Flow\Simple;
 
+use BlueDot\Common\Enum\TypeInterface;
 use BlueDot\Configuration\Flow\FlowConfigurationProductInterface;
 
 class SimpleConfiguration implements FlowConfigurationProductInterface
