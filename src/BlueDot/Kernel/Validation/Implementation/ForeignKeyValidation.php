@@ -44,21 +44,25 @@ class ForeignKeyValidation implements ValidatorInterface
         /** @var Metadata $item */
         foreach ($metadata as $item) {
             /** @var ForeignKey $foreignKey */
-            $foreignKey = $item->getForeignKey();
+            $foreignKeys = $item->getForeignKeys();
             $parentResolvedScenarioName = $this->configuration->getRootConfiguration()->getScenarioName();
 
-            if ($foreignKey instanceof ForeignKey) {
-                $foreignKeyStatementName = $foreignKey->getStatementName();
+            if (!empty($foreignKeys)) {
+                foreach ($foreignKeys as $foreignKey) {
+                    if ($foreignKey instanceof ForeignKey) {
+                        $foreignKeyStatementName = $foreignKey->getStatementName();
 
-                if (!array_key_exists($foreignKeyStatementName, $metadata)) {
-                    $message = sprintf(
-                        'Invalid \'foreign_key\' option statement name. Statement \'%s\' does not exist in scenario \'%s\' for parent statement \'%s\'',
-                        $foreignKeyStatementName,
-                        $parentResolvedScenarioName,
-                        $item->getResolvedScenarioStatementName()
-                    );
+                        if (!array_key_exists($foreignKeyStatementName, $metadata)) {
+                            $message = sprintf(
+                                'Invalid \'foreign_key\' option statement name. Statement \'%s\' does not exist in scenario \'%s\' for parent statement \'%s\'',
+                                $foreignKeyStatementName,
+                                $parentResolvedScenarioName,
+                                $item->getResolvedScenarioStatementName()
+                            );
 
-                    throw new \RuntimeException($message);
+                            throw new \RuntimeException($message);
+                        }
+                    }
                 }
             }
         }

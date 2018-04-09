@@ -1,2 +1,2 @@
 select:
-    find_all_users: 'SELECT * FROM user'
+    find_all_users: 'SELECT id, name, lastname, username FROM user'

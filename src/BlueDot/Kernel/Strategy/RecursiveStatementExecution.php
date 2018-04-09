@@ -81,39 +81,22 @@ class RecursiveStatementExecution
     private function executeReal(array $metadataList)
     {
         /** @var ForeignKey $foreignKey */
-        $foreignKey = $this->statement->getForeignKey();
+        $foreignKeys = $this->statement->getForeignKeys();
         /** @var TypeInterface $sqlType */
         $sqlType = $this->statement->getSqlType();
 
         $resolvedStatementName = $this->statement->getSingleScenarioName();
 
         try {
-            if ($foreignKey instanceof ForeignKey and $sqlType->equals(InsertSqlType::fromValue())) {
-                if (
-                    !$sqlType->equals(InsertSqlType::fromValue()) and
-                    !$sqlType->equals(UpdateSqlType::fromValue())
-                ) {
-                    throw new \RuntimeException(
-                        sprintf('Invalid statement type. \'foreign_key\' options can only be used with \'insert\' or \'update\' statement for statement \'%s\'. Try using \'use\' option instead',
-                            $resolvedStatementName
-                        )
+            if (!empty($foreignKeys)) {
+                /** @var ForeignKey $foreignKey */
+                foreach ($foreignKeys as $foreignKey) {
+                    $this->executeForeignKeysFirst(
+                        $foreignKey,
+                        $sqlType,
+                        $resolvedStatementName,
+                        $metadataList
                     );
-                }
-
-                /** @var Metadata $foreignKeyStatement */
-                $foreignKeyStatement = $metadataList[$foreignKey->getStatementName()];
-
-                if (!$this->results->has($foreignKey->getStatementName())) {
-                    $recursiveStatementExecution = new RecursiveStatementExecution(
-                        $foreignKeyStatement,
-                        $this->results,
-                        $this->connection
-                    );
-
-
-                    $recursiveStatementExecution->execute($metadataList);
-
-                    unset($recursiveStatementExecution);
                 }
             }
 
@@ -159,6 +142,46 @@ class RecursiveStatementExecution
         $pdoStatement->execute();
 
         $this->saveResult($pdoStatement);
+    }
+    /**
+     * @param ForeignKey $foreignKey
+     * @param TypeInterface $sqlType
+     * @param string $resolvedStatementName
+     * @param array $metadataList
+     */
+    private function executeForeignKeysFirst(
+        ForeignKey $foreignKey,
+        TypeInterface $sqlType,
+        string $resolvedStatementName,
+        array $metadataList
+    ) {
+        if ($sqlType->equals(InsertSqlType::fromValue())) {
+            if (
+                !$sqlType->equals(InsertSqlType::fromValue()) and
+                !$sqlType->equals(UpdateSqlType::fromValue())
+            ) {
+                throw new \RuntimeException(
+                    sprintf('Invalid statement type. \'foreign_key\' options can only be used with \'insert\' or \'update\' statement for statement \'%s\'. Try using \'use\' option instead',
+                        $resolvedStatementName
+                    )
+                );
+            }
+
+            /** @var Metadata $foreignKeyStatement */
+            $foreignKeyStatement = $metadataList[$foreignKey->getStatementName()];
+
+            if (!$this->results->has($foreignKey->getStatementName())) {
+                $recursiveStatementExecution = new RecursiveStatementExecution(
+                    $foreignKeyStatement,
+                    $this->results,
+                    $this->connection
+                );
+
+                $recursiveStatementExecution->execute($metadataList);
+
+                unset($recursiveStatementExecution);
+            }
+        }
     }
     /**
      * @param array $metadataList
@@ -225,45 +248,50 @@ class RecursiveStatementExecution
         array $metadataList,
         \PDOStatement $pdoStatement
     ) {
-        $foreignKey = $this->statement->getForeignKey();
+        $foreignKeys = $this->statement->getForeignKeys();
 
-        if ($foreignKey instanceof ForeignKey) {
-            $foreignKeyStatementName = $this->statement->getForeignKeyStatementName();
-            $foreignKeyStatement = $metadataList[$foreignKey->getStatementName()];
+        if (!empty($foreignKeys)) {
+            /** @var ForeignKey $foreignKey */
+            foreach ($foreignKeys as $foreignKey) {
+                if ($foreignKey instanceof ForeignKey) {
+                    $foreignKeyStatementName = $this->statement->getForeignKeyStatementName($foreignKey);
+                    $foreignKeyStatement = $metadataList[$foreignKey->getStatementName()];
 
-            if (!$this->results->has($foreignKey->getStatementName())) {
-                $recursiveStatementExecution = new RecursiveStatementExecution(
-                    $foreignKeyStatement,
-                    $this->results,
-                    $this->connection
-                );
+                    if (!$this->results->has($foreignKey->getStatementName())) {
+                        $recursiveStatementExecution = new RecursiveStatementExecution(
+                            $foreignKeyStatement,
+                            $this->results,
+                            $this->connection
+                        );
 
-                $recursiveStatementExecution->execute($metadataList);
+                        $recursiveStatementExecution->execute($metadataList);
 
-                $this->results->add(
-                    $foreignKey->getStatementName(),
-                    $recursiveStatementExecution->getResult()
-                );
+                        $this->results->add(
+                            $foreignKey->getStatementName(),
+                            $recursiveStatementExecution->getResult()
+                        );
 
-                unset($recursiveStatementExecution);
+                        unset($recursiveStatementExecution);
+                    }
+
+                    $foreignKeyResult = $this->results->get($foreignKey->getStatementName());
+
+                    if (!$foreignKeyResult instanceof InsertQueryResult and !$foreignKeyResult instanceof MultipleInsertQueryResult) {
+                        throw new \RuntimeException(sprintf(
+                            'Results of \'foreign_key\' statements can only return one row and cannot be empty for statement \'%s\'',
+                            $foreignKeyStatementName
+                        ));
+                    }
+
+                    $this->bindSingleParameter(
+                        new Parameter(
+                            $foreignKey->getBindTo(),
+                            $foreignKeyResult->getLastInsertId()
+                        ),
+                        $pdoStatement
+                    );
+                }
             }
-
-            $foreignKeyResult = $this->results->get($foreignKey->getStatementName());
-
-            if (!$foreignKeyResult instanceof InsertQueryResult and !$foreignKeyResult instanceof MultipleInsertQueryResult) {
-                throw new \RuntimeException(sprintf(
-                    'Results of \'foreign_key\' statements can only return one row and cannot be empty for statement \'%s\'',
-                    $foreignKeyStatementName
-                ));
-            }
-
-            $this->bindSingleParameter(
-                new Parameter(
-                    $foreignKey->getBindTo(),
-                    $foreignKeyResult->getLastInsertId()
-                ),
-                $pdoStatement
-            );
         }
     }
     /**

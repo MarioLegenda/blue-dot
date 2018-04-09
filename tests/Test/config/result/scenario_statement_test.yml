@@ -16,8 +16,8 @@ configuration:
                     sql: "INSERT INTO addresses (user_id, address) VALUES (:user_id, :address)"
                     parameters: [address]
                     foreign_key:
-                        statement_name: insert_user
-                        bind_to: user_id
+                        statement_names: [insert_user]
+                        bind_them_to: [user_id]
 
         table_creation:
             atomic: true

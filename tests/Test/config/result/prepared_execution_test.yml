@@ -90,8 +90,8 @@ configuration:
                     sql: "INSERT INTO addresses (user_id, address) VALUES (:user_id, :address)"
                     parameters: [address]
                     foreign_key:
-                        statement_name: insert_user
-                        bind_to: user_id
+                        statement_names: [insert_user]
+                        bind_them_to: [user_id]
 
         select_user:
             atomic: true
@@ -110,3 +110,21 @@ configuration:
                     parameters: [username, name, lastname]
                     filter:
                         normalize_if_one_exists: true
+
+        normalized_user_insert:
+            atomic: true
+            statements:
+                insert_user:
+                    sql: "INSERT INTO user (username, name, lastname) VALUES (:username, :name, :lastname)"
+                    parameters: [username, name, lastname]
+                insert_address:
+                    sql: "INSERT INTO addresses (user_id, address) VALUES (:user_id, :address)"
+                    parameters: [address]
+                    foreign_key:
+                        statement_names: [insert_user]
+                        bind_them_to: [user_id]
+                create_normalized_user:
+                    sql: "INSERT INTO normalized_user (user_id, address_id) VALUES (:user_id, :address_id)"
+                    foreign_key:
+                        statement_names: [insert_user, insert_address]
+                        bind_them_to: [user_id, address_id]

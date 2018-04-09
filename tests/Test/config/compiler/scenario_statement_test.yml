@@ -21,7 +21,6 @@ configuration:
                 first_statement:
                     sql: "SELECT * FROM languages WHERE id = :id"
                     parameters: [id]
-                    can_be_empty_result: true
                 insert_statement_1:
                     sql: "INSERT INTO something"
                     if_not_exists: first_statement
@@ -32,8 +31,8 @@ configuration:
                     sql: "INSERT INTO something ()"
                     parameters: [id, other]
                     foreign_key:
-                        statement_name: insert_statement_1
-                        bind_to: parameter_1
+                        statement_names: [insert_statement_1]
+                        bind_them_to: [parameter_1]
                     use:
                         statement_name: first_statement
                         values: { first_statement.id: id }

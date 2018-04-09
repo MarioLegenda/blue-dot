@@ -56,9 +56,9 @@ class Metadata
      */
     private $useOption;
     /**
-     * @var ForeignKey|null
+     * @var ForeignKey[] $foreignKeys
      */
-    private $foreignKey;
+    private $foreignKeys;
     /**
      * @var Filter|null
      */
@@ -74,7 +74,7 @@ class Metadata
      * @param array|null $userParameters
      * @param array|null $configParameters
      * @param UseOption|null $useOption
-     * @param ForeignKey|null $foreignKey
+     * @param ForeignKey[]|null $foreignKeys
      * @param Filter|null $filter
      */
     public function __construct(
@@ -87,7 +87,7 @@ class Metadata
         array $userParameters = null,
         array $configParameters = null,
         UseOption $useOption = null,
-        ForeignKey $foreignKey = null,
+        array $foreignKeys = null,
         Filter $filter = null
     ) {
         $brokenResolvedScenarioName = explode('.', $resolvedScenarioStatementName);
@@ -103,7 +103,7 @@ class Metadata
         $this->userParameters = $userParameters;
         $this->configParameters = $configParameters;
         $this->useOption = $useOption;
-        $this->foreignKey = $foreignKey;
+        $this->foreignKeys = $foreignKeys;
         $this->filter = $filter;
     }
     /**
@@ -252,23 +252,22 @@ class Metadata
         }
     }
     /**
-     * @return ForeignKey|null
+     * @return ForeignKey[]|null
      */
-    public function getForeignKey(): ?ForeignKey
+    public function getForeignKeys(): ?array
     {
-        return $this->foreignKey;
+        return $this->foreignKeys;
     }
     /**
-     * @return string|null
+     * @param ForeignKey $foreignKey
+     * @return null|string
      */
-    public function getForeignKeyStatementName(): ?string
+    public function getForeignKeyStatementName(ForeignKey $foreignKey): ?string
     {
-        if ($this->getForeignKey() instanceof ForeignKey) {
-            return sprintf('%s.%s',
-                $this->getScenarioName(),
-                $this->getForeignKey()->getStatementName()
-            );
-        }
+        return sprintf('%s.%s',
+            $this->getScenarioName(),
+            $foreignKey->getStatementName()
+        );
     }
     /**
      * @return TypeInterface

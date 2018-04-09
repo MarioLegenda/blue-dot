@@ -55,6 +55,7 @@ class BlueDotTest extends TestCase
         parent::tearDown();
 
         $this->connection->getPDO()->exec('TRUNCATE TABLE user');
+        $this->connection->getPDO()->exec('TRUNCATE TABLE addresses');
     }
 
     public function test_blue_dot_features()
@@ -82,6 +83,31 @@ class BlueDotTest extends TestCase
         static::assertTrue($promise->isSuccess());
 
         $promise = $blueDot->execute('scenario.insert_user', [
+            'insert_user' => [
+                'name' => $this->getFaker()->name,
+                'lastname' => $this->getFaker()->lastName,
+                'username' => $this->getFaker()->email,
+            ],
+            'insert_address' => [
+                'address' => $this->getFaker()->address,
+            ],
+        ]);
+
+        static::assertInstanceOf(PromiseInterface::class, $promise);
+        static::assertTrue($promise->isSuccess());
+    }
+
+    public function test_composite_foreign_key()
+    {
+        $blueDot = new BlueDot(__DIR__.'/../config/result/prepared_execution_test.yml');
+
+        /** @var PromiseInterface $promise */
+        $promise = $blueDot->execute('simple.select.find_all_users');
+
+        static::assertInstanceOf(PromiseInterface::class, $promise);
+        static::assertTrue($promise->isSuccess());
+
+        $promise = $blueDot->execute('scenario.normalized_user_insert', [
             'insert_user' => [
                 'name' => $this->getFaker()->name,
                 'lastname' => $this->getFaker()->lastName,

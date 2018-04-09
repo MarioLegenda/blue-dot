@@ -74,7 +74,7 @@ class ScenarioFlow
             $ifNotExistsStatementName = $this->resolveIfNotExistsStatementIfExists($actualStatement);
             $configParameters = $this->resolveConfigParametersIfExists($actualStatement);
             $useOption = $this->resolveUseOptionIfExists($actualStatement);
-            $foreignKey = $this->resolveForeignKeyIfExists($actualStatement);
+            $foreignKeys = $this->resolveForeignKeysIfExists($actualStatement);
             $filter = $this->resolveFilters($actualStatement);
 
             $metadata[$statementName] = new Metadata(
@@ -87,7 +87,7 @@ class ScenarioFlow
                 null,
                 $configParameters,
                 $useOption,
-                $foreignKey,
+                $foreignKeys,
                 $filter
             );
         }
@@ -160,17 +160,29 @@ class ScenarioFlow
     }
     /**
      * @param array $statement
-     * @return ForeignKey|null
+     * @return ForeignKey[]
      */
-    private function resolveForeignKeyIfExists(array $statement): ?ForeignKey
+    private function resolveForeignKeysIfExists(array $statement): ?array
     {
+        $foreignKeys = [];
         if (array_key_exists('foreign_key', $statement)) {
             $foreignKey = $statement['foreign_key'];
 
-            return new ForeignKey($foreignKey['statement_name'], $foreignKey['bind_to']);
+            $statementNames = $foreignKey['statement_names'];
+            $bindThemTo = $foreignKey['bind_them_to'];
+
+            foreach ($statementNames as $index => $statementName) {
+                $binder = $bindThemTo[$index];
+
+                $foreignKeys[] = new ForeignKey($statementName, $binder);
+            }
         }
 
-        return null;
+        if (empty($foreignKeys)) {
+            return null;
+        }
+
+        return $foreignKeys;
     }
     /**
      * @param array $statement

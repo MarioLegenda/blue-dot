@@ -232,7 +232,7 @@ class CompilerTest extends TestCase
             static::assertEmpty($singleMetadata->getUserParameters());
             static::assertInternalType('array', $singleMetadata->getUserParameters());
 
-            static::assertNull($singleMetadata->getForeignKey());
+            static::assertNull($singleMetadata->getForeignKeys());
 
             static::assertNotEmpty($singleMetadata->getConfigParameters());
             static::assertInternalType('array', $singleMetadata->getConfigParameters());
@@ -301,16 +301,21 @@ class CompilerTest extends TestCase
             static::assertInternalType('array', $singleMetadata->getUserParameters());
 
             /** @var ForeignKey $foreignKey */
-            $foreignKey = $singleMetadata->getForeignKey();
+            $foreignKeys = $singleMetadata->getForeignKeys();
 
-            if ($foreignKey instanceof ForeignKey) {
-                $foreignKeyAssertEntered = true;
+            if (!empty($foreignKeys)) {
+                /** @var ForeignKey $foreignKey */
+                foreach ($foreignKeys as $foreignKey) {
+                    static::assertInstanceOf(ForeignKey::class, $foreignKey);
 
-                static::assertNotEmpty($foreignKey->getStatementName());
-                static::assertInternalType('string', $foreignKey->getStatementName());
+                    $foreignKeyAssertEntered = true;
 
-                static::assertNotEmpty($foreignKey->getBindTo());
-                static::assertInternalType('string', $foreignKey->getBindTo());
+                    static::assertNotEmpty($foreignKey->getStatementName());
+                    static::assertInternalType('string', $foreignKey->getStatementName());
+
+                    static::assertNotEmpty($foreignKey->getBindTo());
+                    static::assertInternalType('string', $foreignKey->getBindTo());
+                }
             }
 
             $useOption = $singleMetadata->getUseOption();
