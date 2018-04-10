@@ -4,6 +4,7 @@ namespace BlueDot\Result\UserFriendly;
 
 use BlueDot\Common\Util\Util;
 use BlueDot\Configuration\Filter\Filter;
+use BlueDot\Configuration\Flow\Enum\MultipleParametersType;
 use BlueDot\Configuration\Flow\Scenario\Metadata;
 use BlueDot\Configuration\Flow\Scenario\ScenarioConfiguration;
 use BlueDot\Entity\Entity;
@@ -53,58 +54,25 @@ class ScenarioResultFactory
         foreach ($result as $item) {
             $queryResult = $item['item'];
 
-            if ($queryResult instanceof InsertQueryResult) {
-                $data = [
-                    'row_count' => $queryResult->getRowCount(),
-                    'last_insert_id' => (int) $queryResult->getLastInsertId(),
-                ];
-
-                $builtResult[$item['key']] = $data;
+            if (is_array($queryResult)) {
+                foreach ($queryResult as $result) {
+                    $this->buildResult(
+                        $result,
+                        $item['key'],
+                        $metadata,
+                        $filterApplier,
+                        $builtResult
+                    );
+                }
             }
 
-            if ($queryResult instanceof DeleteQueryResult) {
-                $data = [
-                    'row_count' => $queryResult->getRowCount(),
-                    'last_insert_id' => (int) $queryResult->getLastInsertId(),
-                ];
-
-                $builtResult[$item['key']] = $data;
-            }
-
-            if ($queryResult instanceof UpdateQueryResult) {
-                $data = [
-                    'row_count' => $queryResult->getRowCount(),
-                ];
-
-                $builtResult[$item['key']] = $data;
-            }
-
-            if ($queryResult instanceof SelectQueryResult) {
-                $data = [
-                    'row_count' => $queryResult->getMetadata()->getRowCount(),
-                    'data' => $queryResult->getQueryResult(),
-                ];
-
-                $singleStatementName = $item['key'];
-
-                /** @var Metadata $statementMetadata */
-                $statementMetadata = $metadata[$singleStatementName];
-                $filter = $statementMetadata->getFilter();
-
-                $appliedFilterEntity = $this->applyFilter(
-                    new Entity($data),
-                    $filterApplier,
-                    $filter
-                );
-
-                $builtResult[$item['key']] = $appliedFilterEntity->toArray();
-            }
-
-            if ($queryResult instanceof NullQueryResult) {
-                $data = null;
-
-                $builtResult[$item['key']] = $data;
-            }
+            $this->buildResult(
+                $queryResult,
+                $item['key'],
+                $metadata,
+                $filterApplier,
+                $builtResult
+            );
         }
 
         return new Entity($builtResult, $scenarioName);
@@ -129,5 +97,135 @@ class ScenarioResultFactory
         }
 
         return $entity;
+    }
+    /**
+     * @param $queryResult
+     * @param string $statementName
+     * @param Metadata[] $metadata
+     * @param FilterApplier $filterApplier
+     * @param $builtResult
+     */
+    private function buildResult(
+        $queryResult,
+        string $statementName,
+        array $metadata,
+        FilterApplier $filterApplier,
+        &$builtResult
+    ) {
+        $singleStatementName = $statementName;
+        /** @var Metadata $statementMetadata */
+        $statementMetadata = $metadata[$singleStatementName];
+
+        if ($queryResult instanceof InsertQueryResult) {
+            $data = [
+                'row_count' => $queryResult->getRowCount(),
+                'last_insert_id' => (int) $queryResult->getLastInsertId(),
+            ];
+
+            $userParametersType = $statementMetadata->getUserParametersType();
+
+            if ($userParametersType instanceof MultipleParametersType) {
+                $alreadyBuiltResult = [
+                    'row_count' => 0,
+                ];
+
+                if (array_key_exists($statementName, $builtResult)) {
+                    $alreadyBuiltResult = $builtResult[$statementName];
+                }
+
+                $alreadyBuiltResult['last_insert_id'] = (int) $queryResult->getLastInsertId();
+                $alreadyBuiltResult['row_count'] += (int) $queryResult->getRowCount();
+                $alreadyBuiltResult['inserted_ids'][] = (int) $queryResult->getLastInsertId();
+
+                $builtResult[$statementName] = $alreadyBuiltResult;
+
+                return;
+            }
+
+            $builtResult[$statementName] = $data;
+        }
+
+        if ($queryResult instanceof DeleteQueryResult) {
+            $data = [
+                'row_count' => $queryResult->getRowCount(),
+            ];
+
+            $userParametersType = $statementMetadata->getUserParametersType();
+
+            if ($userParametersType instanceof MultipleParametersType) {
+                $alreadyBuiltResult = [];
+
+                if (array_key_exists($statementName, $builtResult)) {
+                    $alreadyBuiltResult = $builtResult[$statementName];
+                }
+
+                $alreadyBuiltResult['row_count'] += (int) $queryResult->getRowCount();
+
+                $builtResult[$statementName] = $alreadyBuiltResult;
+
+                return;
+            }
+
+            $builtResult[$statementName] = $data;
+        }
+
+        if ($queryResult instanceof UpdateQueryResult) {
+            $data = [
+                'row_count' => $queryResult->getRowCount(),
+            ];
+
+            $userParametersType = $statementMetadata->getUserParametersType();
+
+            if ($userParametersType instanceof MultipleParametersType) {
+                $alreadyBuiltResult = [];
+
+                if (array_key_exists($statementName, $builtResult)) {
+                    $alreadyBuiltResult = $builtResult[$statementName];
+                }
+
+                $alreadyBuiltResult['row_count'] += (int) $queryResult->getRowCount();
+
+                $builtResult[$statementName] = $alreadyBuiltResult;
+
+                return;
+            }
+
+            $builtResult[$statementName] = $data;
+        }
+
+        if ($queryResult instanceof SelectQueryResult) {
+            $data = [
+                'row_count' => $queryResult->getMetadata()->getRowCount(),
+                'data' => $queryResult->getQueryResult(),
+            ];
+
+            $filter = $statementMetadata->getFilter();
+
+            $appliedFilterEntity = $this->applyFilter(
+                new Entity($data),
+                $filterApplier,
+                $filter
+            );
+
+            $userParametersType = $statementMetadata->getUserParametersType();
+
+            if ($userParametersType instanceof MultipleParametersType) {
+                if (array_key_exists($statementName, $builtResult)) {
+                    $alreadyBuiltResult = $builtResult[$statementName];
+                }
+
+                $alreadyBuiltResult['data'][] = $appliedFilterEntity->toArray();
+
+                $builtResult[$statementName] = $alreadyBuiltResult;
+
+                return;
+            }
+
+            $builtResult[$statementName] = $appliedFilterEntity->toArray();
+        }
+
+        if ($queryResult instanceof NullQueryResult) {
+            $builtResult[$statementName] = null;
+        }
     }
 }

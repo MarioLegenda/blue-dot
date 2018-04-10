@@ -123,7 +123,11 @@ class SimpleStrategy implements StrategyInterface
 
         return $result;
     }
-
+    /**
+     * @param string $sql
+     * @param array $userParameters
+     * @return KernelResultInterface
+     */
     private function multipleExecute(
         string $sql,
         array $userParameters

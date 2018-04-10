@@ -2,7 +2,6 @@
 
 namespace BlueDot\Kernel\Result;
 
-use BlueDot\Common\Enum\TypeInterface;
 use BlueDot\Common\FlowProductInterface;
 use BlueDot\Common\Util\Util;
 use BlueDot\Configuration\Flow\Scenario\ScenarioConfiguration;

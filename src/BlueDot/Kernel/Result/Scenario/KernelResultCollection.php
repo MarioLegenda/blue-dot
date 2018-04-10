@@ -30,6 +30,14 @@ class KernelResultCollection implements ArrayNotationInterface, \IteratorAggrega
     }
     /**
      * @param string $resolvedStatementName
+     * @param $result
+     */
+    public function addTo(string $resolvedStatementName, $result)
+    {
+        $this->results[$resolvedStatementName][] = $result;
+    }
+    /**
+     * @param string $resolvedStatementName
      * @return bool
      */
     public function has(string $resolvedStatementName): bool

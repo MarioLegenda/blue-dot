@@ -80,6 +80,13 @@ configuration:
                 create_address_table:
                     sql: "CREATE TABLE IF NOT EXISTS addresses (id INT AUTO_INCREMENT PRIMARY KEY, address VARCHAR(255) NOT NULL)"
 
+        select_user_by_id:
+            atomic: true
+            statements:
+                find_user_by_id:
+                    sql: 'SELECT * FROM user WHERE id = :id'
+                    parameters: [id]
+
         insert_user:
             atomic: true
             statements:

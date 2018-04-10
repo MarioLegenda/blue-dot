@@ -4,6 +4,8 @@ namespace BlueDot\Configuration\Flow\Scenario;
 
 use BlueDot\Common\Enum\TypeInterface;
 use BlueDot\Configuration\Filter\Filter;
+use BlueDot\Configuration\Flow\Enum\MultipleParametersType;
+use BlueDot\Configuration\Flow\Enum\SingleParameterType;
 use BlueDot\Configuration\Flow\Simple\Enum\SqlTypeFactory;
 use BlueDot\Configuration\Flow\Simple\Enum\SqlTypes;
 use BlueDot\Kernel\Strategy\Enum\IfExistsType;
@@ -31,6 +33,10 @@ class Metadata
      * @var string $sqlType
      */
     private $sqlType;
+    /**
+     * @var TypeInterface $userParametersType
+     */
+    private $userParametersType;
     /**
      * @var bool $canBeEmptyResult
      */
@@ -291,6 +297,13 @@ class Metadata
         return $this->sqlType;
     }
     /**
+     * @return TypeInterface|null
+     */
+    public function getUserParametersType(): ?TypeInterface
+    {
+        return $this->userParametersType;
+    }
+    /**
      * @return Filter|null
      */
     public function getFilter(): ?Filter
@@ -303,6 +316,33 @@ class Metadata
     public function injectUserParameters(array $userParameters)
     {
         $this->userParameters = $userParameters;
+
+        $this->userParametersType = $this->determineParameterType();
+    }
+    /**
+     * @return TypeInterface|null
+     */
+    private function determineParameterType(): ?TypeInterface
+    {
+        if (empty($this->userParameters)) {
+            return null;
+        }
+
+        $firstKey = array_keys($this->userParameters)[0];
+
+        if (is_int($firstKey)) {
+            $possibleMultipleParameter = $this->userParameters[$firstKey];
+
+            if (is_array($possibleMultipleParameter)) {
+                return MultipleParametersType::fromValue();
+            }
+        }
+
+        if (is_string($firstKey) and !is_array($this->userParameters[$firstKey])) {
+            return SingleParameterType::fromValue();
+        }
+
+        return SingleParameterType::fromValue();
     }
     /**
      * @return string

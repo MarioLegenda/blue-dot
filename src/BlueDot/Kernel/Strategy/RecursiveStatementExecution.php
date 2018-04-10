@@ -3,6 +3,7 @@
 namespace BlueDot\Kernel\Strategy;
 
 use BlueDot\Common\Enum\TypeInterface;
+use BlueDot\Configuration\Flow\Enum\MultipleParametersType;
 use BlueDot\Configuration\Flow\Scenario\ForeignKey;
 use BlueDot\Configuration\Flow\Scenario\Metadata;
 use BlueDot\Configuration\Flow\Scenario\UseOption;
@@ -100,6 +101,18 @@ class RecursiveStatementExecution
                 }
             }
 
+            $userParametersType = $this->statement->getUserParametersType();
+
+            if ($userParametersType instanceof MultipleParametersType) {
+                $userParameters = $this->statement->getUserParameters();
+
+                foreach ($userParameters as $parameter) {
+                    $this->runIndividualStatement($metadataList, $parameter);
+                }
+
+                return $this;
+            }
+
             $this->runIndividualStatement($metadataList);
 
             return $this;
@@ -115,8 +128,9 @@ class RecursiveStatementExecution
     }
     /**
      * @param array $metadataList
+     * @param array|null $userParameters
      */
-    private function runIndividualStatement(array $metadataList)
+    private function runIndividualStatement(array $metadataList, array $userParameters = null)
     {
         $sql = $this->statement->getSql();
 
@@ -125,9 +139,7 @@ class RecursiveStatementExecution
         $this->handleUseOption($metadataList, $pdoStatement);
         $this->handleForeignKey($metadataList, $pdoStatement);
 
-        $userParameters = $this->statement->getUserParameters();
-
-        if (!empty($userParameters)) {
+        if (is_array($userParameters)) {
             foreach ($userParameters as $key => $parameter) {
                 $this->bindSingleParameter(
                     new Parameter(
@@ -136,6 +148,22 @@ class RecursiveStatementExecution
                     ),
                     $pdoStatement
                 );
+            }
+        }
+
+        if (!is_array($userParameters)) {
+            $userParameters = $this->statement->getUserParameters();
+
+            if (!empty($userParameters)) {
+                foreach ($userParameters as $key => $parameter) {
+                    $this->bindSingleParameter(
+                        new Parameter(
+                            $key,
+                            $parameter
+                        ),
+                        $pdoStatement
+                    );
+                }
             }
         }
 
@@ -309,6 +337,12 @@ class RecursiveStatementExecution
             'pdo_statement' => $pdoStatement,
             'connection' => $this->connection,
         ))->makeReport();
+
+        if ($this->statement->getUserParametersType() instanceof MultipleParametersType) {
+            $this->results->addTo($resolvedStatementName, $queryResult);
+
+            return;
+        }
 
         $this->results->add($resolvedStatementName, $queryResult);
     }

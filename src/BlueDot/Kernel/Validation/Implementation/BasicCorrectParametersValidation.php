@@ -60,6 +60,7 @@ class BasicCorrectParametersValidation implements ValidatorInterface
 				$userParameters = $item->getUserParameters();
 				$configParameters = $item->getConfigParameters();
 				$resolvedStatementName = $item->getResolvedScenarioStatementName();
+				$userParametersType = $item->getUserParametersType();
 
 				$this->handleGenericParametersValidation(
 				    $userParameters,
@@ -67,10 +68,18 @@ class BasicCorrectParametersValidation implements ValidatorInterface
                     $resolvedStatementName
                 );
 
-				$this->handleParametersEquality(
-				    $userParameters,
-                    $configParameters,
-                    $resolvedStatementName
+				if ($userParametersType instanceof SingleParameterType) {
+                    $this->handleParametersEquality(
+                        $userParameters,
+                        $configParameters,
+                        $resolvedStatementName
+                    );
+                }
+
+                $this->handleParametersTypeValidation(
+                    $userParameters,
+                    $resolvedStatementName,
+                    $userParametersType
                 );
 			}
         }
@@ -202,8 +211,7 @@ class BasicCorrectParametersValidation implements ValidatorInterface
             if (
                 is_array($parameterValue) or
                 is_object($parameterValue) or
-                is_resource($parameterValue) or
-                empty($parameterValue)
+                is_resource($parameterValue)
             ) {
                 $message = sprintf(
                     'Invalid parameter. Parameter value cannot be an object, array, resource or an empty value in statement \'%s\'',

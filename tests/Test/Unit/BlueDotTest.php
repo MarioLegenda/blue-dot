@@ -171,6 +171,77 @@ class BlueDotTest extends TestCase
         static::assertTrue($promise->isSuccess());
     }
 
+    public function test_multiple_insert_for_scenario_statements()
+    {
+        $blueDot = new BlueDot(__DIR__.'/../config/result/prepared_execution_test.yml');
+
+        $parameters = [];
+
+        for ($i = 0; $i < 10; $i++) {
+            $parameters[] = ['address' => $this->getFaker()->address];
+        }
+
+        $promise = $blueDot->execute('scenario.insert_user', [
+            'insert_user' => [
+                'name' => $this->getFaker()->name,
+                'username' => $this->getFaker()->userName,
+                'lastname' => $this->getFaker()->lastName,
+            ],
+            'insert_address' => $parameters,
+        ]);
+
+        static::assertInstanceOf(PromiseInterface::class, $promise);
+        static::assertTrue($promise->isSuccess());
+
+        /** @var Entity $result */
+        $result = $promise->getResult();
+
+        static::assertTrue($result->has('insert_address'));
+        static::assertArrayHasKey('inserted_ids', $result->get('insert_address'));
+        static::assertNotEmpty($result->get('insert_address'));
+        static::assertInternalType('array', $result->get('insert_address'));
+
+        static::assertArrayHasKey('row_count', $result->get('insert_address'));
+        static::assertGreaterThan(1, $result->get('insert_address')['row_count']);
+
+        static::assertArrayHasKey('last_insert_id', $result->get('insert_address'));
+        static::assertGreaterThan(1, $result->get('insert_address')['last_insert_id']);
+    }
+
+    public function test_multiple_select_for_scenario_statements()
+    {
+        $blueDot = new BlueDot(__DIR__.'/../config/result/prepared_execution_test.yml');
+
+        $parameters = [];
+
+        for ($i = 0; $i < 10; $i++) {
+            $parameters[] = ['id' => $i];
+        }
+
+        $promise = $blueDot->execute('scenario.select_user_by_id', [
+            'find_user_by_id' => $parameters,
+        ]);
+
+        static::assertInstanceOf(PromiseInterface::class, $promise);
+        static::assertTrue($promise->isSuccess());
+
+        $result = $promise->getResult()->get('find_user_by_id');
+
+        $data = $result['data'];
+
+        static::assertNotEmpty($data);
+        static::assertInternalType('array', $data);
+
+        foreach ($data as $row) {
+            static::assertArrayHasKey('row_count', $row);
+
+            $innerData = $row['data'];
+
+            static::assertNotEmpty($innerData);
+            static::assertInternalType('array', $innerData);
+        }
+    }
+
     public function test_blue_dot_other_type_execution()
     {
         $blueDot = new BlueDot(__DIR__.'/../config/result/prepared_execution_test.yml');

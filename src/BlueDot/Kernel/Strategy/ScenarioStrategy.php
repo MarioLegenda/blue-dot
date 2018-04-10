@@ -70,7 +70,6 @@ class ScenarioStrategy implements StrategyInterface
 
                 if ($item->hasIfExistsStatement() or $item->hasIfNotExistsStatement()) {
                     $existsStatementName = $item->getExistsStatementName();
-                    $fullExistsStatementName = $item->createExistsFullStatementName();
 
                     /** @var TypeInterface $existsType */
                     $existsType = $item->getExistsStatementType();
