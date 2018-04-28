@@ -2,8 +2,8 @@
 
 namespace BlueDot\Kernel\Strategy;
 
-use BlueDot\Common\ArgumentBag;
 use BlueDot\Common\Enum\TypeInterface;
+use BlueDot\Common\Util\Util;
 use BlueDot\Configuration\Flow\Enum\MultipleParametersType;
 use BlueDot\Configuration\Flow\Enum\SingleParameterType;
 use BlueDot\Configuration\Flow\Simple\Enum\DeleteSqlType;
@@ -11,15 +11,13 @@ use BlueDot\Configuration\Flow\Simple\Enum\InsertSqlType;
 use BlueDot\Configuration\Flow\Simple\Enum\OtherSqlType;
 use BlueDot\Configuration\Flow\Simple\Enum\SelectSqlType;
 use BlueDot\Configuration\Flow\Simple\Enum\UpdateSqlType;
-use BlueDot\Configuration\Flow\Simple\Model;
 use BlueDot\Configuration\Flow\Simple\SimpleConfiguration;
 use BlueDot\Kernel\Connection\Connection;
 use BlueDot\Kernel\Parameter\Parameter;
-use BlueDot\Entity\Entity;
-use BlueDot\Entity\ModelConverter;
 use BlueDot\Kernel\Result\KernelCollectionResultConverter;
 use BlueDot\Kernel\Result\KernelResultInterface;
 use BlueDot\Kernel\Result\Simple\KernelResult;
+use BlueDot\Result\IntConverter;
 
 class SimpleStrategy implements StrategyInterface
 {
@@ -171,7 +169,7 @@ class SimpleStrategy implements StrategyInterface
                 );
             }*/
 
-            $result['data'] = $queryResult;
+            $result['data'] = IntConverter::convert(Util::instance()->createGenerator($queryResult));
             $result['row_count'] = $rowCount;
 
             return new KernelResult(
