@@ -19,7 +19,7 @@ use BlueDot\Kernel\Strategy\SimpleStrategy;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Yaml\Yaml;
 
-class KernelTest extends TestCase
+class KernelTest extends BaseTest
 {
     /**
      * @var array $simpleConfig
@@ -36,6 +36,8 @@ class KernelTest extends TestCase
 
     public function setUp()
     {
+        parent::setUp();
+
         $simpleConfig = __DIR__ . '/../config/compiler/simple_statement_test.yml';
         $scenarioConfig = __DIR__ . '/../config/compiler/scenario_statement_test.yml';
         $serviceConfig = __DIR__ . '/../config/compiler/service_statement_test.yml';

@@ -18,7 +18,7 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Yaml\Yaml;
 use Test\FakerTrait;
 
-class StatementBuilderTest extends TestCase
+class StatementBuilderTest extends BaseTest
 {
     use FakerTrait;
     /**
@@ -36,6 +36,8 @@ class StatementBuilderTest extends TestCase
 
     public function setUp()
     {
+        parent::setUp();
+
         $this->connection = ConnectionFactory::createConnection([
             'host' => '127.0.0.1',
             'database_name' => 'blue_dot',
@@ -57,8 +59,6 @@ class StatementBuilderTest extends TestCase
         ];
 
         $this->setUpUsers();
-
-        parent::setUp();
     }
 
     public function tearDown()

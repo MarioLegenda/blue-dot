@@ -3,7 +3,7 @@ configuration:
         host: 127.0.0.1
         user: 'root'
         password: 'root'
-        database_name: 'blue_dot'
+        database_name: ''
 
     sql_import: 'import/import.yml'
 
@@ -73,12 +73,18 @@ configuration:
 
     scenario:
         table_creation:
-            atomic: true
+            atomic: false
             statements:
+                create_database:
+                    sql: "CREATE DATABASE IF NOT EXISTS blue_dot"
+                use_database:
+                    sql: "USE blue_dot"
                 create_user_table:
                     sql: "CREATE TABLE IF NOT EXISTS user (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) NOT NULL, lastname VARCHAR(255) NOT NULL, username VARCHAR(255) NOT NULL)"
                 create_address_table:
-                    sql: "CREATE TABLE IF NOT EXISTS addresses (id INT AUTO_INCREMENT PRIMARY KEY, address VARCHAR(255) NOT NULL)"
+                    sql: "CREATE TABLE IF NOT EXISTS addresses (id INT AUTO_INCREMENT PRIMARY KEY, user_id INT NOT NULL, address VARCHAR(255) NOT NULL)"
+                create_normalized_user:
+                    sql: "CREATE TABLE IF NOT EXISTS normalized_user (id INT AUTO_INCREMENT PRIMARY KEY, user_id INT NOT NULL, address_id INT NOT NULL)"
 
         select_user_by_id:
             atomic: true

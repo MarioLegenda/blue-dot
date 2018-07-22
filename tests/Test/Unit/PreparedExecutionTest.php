@@ -18,7 +18,7 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Yaml\Yaml;
 use Test\FakerTrait;
 
-class PreparedExecutionTest extends TestCase
+class PreparedExecutionTest extends BaseTest
 {
     use FakerTrait;
     /**
@@ -36,6 +36,8 @@ class PreparedExecutionTest extends TestCase
 
     public function setUp()
     {
+        parent::setUp();
+
         $this->connection = ConnectionFactory::createConnection([
             'host' => '127.0.0.1',
             'database_name' => 'blue_dot',
@@ -53,8 +55,6 @@ class PreparedExecutionTest extends TestCase
         $this->blueDot = new BlueDot($preparedExecutionConfig);
 
         $this->setUpUsers();
-
-        parent::setUp();
     }
 
     public function tearDown()

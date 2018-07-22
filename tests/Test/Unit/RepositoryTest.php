@@ -5,7 +5,7 @@ namespace Test\Unit;
 use BlueDot\Repository\Repository;
 use PHPUnit\Framework\TestCase;
 
-class RepositoryTest extends TestCase
+class RepositoryTest extends BaseTest
 {
     /**
      * @var array $dirs

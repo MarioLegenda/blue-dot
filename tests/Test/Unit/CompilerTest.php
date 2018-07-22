@@ -22,7 +22,7 @@ use BlueDot\Configuration\Flow\Simple\WorkConfig;
 use BlueDot\Configuration\Flow\Scenario\Metadata as ScenarioMetadata;
 use BlueDot\Configuration\Flow\Simple\Metadata as SimpleMetadata;
 
-class CompilerTest extends TestCase
+class CompilerTest extends BaseTest
 {
     /**
      * @var array $simpleConfig
@@ -39,6 +39,8 @@ class CompilerTest extends TestCase
 
     public function setUp()
     {
+        parent::setUp();
+
         $simpleConfig = __DIR__ . '/../config/compiler/simple_statement_test.yml';
         $scenarioConfig = __DIR__ . '/../config/compiler/scenario_statement_test.yml';
         $serviceConfig = __DIR__ . '/../config/compiler/service_statement_test.yml';
