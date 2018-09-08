@@ -6,7 +6,7 @@ use BlueDot\Entity\Entity;
 use PHPUnit\Framework\TestCase;
 use Test\FakerTrait;
 
-class EntityFiltersTest extends TestCase
+class EntityFiltersTest extends BaseTest
 {
     use FakerTrait;
     /**

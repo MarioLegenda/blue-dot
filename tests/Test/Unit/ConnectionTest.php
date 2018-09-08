@@ -7,7 +7,7 @@ use BlueDot\Kernel\Connection\Connection;
 use BlueDot\Kernel\Connection\ConnectionFactory;
 use PHPUnit\Framework\TestCase;
 
-class ConnectionTest extends TestCase
+class ConnectionTest extends BaseTest
 {
     public function test_connection()
     {

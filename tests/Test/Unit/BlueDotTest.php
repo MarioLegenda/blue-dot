@@ -14,11 +14,10 @@ use BlueDot\Entity\PromiseInterface;
 use BlueDot\Kernel\Connection\Connection;
 use BlueDot\Kernel\Connection\ConnectionFactory;
 use BlueDot\Kernel\Kernel;
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\Yaml\Yaml;
 use Test\FakerTrait;
 
-class BlueDotTest extends TestCase
+class BlueDotTest extends BaseTest
 {
     use FakerTrait;
     /**
@@ -32,6 +31,8 @@ class BlueDotTest extends TestCase
 
     public function setUp()
     {
+        parent::setUp();
+
         $this->connection = ConnectionFactory::createConnection([
             'host' => '127.0.0.1',
             'database_name' => 'blue_dot',
@@ -47,8 +48,6 @@ class BlueDotTest extends TestCase
         ];
 
         $this->setUpUsers();
-
-        parent::setUp();
     }
 
     public function tearDown()

@@ -25,7 +25,7 @@ use BlueDot\Configuration\Import\ImportCollection;
 use BlueDot\Configuration\Validator\ConfigurationValidator;
 use Test\FakerTrait;
 
-class KernelResultTest extends TestCase
+class KernelResultTest extends BaseTest
 {
     use FakerTrait;
     /**
@@ -43,6 +43,8 @@ class KernelResultTest extends TestCase
 
     public function setUp()
     {
+        parent::setUp();
+
         $this->connection = ConnectionFactory::createConnection([
             'host' => '127.0.0.1',
             'database_name' => 'blue_dot',
@@ -64,8 +66,6 @@ class KernelResultTest extends TestCase
         ];
 
         $this->setUpUsers();
-
-        parent::setUp();
     }
 
     public function tearDown()

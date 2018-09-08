@@ -5,7 +5,7 @@ namespace Test\Unit;
 use BlueDot\BlueDot;
 use PHPUnit\Framework\TestCase;
 
-class CompilerCacheTest extends TestCase
+class CompilerCacheTest extends BaseTest
 {
     public function tearDown()
     {

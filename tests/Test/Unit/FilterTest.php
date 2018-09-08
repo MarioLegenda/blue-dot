@@ -18,7 +18,7 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Yaml\Yaml;
 use Test\FakerTrait;
 
-class FilterTest extends TestCase
+class FilterTest extends BaseTest
 {
     use FakerTrait;
     /**
@@ -43,6 +43,8 @@ class FilterTest extends TestCase
 
     public function setUp()
     {
+        parent::setUp();
+
         $this->connection = ConnectionFactory::createConnection([
             'host' => '127.0.0.1',
             'database_name' => 'blue_dot',
@@ -58,8 +60,6 @@ class FilterTest extends TestCase
         ];
 
         $this->setUpUsers();
-
-        parent::setUp();
     }
 
     public function tearDown()
