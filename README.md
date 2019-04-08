@@ -51,8 +51,31 @@ Install it with [composer](https://getcomposer.org/)
 
 #### 3.1 Creating BlueDot and the initial configuration
 
-The configuration .yml file gives **BlueDot** the information it needs to
-create the connection
+BlueDot works by parsing the configuration .yml file and executing it later on, but
+you can instantiate it without the file. This is because you can use BlueDot only 
+for the **StatementBuilder** (we will talk about the StatementBuilder later). You can
+also inject configuration file and the connection to MySql later. This makes BlueDot
+light and configurable.
+
+    use BlueDot\BlueDot;
+    
+    $blueDot = new BlueDot();
+    
+    // OR
+    
+    $blueDot = new BlueDot('/path/to/file.yml');
+    
+Not that the .yml configuration has to be a absolute path to that file.
+    
+If you wish to inject the configuration later on, you can do that with the **BlueDot::setConfiguration()**
+method.
+
+    // the path to the file must be an absolute path
+    $blueDot->setConfiguration('/path/to/file.yml');
+    
+You cannot call **BlueDot::setConfiguration()** more than once. BlueDot works on a concept
+of repositories where every file is a repository and you can switch between repositories as you which,
+but you cannot load an existing repository (an already loaded .yml file). More on repositories later on.
 
 #### 3.2. Database connection
 

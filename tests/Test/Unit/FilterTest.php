@@ -54,9 +54,11 @@ class FilterTest extends BaseTest
 
         $preparedExecutionConfig = __DIR__ . '/../config/result/prepared_execution_test.yml';
 
+        $method = (method_exists(Yaml::class, 'parseFile')) ? 'parseFile' : 'parse';
+
         $this->preparedExecutionConfig = [
             'file' => $preparedExecutionConfig,
-            'config' => Yaml::parse($preparedExecutionConfig)
+            'config' => Yaml::{$method}($preparedExecutionConfig)
         ];
 
         $this->setUpUsers();
