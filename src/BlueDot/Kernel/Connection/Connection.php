@@ -23,6 +23,8 @@ class Connection
      * @param array $dsn|null
      * @param Attributes|null $attributes
      * @throws ConnectionException
+     *
+     *
      */
     public function __construct(
         array $dsn = null,
@@ -41,6 +43,10 @@ class Connection
      */
     public function setPdo(\PDO $pdo): Connection
     {
+        $this->close();
+
+        gc_collect_cycles();
+
         $this->connection = $pdo;
 
         return $this;

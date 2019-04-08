@@ -88,7 +88,12 @@ class BlueDot implements BlueDotInterface
      * Set the Connection object for this instance of BlueDot
      *
      * If the connection already exists, it closes the current connection and
-     * replaces it with the new one
+     * replaces it with the new one.
+     *
+     * It is important to know here that even if you create a Connection object,
+     * the connection to MySql is still not established. BlueDot establishes the connection
+     * just before it knows that he will make a query to the database. So, calling
+     * setConnection() does not establishes an actual connection to MySql.
      */
     public function setConnection(Connection $connection) : BlueDotInterface
     {

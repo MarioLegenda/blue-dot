@@ -49,20 +49,11 @@ Install it with [composer](https://getcomposer.org/)
     
 ## 3. The basics
 
-#### 3.1 Initial configuration
+#### 3.1 Creating BlueDot and the initial configuration
 
-**BlueDot** is fully configurable trough .yml configuration file that you specify in the ```BlueDot``` constructor. 
+The configuration .yml file gives **BlueDot** the information it needs to
+create the connection
 
-    use BlueDot\BlueDot;
-    
-    $blueDot = new BlueDot('/path/to/config/file/configuration.yml');
-    
-You can also instantiate via singleton
-
-    use BlueDot/BlueDot
-    
-    $blueDot = BlueDot::instance('/path/to/config/file/configuration.yml');
-    
 #### 3.2. Database connection
 
     configuration:
