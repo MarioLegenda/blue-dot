@@ -25,7 +25,7 @@ class ConfigurationValidator
         $configuration = new ArrayNode('configuration', $this->configuration);
 
         $simpleConfiguration = $configuration
-            ->keyExists('configuration')
+            ->mandatoryKeyExists('configuration')
             ->stepInto('configuration')
                 ->isArrayIfExists('connection')
                 ->stepIntoIfExists('connection')

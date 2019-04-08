@@ -22,8 +22,6 @@ use BlueDot\Exception\{
     RepositoryException, ConnectionException, ConfigurationException
 };
 
-use BlueDot\Kernel\Environment\EnvironmentFactory;
-use BlueDot\Kernel\Environment\Type\ProdEnv;
 use BlueDot\Kernel\Kernel;
 use BlueDot\Kernel\Strategy\PreparedExecution;
 use BlueDot\StatementBuilder\StatementBuilder;
@@ -33,10 +31,6 @@ use BlueDot\Repository\Repository;
 
 class BlueDot implements BlueDotInterface
 {
-    /**
-     * @var TypeInterface $environment
-     */
-    private $environment;
     /**
      * @var CompilerCache $compilerCache
      */
@@ -60,7 +54,6 @@ class BlueDot implements BlueDotInterface
     /**
      * BlueDot constructor.
      * @param string|null $configSource
-     * @param string $environment
      * @throws ConfigurationException
      * @throws RepositoryException
      * @throws ConnectionException
@@ -71,14 +64,18 @@ class BlueDot implements BlueDotInterface
      * of BlueDot
      */
     public function __construct(
-        string $configSource = null,
-        string $environment = 'dev'
+        string $configSource = null
     ) {
-        $this->environment = EnvironmentFactory::create($environment);
-        $this->compilerCache = new CompilerCache();
-
         if (is_null($configSource)) {
             return $this;
+        }
+
+        if (!file_exists($configSource)) {
+            throw new \InvalidArgumentException("The file $configSource does not exist");
+        }
+
+        if (!is_readable($configSource)) {
+            throw new \InvalidArgumentException("The file $configSource is not readable");
         }
 
         if (is_file($configSource)) {
@@ -270,7 +267,7 @@ class BlueDot implements BlueDotInterface
         $parsedConfiguration = Yaml::parse(file_get_contents($configSource));
 
         if (empty($parsedConfiguration)) {
-            throw new ConfigurationException('Invalid configuration. Configuration could not be parsed');
+            throw new ConfigurationException("Invalid configuration. Configuration file $configSource is empty");
         }
 
         return $parsedConfiguration;
@@ -354,22 +351,6 @@ class BlueDot implements BlueDotInterface
         string $configSource,
         array $parsedConfiguration
     ): Compiler {
-        try {
-            if ($this->environment->equals(ProdEnv::fromValue())) {
-                if (!$this->compilerCache->isInCache($configSource)) {
-                    $compiler = $this->createCompiler($configSource, $parsedConfiguration);
-
-                    $this->compilerCache->putInCache($configSource, $compiler);
-                }
-
-                return $this->compilerCache->getFromCache($configSource);
-            }
-        } catch(\Throwable $e) {
-            // NOT IMPLEMENTED. There could be user privileges problems when in vendor directory.
-            // This should not be a blocking issue.
-            // A Compiler always has to be created
-        }
-
         return $this->createCompiler($configSource, $parsedConfiguration);
     }
     /**

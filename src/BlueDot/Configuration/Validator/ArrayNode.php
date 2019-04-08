@@ -190,6 +190,20 @@ class ArrayNode implements \IteratorAggregate, \Countable
     }
     /**
      * @param string $nodeName
+     * @param array $node
+     * @return ArrayNode
+     * @throws ConfigurationException
+     */
+    public function mandatoryKeyExists(string $nodeName, array $node = []): ArrayNode
+    {
+        if (!empty($node)) {
+            return $this->internalKeyExists($nodeName, $node);
+        }
+
+        return $this->internalKeyExists($nodeName, $this->workingNode);
+    }
+    /**
+     * @param string $nodeName
      * @return $this
      * @throws ConfigurationException
      */
