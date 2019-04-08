@@ -5,9 +5,10 @@ namespace Test\Unit;
 
 use BlueDot\BlueDot;
 use BlueDot\Exception\ConfigurationException;
+use PHPUnit\Framework\TestCase;
 
 
-class FailingTest extends BaseTest
+class FailingTest extends TestCase
 {
     public function test_invalid_config_file()
     {
