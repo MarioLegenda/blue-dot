@@ -169,6 +169,8 @@ class BlueDot implements BlueDotInterface
     }
     /**
      * @return RepositoryInterface
+     *
+     * Gives access to Repository instance
      */
     public function repository() : RepositoryInterface
     {
@@ -186,6 +188,11 @@ class BlueDot implements BlueDotInterface
      * @throws ConfigurationException
      * @throws ConnectionException
      * @throws RepositoryException
+     *
+     * Switches BlueDot current configuration and compiles it again.
+     *
+     * It has the same effect of creating multiple instances of BlueDot with
+     * different configuration files.
      */
     public function useRepository(string $repository) : BlueDotInterface
     {
