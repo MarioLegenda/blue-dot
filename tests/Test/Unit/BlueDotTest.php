@@ -147,7 +147,7 @@ class BlueDotTest extends BaseTest
         static::assertTrue($promise->isSuccess());
 
         /** @var Entity $result */
-        $entity = $promise->getResult();
+        $entity = $promise->getEntity();
 
         static::assertTrue($entity->has('inserted_ids'));
         static::assertNotEmpty($entity->get('inserted_ids'));
@@ -195,7 +195,7 @@ class BlueDotTest extends BaseTest
         static::assertTrue($promise->isSuccess());
 
         /** @var Entity $result */
-        $result = $promise->getResult();
+        $result = $promise->getEntity();
 
         static::assertTrue($result->has('insert_address'));
         static::assertArrayHasKey('inserted_ids', $result->get('insert_address'));
@@ -226,7 +226,7 @@ class BlueDotTest extends BaseTest
         static::assertInstanceOf(PromiseInterface::class, $promise);
         static::assertTrue($promise->isSuccess());
 
-        $result = $promise->getResult()->get('find_user_by_id');
+        $result = $promise->getEntity()->get('find_user_by_id');
 
         $data = $result['data'];
 

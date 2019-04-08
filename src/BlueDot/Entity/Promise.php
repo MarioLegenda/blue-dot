@@ -33,7 +33,7 @@ class Promise implements PromiseInterface
     /**
      * @inheritdoc
      */
-    public function getResult()
+    public function getEntity(): ?Entity
     {
         if ($this->callbackCalled === true) {
             return $this->result;
@@ -45,6 +45,20 @@ class Promise implements PromiseInterface
 
         return $this->entity;
     }
+    /**
+     * @inheritdoc
+     */
+    public function getArrayResult(): ?array
+    {
+        $entity = $this->getEntity();
+
+        if ($entity instanceof Entity) {
+            return $entity->toArray();
+        }
+
+        return null;
+    }
+
     /**
      * @inheritdoc
      */
@@ -62,7 +76,7 @@ class Promise implements PromiseInterface
             return $this;
         }
 
-        if (is_null($this->getResult())) {
+        if ($this->isFailure()) {
             return $this;
         }
 
@@ -82,7 +96,7 @@ class Promise implements PromiseInterface
             return $this;
         }
 
-        if (is_null($this->getResult())) {
+        if ($this->isFailure()) {
             $this->result = $callback->__invoke($this);
 
             $this->callbackCalled = true;
@@ -102,13 +116,13 @@ class Promise implements PromiseInterface
      */
     public function isSuccess() : bool
     {
-        return !is_null($this->getResult());
+        return $this->getEntity() instanceof Entity;
     }
     /**
      * @return bool
      */
     public function isFailure() : bool
     {
-        return is_null($this->getResult());
+        return !$this->getEntity() instanceof Entity;
     }
 }

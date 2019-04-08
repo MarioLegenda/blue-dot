@@ -116,8 +116,6 @@ class KernelResultTest extends BaseTest
         $entity = $kernel->convertKernelResultToUserFriendlyResult($kernelResult);
 
         static::assertInstanceOf(Entity::class, $entity);
-        static::assertTrue($entity->has('sql_type'));
-        static::assertEquals($entity->get('sql_type'), 'insert');
         static::assertTrue($entity->has('last_insert_id'));
         static::assertInternalType('int', $entity->get('last_insert_id'));
         static::assertTrue($entity->has('row_count'));
@@ -156,8 +154,6 @@ class KernelResultTest extends BaseTest
         $entity = $kernel->convertKernelResultToUserFriendlyResult($kernelResult);
 
         static::assertInstanceOf(Entity::class, $entity);
-        static::assertTrue($entity->has('sql_type'));
-        static::assertEquals($entity->get('sql_type'), 'select');
         static::assertTrue($entity->has('row_count'));
         static::assertInternalType('int', $entity->get('row_count'));
         static::assertTrue($entity->has('data'));
@@ -202,8 +198,6 @@ class KernelResultTest extends BaseTest
         $entity = $kernel->convertKernelResultToUserFriendlyResult($kernelResult);
 
         static::assertInstanceOf(Entity::class, $entity);
-        static::assertTrue($entity->has('sql_type'));
-        static::assertEquals($entity->get('sql_type'), 'select');
         static::assertTrue($entity->has('row_count'));
         static::assertInternalType('int', $entity->get('row_count'));
         static::assertTrue($entity->has('data'));
@@ -248,8 +242,6 @@ class KernelResultTest extends BaseTest
         $entity = $kernel->convertKernelResultToUserFriendlyResult($kernelResult);
 
         static::assertInstanceOf(Entity::class, $entity);
-        static::assertTrue($entity->has('sql_type'));
-        static::assertEquals($entity->get('sql_type'), 'select');
         static::assertTrue($entity->has('row_count'));
         static::assertInternalType('int', $entity->get('row_count'));
         static::assertTrue($entity->has('data'));
@@ -291,8 +283,6 @@ class KernelResultTest extends BaseTest
         $entity = $kernel->convertKernelResultToUserFriendlyResult($kernelResult);
 
         static::assertInstanceOf(Entity::class, $entity);
-        static::assertTrue($entity->has('sql_type'));
-        static::assertEquals($entity->get('sql_type'), 'update');
         static::assertTrue($entity->has('row_count'));
         static::assertInternalType('int', $entity->get('row_count'));
 
@@ -329,8 +319,6 @@ class KernelResultTest extends BaseTest
         $entity = $kernel->convertKernelResultToUserFriendlyResult($kernelResult);
 
         static::assertInstanceOf(Entity::class, $entity);
-        static::assertTrue($entity->has('sql_type'));
-        static::assertEquals($entity->get('sql_type'), 'update');
         static::assertTrue($entity->has('row_count'));
         static::assertInternalType('int', $entity->get('row_count'));
     }
@@ -367,8 +355,6 @@ class KernelResultTest extends BaseTest
         $entity = $kernel->convertKernelResultToUserFriendlyResult($kernelResult);
 
         static::assertInstanceOf(Entity::class, $entity);
-        static::assertTrue($entity->has('sql_type'));
-        static::assertEquals($entity->get('sql_type'), 'delete');
         static::assertTrue($entity->has('row_count'));
         static::assertInternalType('int', $entity->get('row_count'));
 
@@ -407,8 +393,6 @@ class KernelResultTest extends BaseTest
         $entity = $kernel->convertKernelResultToUserFriendlyResult($kernelResult);
 
         static::assertInstanceOf(Entity::class, $entity);
-        static::assertTrue($entity->has('sql_type'));
-        static::assertEquals($entity->get('sql_type'), 'delete');
         static::assertTrue($entity->has('row_count'));
         static::assertInternalType('int', $entity->get('row_count'));
     }

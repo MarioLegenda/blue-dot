@@ -88,19 +88,22 @@ but you cannot load an existing repository (an already loaded .yml file). More o
             
 And you are all set to make your first query to the database. You can also establish a 
 connection with a Connection object which you can pass as the second argument to 
-**BlueDot** constructor. 
+**BlueDot** constructor. To create the Connection object, use the **BlueDot\Kernel\Connection\ConnectionFactory**.
 
-    $connection = new BlueDot\Database\Connection(array(
+    /**
+    * @param BlueDot\Kernel\Connection\Connection $connection
+    */
+    $connection = ConnectionFactory::createConnection([
         'host' => '127.0.0.1',
-        'database_name' => 'database',
-        'user' => 'root',
-        'password' => 'root',
-    ));
+        'database_name' => 'my_database',
+        'user' => 'user',
+        'password' => 'password',
+    ]);
     
     $blueDot = new BlueDot\BlueDot('/path/to/configuration.yml', $connection);
     
 You can also instantiate **BlueDot** without configuration and only a **Connection** object
-but you could not execute any sql that you configured in your config .yml file.
+but you could not execute any sql since BlueDot is not initialised with a configuration file.
 You can, however, execute sql statements with the **statement builder**. More on 
 statement builder later on.
 
@@ -120,6 +123,11 @@ and utf8 charset*
 If you need to close the connection to the database, use *Connection::close()* method.
 
     $blueDot->getConnection()->close();
+
+It is also important to note that the actual connection to MySql is not established when you
+create the instance of the Connection object, but when BlueDot executes **Connection::connect()**.
+That method is executed only in the moment that BlueDot knows that every check and validation
+went successfully. 
 
 ## 4. Terminology
 
@@ -663,18 +671,17 @@ Internally, for *insert*, *update* or *delete* sql queries, it call the *PDOStat
 affected. If no rows have been affected, that kind of statement will be considered a nonexistent.
 Don't forget that when you use those sql queries with these options.
 
-## 7. Callable statements
+## 7. Service statements
 
-A callable statement is an object that extends *BlueDot\Common\AbstractCallable*.
-In that object, you will have **BlueDot** object and parameters array that you could
+A service statement is an object that extends **use BlueDot\Configuration\Flow\Service\BaseService**.
+In that object, you will receive **BlueDot** instance and parameters array that you could
 use as a dependency injection container. It is best to see it in an example.
 
-    callable:
-        my_callable:
-            type: object
-            name: Some\Namespace\Callable
+    service:
+        my_service:
+            class: Some\Namespace\MyClass
         
-    class MyCallable extends BlueDot\Common\AbstractCallable 
+    class MyService extends use BlueDot\Configuration\Flow\Service\BaseService;
     {
         public function run() 
         {
@@ -698,7 +705,7 @@ use as a dependency injection container. It is best to see it in an example.
         'number-parameter' => 6,
     ));
 
-Callable has a *run()* method that **BlueDot** executes. Poupuose of callable
+A service has a *run()* method that **BlueDot** executes. Purpose of a service
 is to group many scenarios or simple statements together. The return value of a callable
 is anything that *run()* method returns but encapsulated in a Promise. More on promises
 later.

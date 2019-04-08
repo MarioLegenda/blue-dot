@@ -85,7 +85,8 @@ class FilterTest extends BaseTest
         static::assertInstanceOf(PromiseInterface::class, $promise);
         static::assertTrue($promise->isSuccess());
 
-        $entity = $promise->getResult();
+        /** @var Entity $entity */
+        $entity = $promise->getEntity();
 
         static::assertTrue($entity->has('data'));
         static::assertEquals(1, count($entity->get('data')));
@@ -103,7 +104,8 @@ class FilterTest extends BaseTest
         static::assertInstanceOf(PromiseInterface::class, $promise);
         static::assertTrue($promise->isSuccess());
 
-        $entity = $promise->getResult();
+        /** @var Entity $entity */
+        $entity = $promise->getEntity();
 
         static::assertInstanceOf(Entity::class, $entity);
 
@@ -125,7 +127,8 @@ class FilterTest extends BaseTest
         static::assertInstanceOf(PromiseInterface::class, $promise);
         static::assertTrue($promise->isSuccess());
 
-        $entity = $promise->getResult();
+        /** @var Entity $entity */
+        $entity = $promise->getEntity();
 
         static::assertInstanceOf(Entity::class, $entity);
     }
@@ -140,7 +143,8 @@ class FilterTest extends BaseTest
         static::assertInstanceOf(PromiseInterface::class, $promise);
         static::assertTrue($promise->isSuccess());
 
-        $entity = $promise->getResult();
+        /** @var Entity $entity */
+        $entity = $promise->getEntity();
 
         static::assertNotEmpty($entity->toArray());
         static::assertEquals(2, count($entity->toArray()));
@@ -156,7 +160,8 @@ class FilterTest extends BaseTest
         static::assertInstanceOf(PromiseInterface::class, $promise);
         static::assertTrue($promise->isSuccess());
 
-        $entity = $promise->getResult();
+        /** @var Entity $entity */
+        $entity = $promise->getEntity();
 
         static::assertInstanceOf(Entity::class, $entity);
 
@@ -193,7 +198,8 @@ class FilterTest extends BaseTest
         static::assertInstanceOf(PromiseInterface::class, $promise);
         static::assertTrue($promise->isSuccess());
 
-        $result = $promise->getResult();
+        /** @var Entity $result */
+        $result = $promise->getEntity();
 
         static::assertInstanceOf(Entity::class, $result);
 

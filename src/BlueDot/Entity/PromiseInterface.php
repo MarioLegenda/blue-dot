@@ -7,7 +7,11 @@ interface PromiseInterface
     /**
      * @return Entity|array|null
      */
-    public function getResult();
+    public function getArrayResult(): ?array;
+    /**
+     * @return Entity|null
+     */
+    public function getEntity(): ?Entity;
     /**
      * @param \Closure $callback
      * @return PromiseInterface

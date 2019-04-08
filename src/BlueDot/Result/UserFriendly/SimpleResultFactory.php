@@ -51,7 +51,6 @@ class SimpleResultFactory
 
         if ($sqlType->equals(InsertSqlType::fromValue())) {
             $result = [
-                'sql_type' => (string) $sqlType,
                 'last_insert_id' => (int) $kernelResult['last_insert_id'],
                 'row_count' => (int) $kernelResult['row_count'],
             ];
@@ -68,7 +67,6 @@ class SimpleResultFactory
 
         if ($sqlType->equals(SelectSqlType::fromValue())) {
             $result = [
-                'sql_type' => (string) $sqlType,
                 'row_count' => (int) $kernelResult['row_count'],
                 'data' => $kernelResult['data'],
             ];
@@ -85,7 +83,6 @@ class SimpleResultFactory
 
         if ($sqlType->equals(UpdateSqlType::fromValue())) {
             $result = [
-                'sql_type' => (string) $sqlType,
                 'row_count' => (int) $kernelResult['row_count'],
             ];
 
@@ -97,7 +94,6 @@ class SimpleResultFactory
 
         if ($sqlType->equals(DeleteSqlType::fromValue())) {
             $result = [
-                'sql_type' => (string) $sqlType,
                 'row_count' => (int) $kernelResult['row_count'],
             ];
 
@@ -109,7 +105,6 @@ class SimpleResultFactory
 
         if ($sqlType->equals(OtherSqlType::fromValue())) {
             $result = [
-                'sql_type' => (string) $sqlType,
                 'row_count' => (int) $kernelResult['row_count'],
             ];
 

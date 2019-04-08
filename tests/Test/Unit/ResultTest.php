@@ -1,24 +1,23 @@
 <?php
 
+
 namespace Test\Unit;
 
+use BlueDot\BlueDot;
 use BlueDot\Common\ArgumentValidator;
 use BlueDot\Common\StatementValidator;
 use BlueDot\Configuration\Compiler;
 use BlueDot\Configuration\Flow\Simple\SimpleConfiguration;
 use BlueDot\Configuration\Import\ImportCollection;
 use BlueDot\Configuration\Validator\ConfigurationValidator;
-use BlueDot\Entity\Entity;
 use BlueDot\Entity\PromiseInterface;
 use BlueDot\Kernel\Connection\Connection;
 use BlueDot\Kernel\Connection\ConnectionFactory;
 use BlueDot\Kernel\Kernel;
-use BlueDot\StatementBuilder\StatementBuilder;
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\Yaml\Yaml;
 use Test\FakerTrait;
 
-class StatementBuilderTest extends BaseTest
+class ResultTest extends BaseTest
 {
     use FakerTrait;
     /**
@@ -26,13 +25,9 @@ class StatementBuilderTest extends BaseTest
      */
     private $connection;
     /**
-     * @var array $simpleConfig
+     * @var array $preparedExecutionConfig
      */
-    private $simpleConfig;
-    /**
-     * @var array $scenarioConfig
-     */
-    private $scenarioConfig;
+    private $preparedExecutionConfig;
 
     public function setUp()
     {
@@ -45,19 +40,13 @@ class StatementBuilderTest extends BaseTest
             'password' => 'root'
         ]);
 
-        $simpleConfig = __DIR__ . '/../config/result/simple_statement_test.yml';
-        $scenarioConfig = __DIR__ . '/../config/result/scenario_statement_test.yml';
+        $preparedExecutionConfig = __DIR__ . '/../config/result/prepared_execution_test.yml';
 
         $method = (method_exists(Yaml::class, 'parseFile')) ? 'parseFile' : 'parse';
 
-        $this->simpleConfig = [
-            'file' => $simpleConfig,
-            'config' => Yaml::{$method}($simpleConfig)
-        ];
-
-        $this->scenarioConfig = [
-            'file' => $scenarioConfig,
-            'config' => Yaml::{$method}($scenarioConfig)
+        $this->preparedExecutionConfig = [
+            'file' => $preparedExecutionConfig,
+            'config' => Yaml::{$method}($preparedExecutionConfig)
         ];
 
         $this->setUpUsers();
@@ -74,41 +63,24 @@ class StatementBuilderTest extends BaseTest
         $this->connection->close();
     }
 
-    public function test_statement_builder()
+    public function test_simple_statement_result()
     {
-        $statementBuilder = new StatementBuilder($this->connection);
+        $configSource = __DIR__.'/../config/result/prepared_execution_test.yml';
 
-        /** @var PromiseInterface $result */
-        $result = $statementBuilder
-            ->addSql('SELECT * FROM user WHERE id = :id')
-            ->addParameter('id', 1)
-            ->execute();
+        $blueDot = new BlueDot($configSource);
 
-        static::assertInstanceOf(PromiseInterface::class, $result);
+        $promise = $blueDot->execute('simple.select.find_all_users');
 
-        $entity = $result->getOriginalEntity();
-
-        static::assertInstanceOf(Entity::class, $entity);
-
-        $arrayResult = $entity->toArray();
-
-        static::assertNotEmpty($arrayResult);
-        static::assertInternalType('array', $arrayResult);
-        
-        static::assertArrayHasKey('row_count', $arrayResult);
-        static::assertGreaterThan(0, $arrayResult['row_count']);
-
-        static::assertArrayHasKey('data', $arrayResult);
-        static::assertNotEmpty($arrayResult['data']);
-        static::assertInternalType('array', $arrayResult['data']);
+        static::assertInstanceOf(PromiseInterface::class, $promise);
+        static::assertTrue($promise->isSuccess());
     }
     /**
      * @throws \BlueDot\Exception\ConfigurationException
      */
     private function setUpUsers()
     {
-        $file = $this->simpleConfig['file'];
-        $configArray = $this->simpleConfig['config'];
+        $file = $this->preparedExecutionConfig['file'];
+        $configArray = $this->preparedExecutionConfig['config'];
 
         $compiler = new Compiler(
             $file,
