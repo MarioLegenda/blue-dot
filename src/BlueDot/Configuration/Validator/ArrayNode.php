@@ -34,7 +34,7 @@ class ArrayNode implements \IteratorAggregate, \Countable
         $this->nodeName = $rootNode;
 
         if (empty($workingNode)) {
-            throw new ConfigurationException('Node has to be an array for parent \''.$rootNode.'\'');
+            throw new ConfigurationException('Node has to be a non empty array for parent \''.$rootNode.'\'');
         }
 
         $this->workingNode = $workingNode;
