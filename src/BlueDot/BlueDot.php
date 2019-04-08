@@ -256,6 +256,10 @@ class BlueDot implements BlueDotInterface
             throw new ConfigurationException("Invalid configuration. Configuration file $configSource is empty");
         }
 
+        if (!isset($parsedConfiguration['configuration'])) {
+            throw new ConfigurationException("Invalid configuration. The 'configuration' key/node does not exist");
+        }
+
         return $parsedConfiguration;
     }
     /**

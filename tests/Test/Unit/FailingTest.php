@@ -30,7 +30,7 @@ class FailingTest extends TestCase
 
     public function test_invalid_configuration_key()
     {
-        $config = realpath(__DIR__ . '/../config/invalid/empty_configuration.yml');
+        $config = realpath(__DIR__ . '/../config/invalid/invalid_configuration_key.yml');
 
         $exceptionEntered = false;
         $message = null;
@@ -43,6 +43,6 @@ class FailingTest extends TestCase
 
         static::assertTrue($exceptionEntered);
         static::assertInternalType('string', $message);
-        static::assertEquals($message, "Invalid configuration. Configuration file $config is empty");
+        static::assertEquals($message, "Invalid configuration. The 'configuration' key/node does not exist");
     }
 }
