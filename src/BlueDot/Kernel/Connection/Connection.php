@@ -24,7 +24,8 @@ class Connection
      * @param Attributes|null $attributes
      * @throws ConnectionException
      *
-     *
+     * A simple wrapper around \PDO object. Construction this object does not connect
+     * to MySql. Only after calling Connection::connect() is BlueDot connected to mysql
      */
     public function __construct(
         array $dsn = null,
