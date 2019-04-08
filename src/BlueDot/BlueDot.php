@@ -114,7 +114,8 @@ class BlueDot implements BlueDotInterface
      * @throws ConnectionException
      * @throws RepositoryException
      *
-     * Sets the configuration for this instance of BlueDot.
+     * Sets the configuration for this instance of BlueDot. This method
+     * cannot be called more than once with the same config file.
      */
     public function setConfiguration(string $configSource) : BlueDotInterface
     {
@@ -245,6 +246,9 @@ class BlueDot implements BlueDotInterface
      * @param string $configSource
      * @throws ConfigurationException
      * @throws ConnectionException
+     *
+     * Binds all parts of BlueDot initialization. Check all three private methods
+     * for more information
      */
     private function initBlueDot(string $configSource)
     {
@@ -258,6 +262,8 @@ class BlueDot implements BlueDotInterface
      * @param string $configSource
      * @return array
      * @throws ConfigurationException
+     *
+     * Parses the yaml file that represent the configuration of BlueDot
      */
     private function resolveConfiguration(string $configSource)
     {
@@ -296,6 +302,9 @@ class BlueDot implements BlueDotInterface
      * @param array $parsedConfiguration
      * @return Connection|null
      * @throws ConnectionException
+     *
+     * Creates the connection from the parsed configuration if the connection
+     * key exists in the provided .yml file
      */
     private function createConnection(array $parsedConfiguration)
     {
@@ -360,7 +369,15 @@ class BlueDot implements BlueDotInterface
      * @throws ConnectionException
      * @throws RepositoryException
      *
-     * Puts the file as the current repository
+     * Puts the file as the current repository. This method is used by both
+     * BlueDot constructor and setConfiguration() method. That method can be
+     * called more than once but it is forbidden to init BlueDot with the same
+     * configuration more than once. This method converts the exception message
+     * thrown from Repository and adds more information to it. Then rethrows it.
+     *
+     * This is because, Repository implement the RepositoryInterface and therefor,
+     * is an independent and decoupled implementation (an independent component) that
+     * does not even know that it is implemented by BlueDot.
      */
     private function resolveFileSourceInit(string $configSource)
     {
