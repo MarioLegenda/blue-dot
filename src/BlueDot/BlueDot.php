@@ -3,10 +3,9 @@
 namespace BlueDot;
 
 use BlueDot\Common\{
-    ArgumentValidator, Enum\TypeInterface, FlowProductInterface, StatementValidator
+    ArgumentValidator, FlowProductInterface, StatementValidator
 };
 
-use BlueDot\Configuration\Cache\CompilerCache;
 use BlueDot\Configuration\Compiler;
 
 use BlueDot\Configuration\Flow\Service\ServiceConfiguration;
@@ -31,10 +30,6 @@ use BlueDot\Repository\Repository;
 
 class BlueDot implements BlueDotInterface
 {
-    /**
-     * @var CompilerCache $compilerCache
-     */
-    private $compilerCache;
     /**
      * @var Compiler $compiler
      */
