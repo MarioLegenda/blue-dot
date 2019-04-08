@@ -55,8 +55,12 @@ class BlueDot implements BlueDotInterface
      *
      * It is valid to construct BlueDot with empty parameters, but
      * when BlueDot::execute() is called, $configSource and $connection have
-     * to be set. This allows querying multiple databases with one instance
-     * of BlueDot
+     * to be set. This allows the following:
+     *
+     * - Using BlueDot with multiple databases if we don't specify the database name
+     * - Using BlueDot without the repository files (only statement builder)
+     * - Making BlueDot light until you start using it. None of the inner mechanisms are
+     *   instantiated without the existence of configuration
      */
     public function __construct(
         string $configSource = null
@@ -80,6 +84,11 @@ class BlueDot implements BlueDotInterface
     /**
      * @param Connection $connection
      * @return BlueDotInterface
+     *
+     * Set the Connection object for this instance of BlueDot
+     *
+     * If the connection already exists, it closes the current connection and
+     * replaces it with the new one
      */
     public function setConnection(Connection $connection) : BlueDotInterface
     {
@@ -104,6 +113,8 @@ class BlueDot implements BlueDotInterface
      * @throws ConfigurationException
      * @throws ConnectionException
      * @throws RepositoryException
+     *
+     * Sets the configuration for this instance of BlueDot.
      */
     public function setConfiguration(string $configSource) : BlueDotInterface
     {
@@ -348,13 +359,23 @@ class BlueDot implements BlueDotInterface
      * @throws ConfigurationException
      * @throws ConnectionException
      * @throws RepositoryException
+     *
+     * Puts the file as the current repository
      */
     private function resolveFileSourceInit(string $configSource)
     {
-        $this->repository()->putRepository($configSource);
+        try {
+            $this->repository()->putRepository($configSource);
 
-        $firstRepository = array_keys($this->repository->getWorkingRepositories())[0];
+            $firstRepository = array_keys($this->repository->getWorkingRepositories())[0];
 
-        $this->useRepository($firstRepository);
+            $this->useRepository($firstRepository);
+        } catch (\RuntimeException $e) {
+            $eMessage = $e->getMessage();
+            $message = "$eMessage. It is not allowed to initialise BlueDot with the same configuration more than once, usually trough the BlueDot::setConfiguration() method";
+
+            throw new \RuntimeException($message);
+        }
+
     }
 }
