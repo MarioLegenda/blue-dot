@@ -33,6 +33,11 @@ class StatementBuilder
      * StatementBuilder constructor.
      * @param Connection $connection
      *
+     * The StatementBuilder executes only single statements using all the components
+     * of BlueDot separately. For that reason, it is like a simple statement.
+     * It provides a FluentInterface like Doctrines query builder.
+     *
+     * All the methods are self explanatory and don't need to be commented
      */
     public function __construct(Connection $connection)
     {
