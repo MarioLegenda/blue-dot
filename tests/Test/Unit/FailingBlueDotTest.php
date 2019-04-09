@@ -5,7 +5,6 @@ namespace Test\Unit;
 
 
 use BlueDot\BlueDot;
-use BlueDot\Entity\PromiseInterface;
 use PHPUnit\Framework\TestCase;
 
 class FailingBlueDotTest extends TestCase

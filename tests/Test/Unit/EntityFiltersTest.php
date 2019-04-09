@@ -3,6 +3,7 @@
 namespace Test\Unit;
 
 use BlueDot\Entity\BaseEntity;
+use BlueDot\Entity\Entity;
 use PHPUnit\Framework\TestCase;
 use Test\FakerTrait;
 
@@ -26,15 +27,15 @@ class EntityFiltersTest extends BaseTest
         $result = $this->getArrayResult(10);
         $id = 1;
 
-        $entity = new BaseEntity($result);
+        $entity = new Entity('name', $result);
 
-        $idResult = $entity->findBy('id', $id);
+        $idResult = $entity->findBy('id', $id)->toArray();
 
-        static::assertEquals(1, count($idResult));
+        static::assertEquals(1, count($idResult['data']));
 
-        $nameResult = $entity->findBy('name', 'name');
+        $nameResult = $entity->findBy('name', 'name')->toArray();
 
-        static::assertEquals(5, count($nameResult));
+        static::assertEquals(5, count($nameResult['data']));
     }
 
     public function test_find()
@@ -42,26 +43,25 @@ class EntityFiltersTest extends BaseTest
         $result = $this->getArrayResult(10);
         $id = 1;
 
-        $entity = new BaseEntity($result);
+        $entity = new Entity('name', $result);
 
-        $idResult = $entity->find('id', $id);
+        $idResult = $entity->find('id', $id)->toArray();
 
-        static::assertEquals(1, count($idResult));
+        static::assertEquals(1, count($idResult['data']));
     }
 
     public function test_extractColumn()
     {
         $result = $this->getArrayResult(10);
 
-        $entity = new BaseEntity($result);
+        $entity = new Entity('name', $result);
 
-        /** @var BaseEntity $idResult */
-        $idResult = $entity->extractColumn('id');
+        $idResult = $entity->extractColumn('id')->toArray();
 
-        static::assertTrue($idResult->has('data'));
-        static::assertEquals(1, count($idResult->get('data')));
-        static::assertArrayHasKey('id', $idResult->get('data'));
-        static::assertEquals(10, count($idResult->get('data')['id']));
+        static::assertArrayHasKey('data', $idResult);
+        static::assertEquals(1, count($idResult['data']));
+        static::assertArrayHasKey('id', $idResult['data']);
+        static::assertEquals(10, count($idResult['data']['id']));
     }
 
     public function test_normalizeIfOneExists()
@@ -69,23 +69,19 @@ class EntityFiltersTest extends BaseTest
         $result = $this->getArrayResult(10);
         $id = 1;
 
-        $entity = new BaseEntity($result);
+        $entity = new Entity('name', $result);
 
-        /** @var BaseEntity $idResult */
-        $idResult = $entity->find('id', $id);
+        $idResult = $entity->find('id', $id)->toArray();
 
-        static::assertEquals(1, count($idResult));
+        static::assertEquals(1, count($idResult['data']));
 
-        $entity = new BaseEntity($idResult);
+        $entity = new Entity('name', $idResult['data']);
 
-        /** @var BaseEntity $entity */
-        $entity = $entity->normalizeIfOneExists();
-
-        $data = $entity->get('data');
+        $result = $entity->normalizeIfOneExists()->toArray();
 
         foreach ($this->columns as $column) {
-            static::assertArrayHasKey($column, $data);
-            static::assertNotEmpty($data[$column]);
+            static::assertArrayHasKey($column, $result['data']);
+            static::assertNotEmpty($result['data'][$column]);
         }
     }
 
@@ -93,9 +89,9 @@ class EntityFiltersTest extends BaseTest
     {
         $normalizationArray = $this->getNormalizationArray(10);
 
-        $entity = new BaseEntity($normalizationArray);
+        $entity = new Entity('name', $normalizationArray);
 
-        /** @var BaseEntity $normalized */
+        /** @var Entity $normalized */
         $normalized = $entity->normalizeJoinedResult([
             'linking_column' => 'id',
             'columns' => [
@@ -106,7 +102,8 @@ class EntityFiltersTest extends BaseTest
 
         static::assertEquals(10, count($normalized->toArray()['data']));
 
-        foreach ($normalized['data'] as $item) {
+        $data = $normalized->toArray()['data'];
+        foreach ($data as $item) {
             static::assertGreaterThan(1, $item['lastname']);
             static::assertGreaterThan(1, $item['username']);
         }

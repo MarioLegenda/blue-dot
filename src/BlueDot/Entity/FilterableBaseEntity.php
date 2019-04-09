@@ -11,6 +11,7 @@ class FilterableBaseEntity extends BaseEntity implements FilterableEntityInterfa
 {
     /**
      * @inheritdoc
+     * @return FilterableEntityInterface|EntityInterface
      */
     public function findBy(string $column, $value): FilterableEntityInterface
     {
@@ -18,6 +19,7 @@ class FilterableBaseEntity extends BaseEntity implements FilterableEntityInterfa
     }
     /**
      * @inheritdoc
+     * @return FilterableEntityInterface|EntityInterface
      */
     public function find(string $column, $value): FilterableEntityInterface
     {
@@ -25,6 +27,7 @@ class FilterableBaseEntity extends BaseEntity implements FilterableEntityInterfa
     }
     /**
      * @inheritdoc
+     * @return FilterableEntityInterface|EntityInterface
      */
     public function extractColumn(
         string $column,
@@ -35,6 +38,7 @@ class FilterableBaseEntity extends BaseEntity implements FilterableEntityInterfa
 
     /**
      * @inheritdoc
+     * @return FilterableEntityInterface|EntityInterface
      */
     public function normalizeJoinedResult(
         array $grouping,
@@ -44,10 +48,12 @@ class FilterableBaseEntity extends BaseEntity implements FilterableEntityInterfa
     }
     /**
      * @inheritdoc
+     * @return FilterableEntityInterface|EntityInterface
      */
     public function normalizeIfOneExists() : FilterableEntityInterface
     {
         $arguments = $this->data['data'];
+
         $result = [];
         if (count($arguments) === 1) {
             if (is_object($arguments[0])) {
@@ -65,7 +71,7 @@ class FilterableBaseEntity extends BaseEntity implements FilterableEntityInterfa
             }
         }
 
-        return new BaseEntity(['data' => $result], $this->getName());
+        return new Entity($this->getName(), ['data' => $result]);
     }
     /**
      * @inheritdoc
@@ -131,7 +137,7 @@ class FilterableBaseEntity extends BaseEntity implements FilterableEntityInterfa
             }
         }
 
-        return new BaseEntity(['data' => $result], $this->getName());
+        return new Entity($this->getName(), ['data' => $result]);
     }
     /**
      * @param string $column
@@ -184,7 +190,7 @@ class FilterableBaseEntity extends BaseEntity implements FilterableEntityInterfa
             }
         }
 
-        return new BaseEntity(['data' => $results], $this->getName());
+        return new Entity($this->getName(), ['data' => $results]);
     }
     /**
      * @param array $grouping
@@ -214,12 +220,12 @@ class FilterableBaseEntity extends BaseEntity implements FilterableEntityInterfa
                     continue;
                 }
 
-                /** @var BaseEntity $foundResults */
+                /** @var Entity $foundResults */
                 $foundResults = $this->doFindBy($linkingColumn, $columnValue, $arguments);
                 $extracted = array();
 
                 foreach ($columns as $column) {
-                    /** @var BaseEntity $extractedColumnValues */
+                    /** @var Entity $extractedColumnValues */
                     $extractedColumnValues = $this->doExtractColumn($column, null, $foundResults->toArray()['data']);
 
                     $extractedColumnValuesArray = $extractedColumnValues->toArray()['data'];
@@ -246,7 +252,7 @@ class FilterableBaseEntity extends BaseEntity implements FilterableEntityInterfa
             }
         }
 
-        return new BaseEntity(['data' => $result], $this->getName());
+        return new Entity($this->getName(), ['data' => $result]);
     }
     /**
      * @param string $column
@@ -258,8 +264,7 @@ class FilterableBaseEntity extends BaseEntity implements FilterableEntityInterfa
         string $column,
         $value
     ):FilterableEntityInterface {
-        /** @var BaseEntity $result */
-        $result = $this->findBy($column, $value);
+        $result = $this->findBy($column, $value)->toArray();
 
         if (count($result) !== 1) {
             throw new EntityException(
@@ -269,11 +274,11 @@ class FilterableBaseEntity extends BaseEntity implements FilterableEntityInterfa
             );
         }
 
-        if (is_object($result[0])) {
-            return $result[0];
+        if (is_object($result['data'][0])) {
+            return $result['data'][0];
         }
 
-        return new BaseEntity($result, $this->getName());
+        return new Entity($this->getName(), ['data' => $result]);
     }
     /**
      * @param string|null $scenarioName
