@@ -24,17 +24,18 @@ This project is still in development and I have added more features that are not
     * 'foreign_key' configuration option
     * 'if_exists' and 'if_not_exists' configuration option
 7. Service statements
-8. Repositories
-9. Filters
+8. Prepared execution
+9. Repositories
+10. Filters
     * Using configuration filters
     * Using filters in code
-10. Statement builder
-11. Promise interface and getting the result
-    * Simple statement promise
-    * Scenario statement promise
-    * Callable promise
-12. Imports
-13. Conclusion
+11. Statement builder
+12. Promise interface and getting the result
+    * Introduction
+    * PromiseInterface
+    * Entity result object
+13. Imports
+14. Conclusion
 
 ## 1. Introduction
 
@@ -711,7 +712,39 @@ is to group many scenarios or simple statements together. The return value of a 
 is anything that *run()* method returns but encapsulated in a Promise. More on promises
 later.
 
-## 8. Repositories
+## 8. Prepared execution
+
+Prepared execution allows you to run multiple statements as one atomic mysql query, atomic
+meaning that if one of them fails, none of them will succeed and the result of success queries 
+will be rolled back. The can be used to execute queries that are unrelated in the application that you
+are building, but in some instances, they can be.
+
+Prepared execution can be used to execute multiple scenario and simple statement in one atomic action
+that you would not get if you used scenario or single statement on their own.
+
+You add the statements to be executed later with the *BlueDot::prepareExecution()* method
+that has the same signature as the *BlueDot::execute()* method. It accepts the same parameters; the name
+of the statement, and the parameters of the query.
+
+You execute all the prepared statements with the method *BlueDot::executePrepared()*
+
+For example:
+
+    $blueDot->prepareExecution('simple.insert.user', [
+        'name' => 'Billie',
+        'last_name' => 'Holliday',
+        'email' => 'billieholliday@bestjazz.com'
+    ]);
+    
+    $blueDot->prepareExecution('simple.insert.blog', [
+        'blog' => 'text of the blog',
+    ]);
+    
+    $blueDot->prepareExecution('simple.insert.some_statement_that_has_nothing_to_do_with_user_or_blog');
+    
+    $blueDot->executePrepared();
+
+## 9. Repositories
 
 Repositories are a way of keeping your queries organised by the logic they are meant to serve.
 
@@ -774,7 +807,9 @@ use the *BlueDot::useRepository()* method to switch repositories.
 Are you going to group your queries into multiple files as repositories or in 
 a single file, is up to you.
 
-## 9. Statement builder
+## 10. Filters
+
+## 11. Statement builder
 
 Statement builder is a separate tool for executing oneoff sql statement for which
 you haven't prepared a configuration or which **BlueDot** cannot execute.
@@ -811,7 +846,9 @@ a connection.
         ->execute()
         ->getResult();
         
-## 10. Promise interface and getting the result
+## 12. Promise interface and getting the result
+
+#### 12.1 Introduction
 
 Results in BlueDot are accessed trough the *Promise* object that 
 *BlueDot::execute()* method returns.
@@ -825,9 +862,59 @@ Promise has these method:
 - getEntity(): Entity
 - onResultReady(\Closure)
 
-First, lets talk about the *Entity* object.
+In this chapter, I will try to keep it simple as possible. I will give
+an example of what the result might look like and the methods on the
+*Entity* object that you can use to get the particular part of the result.
 
-#### 10.1 Entity result object
+First, lets talk about the *Promise* object.
+
+#### 12.2 PromiseInterface
+
+Lets run a query that will return all users from the database:
+
+    /** BlueDot\Entity\PromiseInterface */
+    $promise = $blueDot->execute('simple.select.get_all_users');
+    
+    
+*PromiseInterface::getEntity()* retrieves the *Entity* object that hold the actual
+result of the query.
+
+*PromiseInterface::getResultAsArray()* returns the result as an array.
+
+*PromiseInterface::onResultReady()* receives an anonymous function as an argument, that in turn,
+receives the *EntityInterface* object as its argument:
+
+    /** BlueDot\Entity\PromiseInterface */
+    $promise = $blueDot->execute('simple.select.get_all_users');
+    
+    $promise->onResultReady(function(EntityInterface $entity) {
+        // manipulate the resulting entity here
+    });
+    
+I like anonymous function because the introduce a new scope where you can declare 
+variables without fear of them being declared somewhere else. There hasn't been much talk
+about scopes in PHP but there should be. For example:
+
+    // lets presume that up to this point you have created
+    // a lot of variables here. That would be bad pratice, but follow
+    // me here for the sake of the argument.
+    
+    $someVar = 'string';
+    
+    $promise->onResultReady(function(EntityInterface $entity) {
+        // new scope inside the anonymous function
+        
+        // $someVar has nothing to do with $someVar declared
+        // outside of this function
+        $someVar = 'string'
+    });
+    
+    var_dump($someVar); // prints 'string';
+    
+Now, lets talk about the *EntityInterface* and the *Entity* implementation
+of that interface.
+
+#### 12.3 Entity result object
 
 The *BlueDot\Entity\Entity* object is a wrapper around the result that has 
 various methods that can help you to get the data from the final result and manipulate
@@ -844,13 +931,68 @@ Also, scenario statements will return the same data but under the key that is th
 It will also not be a *Entity* object but a *BlueDot\Entity\EntityCollection* object that will hold all
 the entities associated with each scenario executed.
 
-There is a lot of information to go trough so lets get to it.
+##### Simple statements
 
-#### 10.2 Simple statements
+Given this result:
 
+    [
+        0 => ['name' => 'Billie', 'last_name' => 'Holliday'],
+        1 => ['name' => 'Dolly', 'last_name' => 'Parton'],
+        2 => ['name' => 'Katie', 'last_name' => 'Melua']
+    ]
+    
+The resulting *Entity* object would hold this data:
 
+    [
+        'rows_num' => 3
+        'type' => 'simple',
+        'data' => // the data from the upper example
+    ]
+    
+You can get the *row_count* with the method *Entity::getRowCount()*.
 
-## 11. Imports
+You can get the type of the statement with the method *Entity::getType()*.
+
+But there is no method to get the data from the *Entity* object. That is because *insert*,
+*update* and *delete* statements don't have any data to get.
+
+In order to get the data, you will have to call the method *Entity::toArray()* and get 
+the data on the *data* index.
+
+    $blueDot
+        ->execute('simple.select.get_all_users')
+        ->onResultReady(function(EntityInterface $entity) {
+            $data = $entity->toArray()['data'];
+        });
+        
+    // OR
+    
+    $data = $promise->getEntity()->toArray()['data'];
+    
+#### Scenario statements
+
+Scenario statements are the same as simple statement but only to relation
+to some particular scenario statement.
+
+For example:
+
+    $promise = $blueDot->execute('scenario.my_scenario');
+    
+    /** BlueDot\Entity\EntityCollection */
+    $entityCollection = $promise->getEntity();
+    
+    $scenarioEntity = $entityCollection->getEntity('scenario_name');
+    
+Everything else is the same as in simple statements.
+
+#### Service statements
+
+Service statements are used for executing multiple scenario, simple statement or multiple
+service statements in one logical place. Because of that, anything you return from the
+*run()* method, will be in the *data* property of the *Entity* object and in that regard,
+has no difference between the scenario result or simple statement result.
+
+## 13. Imports
 
 Imports are a way of centralizing all your sql queries into one .yml file. Path to that file is injected
 via *sql_import* configuration option.
@@ -911,7 +1053,7 @@ In configuration, this import would look like this...
                         statement_name:
                         values: {select_user.id: id}
                      
-## 11. Conclusion
+## 14. Conclusion
 
 Although **BlueDot** makes executing sql queries easy, it is not here to replace Doctrine or similar tools.
 I recommend using **BlueDot** when you have to make complex sql queries when using a DBAL would be an overhead.
