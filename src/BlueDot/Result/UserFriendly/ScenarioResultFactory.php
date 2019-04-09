@@ -126,7 +126,6 @@ class ScenarioResultFactory
             $data = [
                 'row_count' => $queryResult->getRowCount(),
                 'last_insert_id' => (int) $queryResult->getLastInsertId(),
-                'data' => null,
                 'type' => 'scenario',
             ];
 
