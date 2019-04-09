@@ -5,16 +5,17 @@ namespace BlueDot\Result;
 use BlueDot\Configuration\Filter\Filter;
 use BlueDot\Configuration\Filter\FilterInterface;
 use BlueDot\Entity\BaseEntity;
+use BlueDot\Entity\EntityInterface;
 
 class FilterApplier
 {
     /**
-     * @param BaseEntity $entity
+     * @param EntityInterface $entity
      * @param Filter $filter
      * @return BaseEntity
      */
     public function apply(
-        BaseEntity $entity,
+        EntityInterface $entity,
         Filter $filter
     ): BaseEntity {
         $filters = $filter->getFilters();
@@ -23,7 +24,7 @@ class FilterApplier
 
         /** @var FilterInterface $filter */
         foreach ($filters as $filter) {
-            if ($filterProduct instanceof BaseEntity) {
+            if ($filterProduct instanceof EntityInterface) {
                 $filterProduct = $filter->applyFilter($filterProduct);
 
                 continue;

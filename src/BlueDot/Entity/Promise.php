@@ -5,17 +5,9 @@ namespace BlueDot\Entity;
 class Promise implements PromiseInterface
 {
     /**
-     * @var BaseEntity|object|null $entity
+     * @var EntityInterface $entity
      */
     private $entity;
-    /**
-     * @var bool $callbackCalled
-     */
-    private $callbackCalled = false;
-    /**
-     * @var mixed $result
-     */
-    private $result = null;
     /**
      * Promise constructor.
      * @param EntityInterface|object|null $entity
@@ -29,10 +21,6 @@ class Promise implements PromiseInterface
      */
     public function getEntity(): EntityInterface
     {
-        if ($this->callbackCalled === true) {
-            return $this->result;
-        }
-
         return $this->entity;
     }
     /**

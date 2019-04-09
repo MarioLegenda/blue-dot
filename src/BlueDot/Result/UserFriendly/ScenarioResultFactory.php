@@ -8,6 +8,7 @@ use BlueDot\Configuration\Flow\Enum\MultipleParametersType;
 use BlueDot\Configuration\Flow\Scenario\Metadata;
 use BlueDot\Configuration\Flow\Scenario\ScenarioConfiguration;
 use BlueDot\Entity\BaseEntity;
+use BlueDot\Entity\Entity;
 use BlueDot\Entity\EntityCollection;
 use BlueDot\Entity\EntityInterface;
 use BlueDot\Kernel\Result\KernelResultInterface;
@@ -82,14 +83,14 @@ class ScenarioResultFactory
     /**
      * @param Filter|null $filter
      * @param FilterApplier $filterApplier
-     * @param BaseEntity $entity
-     * @return BaseEntity
+     * @param EntityInterface $entity
+     * @return EntityInterface
      */
     private function applyFilter(
-        BaseEntity $entity,
+        EntityInterface $entity,
         FilterApplier $filterApplier,
         Filter $filter = null
-    ): BaseEntity {
+    ): EntityInterface {
         if ($filter instanceof Filter) {
             $appliedFilterEntity = $filterApplier->apply($entity, $filter);
 
@@ -98,7 +99,7 @@ class ScenarioResultFactory
 
             $data['row_count'] = $entity->getRowCount();
 
-            return new BaseEntity($name, $data);
+            return new Entity($name, $data);
         }
 
         return $entity;
@@ -209,7 +210,7 @@ class ScenarioResultFactory
             $filter = $statementMetadata->getFilter();
 
             $appliedFilterEntity = $this->applyFilter(
-                new BaseEntity($data),
+                new Entity($statementName, $data),
                 $filterApplier,
                 $filter
             );

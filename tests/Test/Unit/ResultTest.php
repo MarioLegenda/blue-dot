@@ -11,6 +11,7 @@ use BlueDot\Configuration\Flow\Simple\SimpleConfiguration;
 use BlueDot\Configuration\Import\ImportCollection;
 use BlueDot\Configuration\Validator\ConfigurationValidator;
 use BlueDot\Entity\Entity;
+use BlueDot\Entity\EntityCollection;
 use BlueDot\Entity\EntityInterface;
 use BlueDot\Entity\PromiseInterface;
 use BlueDot\Kernel\Connection\Connection;
@@ -147,7 +148,28 @@ class ResultTest extends BaseTest
 
     public function test_scenario_result_success()
     {
+        $configSource = __DIR__.'/../config/result/prepared_execution_test.yml';
 
+        $blueDot = new BlueDot($configSource);
+
+        $promise = $blueDot->execute('scenario.select_user_by_id', [
+            'find_user_by_id' => [
+                'id' => 1
+            ]
+        ]);
+
+        /** @var EntityCollection|EntityInterface $entityCollection */
+        $entityCollection = $promise->getEntity();
+
+        static::assertTrue($entityCollection->hasEntity('find_user_by_id'));
+
+        $entity = $entityCollection->getEntity('find_user_by_id');
+
+        static::assertInstanceOf(EntityInterface::class, $entity);
+
+        $entity = $entityCollection->getEntity('find_user_by_id');
+
+        static::assertInstanceOf(EntityInterface::class, $entity);
     }
     /**
      * @throws \BlueDot\Exception\ConfigurationException
