@@ -8,7 +8,7 @@ use BlueDot\Configuration\Compiler;
 use BlueDot\Configuration\Flow\Simple\SimpleConfiguration;
 use BlueDot\Configuration\Import\ImportCollection;
 use BlueDot\Configuration\Validator\ConfigurationValidator;
-use BlueDot\Entity\Entity;
+use BlueDot\Entity\BaseEntity;
 use BlueDot\Entity\PromiseInterface;
 use BlueDot\Kernel\Connection\Connection;
 use BlueDot\Kernel\Connection\ConnectionFactory;
@@ -88,13 +88,13 @@ class StatementBuilderTest extends BaseTest
 
         $entity = $result->getOriginalEntity();
 
-        static::assertInstanceOf(Entity::class, $entity);
+        static::assertInstanceOf(BaseEntity::class, $entity);
 
         $arrayResult = $entity->toArray();
 
         static::assertNotEmpty($arrayResult);
         static::assertInternalType('array', $arrayResult);
-        
+
         static::assertArrayHasKey('row_count', $arrayResult);
         static::assertGreaterThan(0, $arrayResult['row_count']);
 

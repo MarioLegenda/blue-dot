@@ -2,7 +2,7 @@
 
 namespace BlueDot\Configuration\Filter;
 
-use BlueDot\Entity\Entity;
+use BlueDot\Entity\BaseEntity;
 use BlueDot\Entity\FilterableEntityInterface;
 
 class FindExact implements FilterInterface

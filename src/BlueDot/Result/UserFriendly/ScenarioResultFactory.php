@@ -7,7 +7,9 @@ use BlueDot\Configuration\Filter\Filter;
 use BlueDot\Configuration\Flow\Enum\MultipleParametersType;
 use BlueDot\Configuration\Flow\Scenario\Metadata;
 use BlueDot\Configuration\Flow\Scenario\ScenarioConfiguration;
-use BlueDot\Entity\Entity;
+use BlueDot\Entity\BaseEntity;
+use BlueDot\Entity\EntityCollection;
+use BlueDot\Entity\EntityInterface;
 use BlueDot\Kernel\Result\KernelResultInterface;
 use BlueDot\Result\DeleteQueryResult;
 use BlueDot\Result\FilterApplier;
@@ -34,12 +36,12 @@ class ScenarioResultFactory
     /**
      * @param KernelResultInterface $kernelResult
      * @param FilterApplier $filterApplier
-     * @return Entity
+     * @return EntityCollection
      */
     public function create(
         KernelResultInterface $kernelResult,
         FilterApplier $filterApplier
-    ): Entity {
+    ): EntityCollection {
         $result = Util::instance()->createGenerator($kernelResult->getResult());
         /** @var ScenarioConfiguration $configuration */
         $configuration = $kernelResult->getConfiguration();
@@ -75,25 +77,28 @@ class ScenarioResultFactory
             );
         }
 
-        return new Entity($builtResult, $scenarioName);
+        return new EntityCollection($scenarioName, $builtResult);
     }
     /**
      * @param Filter|null $filter
      * @param FilterApplier $filterApplier
-     * @param Entity $entity
-     * @return Entity
+     * @param BaseEntity $entity
+     * @return BaseEntity
      */
     private function applyFilter(
-        Entity $entity,
+        BaseEntity $entity,
         FilterApplier $filterApplier,
         Filter $filter = null
-    ): Entity {
+    ): BaseEntity {
         if ($filter instanceof Filter) {
             $appliedFilterEntity = $filterApplier->apply($entity, $filter);
 
-            $appliedFilterEntity->add('row_count', $entity->get('row_count'));
+            $data = $appliedFilterEntity->toArray();
+            $name = $entity->getName();
 
-            return $appliedFilterEntity;
+            $data['row_count'] = $entity->getRowCount();
+
+            return new BaseEntity($name, $data);
         }
 
         return $entity;
@@ -120,6 +125,8 @@ class ScenarioResultFactory
             $data = [
                 'row_count' => $queryResult->getRowCount(),
                 'last_insert_id' => (int) $queryResult->getLastInsertId(),
+                'data' => null,
+                'type' => 'scenario',
             ];
 
             $userParametersType = $statementMetadata->getUserParametersType();
@@ -202,7 +209,7 @@ class ScenarioResultFactory
             $filter = $statementMetadata->getFilter();
 
             $appliedFilterEntity = $this->applyFilter(
-                new Entity($data),
+                new BaseEntity($data),
                 $filterApplier,
                 $filter
             );

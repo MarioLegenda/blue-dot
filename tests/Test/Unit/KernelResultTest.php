@@ -5,7 +5,7 @@ namespace Test\Unit;
 use BlueDot\Configuration\Flow\Scenario\ScenarioConfiguration;
 use BlueDot\Configuration\Flow\Simple\Enum\OtherSqlType;
 use BlueDot\Configuration\Flow\Simple\SimpleConfiguration;
-use BlueDot\Entity\Entity;
+use BlueDot\Entity\BaseEntity;
 use BlueDot\Kernel\Connection\Connection;
 use BlueDot\Kernel\Connection\ConnectionFactory;
 use BlueDot\Kernel\Kernel;
@@ -115,7 +115,7 @@ class KernelResultTest extends BaseTest
 
         $entity = $kernel->convertKernelResultToUserFriendlyResult($kernelResult);
 
-        static::assertInstanceOf(Entity::class, $entity);
+        static::assertInstanceOf(BaseEntity::class, $entity);
         static::assertTrue($entity->has('last_insert_id'));
         static::assertInternalType('int', $entity->get('last_insert_id'));
         static::assertTrue($entity->has('row_count'));
@@ -153,7 +153,7 @@ class KernelResultTest extends BaseTest
 
         $entity = $kernel->convertKernelResultToUserFriendlyResult($kernelResult);
 
-        static::assertInstanceOf(Entity::class, $entity);
+        static::assertInstanceOf(BaseEntity::class, $entity);
         static::assertTrue($entity->has('row_count'));
         static::assertInternalType('int', $entity->get('row_count'));
         static::assertTrue($entity->has('data'));
@@ -197,7 +197,7 @@ class KernelResultTest extends BaseTest
 
         $entity = $kernel->convertKernelResultToUserFriendlyResult($kernelResult);
 
-        static::assertInstanceOf(Entity::class, $entity);
+        static::assertInstanceOf(BaseEntity::class, $entity);
         static::assertTrue($entity->has('row_count'));
         static::assertInternalType('int', $entity->get('row_count'));
         static::assertTrue($entity->has('data'));
@@ -241,7 +241,7 @@ class KernelResultTest extends BaseTest
 
         $entity = $kernel->convertKernelResultToUserFriendlyResult($kernelResult);
 
-        static::assertInstanceOf(Entity::class, $entity);
+        static::assertInstanceOf(BaseEntity::class, $entity);
         static::assertTrue($entity->has('row_count'));
         static::assertInternalType('int', $entity->get('row_count'));
         static::assertTrue($entity->has('data'));
@@ -282,7 +282,7 @@ class KernelResultTest extends BaseTest
 
         $entity = $kernel->convertKernelResultToUserFriendlyResult($kernelResult);
 
-        static::assertInstanceOf(Entity::class, $entity);
+        static::assertInstanceOf(BaseEntity::class, $entity);
         static::assertTrue($entity->has('row_count'));
         static::assertInternalType('int', $entity->get('row_count'));
 
@@ -318,7 +318,7 @@ class KernelResultTest extends BaseTest
 
         $entity = $kernel->convertKernelResultToUserFriendlyResult($kernelResult);
 
-        static::assertInstanceOf(Entity::class, $entity);
+        static::assertInstanceOf(BaseEntity::class, $entity);
         static::assertTrue($entity->has('row_count'));
         static::assertInternalType('int', $entity->get('row_count'));
     }
@@ -354,7 +354,7 @@ class KernelResultTest extends BaseTest
 
         $entity = $kernel->convertKernelResultToUserFriendlyResult($kernelResult);
 
-        static::assertInstanceOf(Entity::class, $entity);
+        static::assertInstanceOf(BaseEntity::class, $entity);
         static::assertTrue($entity->has('row_count'));
         static::assertInternalType('int', $entity->get('row_count'));
 
@@ -392,7 +392,7 @@ class KernelResultTest extends BaseTest
 
         $entity = $kernel->convertKernelResultToUserFriendlyResult($kernelResult);
 
-        static::assertInstanceOf(Entity::class, $entity);
+        static::assertInstanceOf(BaseEntity::class, $entity);
         static::assertTrue($entity->has('row_count'));
         static::assertInternalType('int', $entity->get('row_count'));
     }
@@ -416,7 +416,7 @@ class KernelResultTest extends BaseTest
 
         $result = $kernel->convertKernelResultToUserFriendlyResult($kernelResult);
 
-        static::assertInstanceOf(Entity::class, $result);
+        static::assertInstanceOf(BaseEntity::class, $result);
     }
 
     public function test_scenario_other_sql_statements()
@@ -434,7 +434,7 @@ class KernelResultTest extends BaseTest
 
         $result = $kernel->convertKernelResultToUserFriendlyResult($kernelResult);
 
-        static::assertInstanceOf(Entity::class, $result);
+        static::assertInstanceOf(BaseEntity::class, $result);
     }
 
     public function test_scenario_1()
@@ -479,7 +479,7 @@ class KernelResultTest extends BaseTest
 
         $entity = $kernel->convertKernelResultToUserFriendlyResult($kernelResult);
 
-        static::assertInstanceOf(Entity::class, $entity);
+        static::assertInstanceOf(BaseEntity::class, $entity);
         static::assertTrue($entity->has('insert_user'));
 
         $result1 = $entity->get('insert_user');
@@ -547,7 +547,7 @@ class KernelResultTest extends BaseTest
 
         $entity = $kernel->convertKernelResultToUserFriendlyResult($kernelResult);
 
-        static::assertInstanceOf(Entity::class, $entity);
+        static::assertInstanceOf(BaseEntity::class, $entity);
         static::assertTrue($entity->has('find_user_by_id'));
 
         $selectResult = $entity->get('find_user_by_id');
@@ -601,7 +601,7 @@ class KernelResultTest extends BaseTest
 
         $entity = $kernel->convertKernelResultToUserFriendlyResult($kernelResult);
 
-        static::assertInstanceOf(Entity::class, $entity);
+        static::assertInstanceOf(BaseEntity::class, $entity);
         static::assertTrue($entity->has('find_user_by_id'));
         static::assertNull($entity->get('find_user_by_id'));
 
@@ -650,7 +650,7 @@ class KernelResultTest extends BaseTest
 
         $entity = $kernel->convertKernelResultToUserFriendlyResult($kernelResult);
 
-        static::assertInstanceOf(Entity::class, $entity);
+        static::assertInstanceOf(BaseEntity::class, $entity);
 
         static::assertTrue($entity->has('find_user_by_id'));
         static::assertNull($entity->get('find_user_by_id'));
@@ -711,7 +711,7 @@ class KernelResultTest extends BaseTest
 
         $entity = $kernel->convertKernelResultToUserFriendlyResult($kernelResult);
 
-        static::assertInstanceOf(Entity::class, $entity);
+        static::assertInstanceOf(BaseEntity::class, $entity);
 
         $selectResult = $entity->get('find_user_by_id');
 

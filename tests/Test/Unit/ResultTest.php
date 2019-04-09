@@ -10,6 +10,8 @@ use BlueDot\Configuration\Compiler;
 use BlueDot\Configuration\Flow\Simple\SimpleConfiguration;
 use BlueDot\Configuration\Import\ImportCollection;
 use BlueDot\Configuration\Validator\ConfigurationValidator;
+use BlueDot\Entity\Entity;
+use BlueDot\Entity\EntityInterface;
 use BlueDot\Entity\PromiseInterface;
 use BlueDot\Kernel\Connection\Connection;
 use BlueDot\Kernel\Connection\ConnectionFactory;
@@ -72,7 +74,80 @@ class ResultTest extends BaseTest
         $promise = $blueDot->execute('simple.select.find_all_users');
 
         static::assertInstanceOf(PromiseInterface::class, $promise);
-        static::assertTrue($promise->isSuccess());
+
+        /** @var EntityInterface|Entity $entity */
+        $entity = $promise->getEntity();
+
+        $data = $entity->getData();
+
+        static::assertInternalType('array', $data);
+        static::assertInternalType('array', $promise->getArrayResult());
+        static::assertInternalType('array', $entity->toArray());
+
+        static::assertEquals($entity->getType(), 'simple');
+        static::assertArrayHasKey('row_count', $entity->toArray());
+        static::assertArrayHasKey('data', $entity->toArray());
+        static::assertArrayNotHasKey('row_count', $data);
+        static::assertArrayNotHasKey('data', $data);
+    }
+
+    public function test_promise_functionality()
+    {
+        $configSource = __DIR__.'/../config/result/prepared_execution_test.yml';
+
+        $blueDot = new BlueDot($configSource);
+
+        $promise = $blueDot->execute('simple.select.find_all_users');
+
+        static::assertInstanceOf(PromiseInterface::class, $promise);
+
+        $promise = $blueDot->execute('simple.delete.delete_user_by_id', [
+            'id' => 3,
+        ]);
+
+        $callbackCalled = false;
+        $isSuccess = false;
+        $promise->onResultReady(function(EntityInterface $entity) use (&$callbackCalled, &$isSuccess) {
+            $callbackCalled = true;
+
+            if ($entity->getRowCount() === 1) {
+                $isSuccess = true;
+            }
+        });
+
+        static::assertTrue($callbackCalled);
+        static::assertTrue($isSuccess);
+
+        static::assertInstanceOf(PromiseInterface::class, $promise);
+    }
+
+    public function test_promise_failure()
+    {
+        $configSource = __DIR__.'/../config/result/prepared_execution_test.yml';
+
+        $blueDot = new BlueDot($configSource);
+
+        $promise = $blueDot->execute('simple.delete.delete_user_by_id', [
+            'id' => 123,
+        ]);
+
+        $callbackCalled = false;
+        $isSuccess = false;
+        $promise->onResultReady(function(EntityInterface $entity) use (&$callbackCalled, &$isSuccess) {
+            $callbackCalled = true;
+
+            if ($entity->getRowCount() !== 0) {
+                $isSuccess = true;
+            }
+        });
+
+        static::assertTrue($callbackCalled);
+        static::assertFalse($isSuccess);
+    }
+
+    public function test_scenario_result_success()
+    {
+
     }
     /**
      * @throws \BlueDot\Exception\ConfigurationException

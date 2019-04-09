@@ -9,7 +9,7 @@ use BlueDot\Configuration\Compiler;
 use BlueDot\Configuration\Flow\Simple\SimpleConfiguration;
 use BlueDot\Configuration\Import\ImportCollection;
 use BlueDot\Configuration\Validator\ConfigurationValidator;
-use BlueDot\Entity\Entity;
+use BlueDot\Entity\BaseEntity;
 use BlueDot\Entity\PromiseInterface;
 use BlueDot\Kernel\Connection\Connection;
 use BlueDot\Kernel\Connection\ConnectionFactory;
@@ -85,7 +85,7 @@ class FilterTest extends BaseTest
         static::assertInstanceOf(PromiseInterface::class, $promise);
         static::assertTrue($promise->isSuccess());
 
-        /** @var Entity $entity */
+        /** @var BaseEntity $entity */
         $entity = $promise->getEntity();
 
         static::assertTrue($entity->has('data'));
@@ -104,10 +104,10 @@ class FilterTest extends BaseTest
         static::assertInstanceOf(PromiseInterface::class, $promise);
         static::assertTrue($promise->isSuccess());
 
-        /** @var Entity $entity */
+        /** @var BaseEntity $entity */
         $entity = $promise->getEntity();
 
-        static::assertInstanceOf(Entity::class, $entity);
+        static::assertInstanceOf(BaseEntity::class, $entity);
 
         $data = $entity->get('data');
 
@@ -127,10 +127,10 @@ class FilterTest extends BaseTest
         static::assertInstanceOf(PromiseInterface::class, $promise);
         static::assertTrue($promise->isSuccess());
 
-        /** @var Entity $entity */
+        /** @var BaseEntity $entity */
         $entity = $promise->getEntity();
 
-        static::assertInstanceOf(Entity::class, $entity);
+        static::assertInstanceOf(BaseEntity::class, $entity);
     }
 
     public function test_find_filter()
@@ -143,7 +143,7 @@ class FilterTest extends BaseTest
         static::assertInstanceOf(PromiseInterface::class, $promise);
         static::assertTrue($promise->isSuccess());
 
-        /** @var Entity $entity */
+        /** @var BaseEntity $entity */
         $entity = $promise->getEntity();
 
         static::assertNotEmpty($entity->toArray());
@@ -160,10 +160,10 @@ class FilterTest extends BaseTest
         static::assertInstanceOf(PromiseInterface::class, $promise);
         static::assertTrue($promise->isSuccess());
 
-        /** @var Entity $entity */
+        /** @var BaseEntity $entity */
         $entity = $promise->getEntity();
 
-        static::assertInstanceOf(Entity::class, $entity);
+        static::assertInstanceOf(BaseEntity::class, $entity);
 
         $data = $entity->get('data');
 
@@ -198,10 +198,10 @@ class FilterTest extends BaseTest
         static::assertInstanceOf(PromiseInterface::class, $promise);
         static::assertTrue($promise->isSuccess());
 
-        /** @var Entity $result */
+        /** @var BaseEntity $result */
         $result = $promise->getEntity();
 
-        static::assertInstanceOf(Entity::class, $result);
+        static::assertInstanceOf(BaseEntity::class, $result);
 
         $scenarioResult = $result->get('select_user');
 

@@ -2,7 +2,7 @@
 
 namespace Test\Unit;
 
-use BlueDot\Entity\Entity;
+use BlueDot\Entity\BaseEntity;
 use PHPUnit\Framework\TestCase;
 use Test\FakerTrait;
 
@@ -26,7 +26,7 @@ class EntityFiltersTest extends BaseTest
         $result = $this->getArrayResult(10);
         $id = 1;
 
-        $entity = new Entity($result);
+        $entity = new BaseEntity($result);
 
         $idResult = $entity->findBy('id', $id);
 
@@ -42,7 +42,7 @@ class EntityFiltersTest extends BaseTest
         $result = $this->getArrayResult(10);
         $id = 1;
 
-        $entity = new Entity($result);
+        $entity = new BaseEntity($result);
 
         $idResult = $entity->find('id', $id);
 
@@ -53,9 +53,9 @@ class EntityFiltersTest extends BaseTest
     {
         $result = $this->getArrayResult(10);
 
-        $entity = new Entity($result);
+        $entity = new BaseEntity($result);
 
-        /** @var Entity $idResult */
+        /** @var BaseEntity $idResult */
         $idResult = $entity->extractColumn('id');
 
         static::assertTrue($idResult->has('data'));
@@ -69,16 +69,16 @@ class EntityFiltersTest extends BaseTest
         $result = $this->getArrayResult(10);
         $id = 1;
 
-        $entity = new Entity($result);
+        $entity = new BaseEntity($result);
 
-        /** @var Entity $idResult */
+        /** @var BaseEntity $idResult */
         $idResult = $entity->find('id', $id);
 
         static::assertEquals(1, count($idResult));
 
-        $entity = new Entity($idResult);
+        $entity = new BaseEntity($idResult);
 
-        /** @var Entity $entity */
+        /** @var BaseEntity $entity */
         $entity = $entity->normalizeIfOneExists();
 
         $data = $entity->get('data');
@@ -93,9 +93,9 @@ class EntityFiltersTest extends BaseTest
     {
         $normalizationArray = $this->getNormalizationArray(10);
 
-        $entity = new Entity($normalizationArray);
+        $entity = new BaseEntity($normalizationArray);
 
-        /** @var Entity $normalized */
+        /** @var BaseEntity $normalized */
         $normalized = $entity->normalizeJoinedResult([
             'linking_column' => 'id',
             'columns' => [
