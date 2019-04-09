@@ -23,9 +23,10 @@ This project is still in development and I have added more features that are not
     * 'use' configuration option
     * 'foreign_key' configuration option
     * 'if_exists' and 'if_not_exists' configuration option
-7. Callable statements
+7. Service statements
+8. Repositories
 8. Statement builder
-9. Promise interface
+9. Promise interface and getting the result
     * Simple statement promise
     * Scenario statement promise
     * Callable promise
@@ -37,7 +38,8 @@ This project is still in development and I have added more features that are not
 **BlueDot** is a database abstraction layer that works with pure sql but returns 
 domain objects that you can work with. It's configuration based and 
 requires minimal work and setup to start working with it. The reason I 
-created this tool is simple free time. Hope someone will find it useful.
+created this tool is simple free time and the need for a better tool to handle
+plain SQL. Hope someone will find it useful.
 
 This documentation is written in a way in which you will first learn how
 to execute sql queries but getting the result and manipulating it is
@@ -49,7 +51,9 @@ covered in *Chapter 9: Promise interface*
 
 Install it with [composer](https://getcomposer.org/)
 
-    composer require mario-legenda/blue-dot 1.3
+    composer require mario-legenda/blue-dot
+    
+Current version of BlueDot is 2.0.2.
     
 ## 3. The basics
 
@@ -78,42 +82,39 @@ method.
     $blueDot->setConfiguration('/path/to/file.yml');
     
 You cannot call **BlueDot::setConfiguration()** more than once. BlueDot works on a concept
-of repositories where every file is a repository and you can switch between repositories as you which,
+of repositories where every file is a repository and you can switch between repositories as you wish,
 but you cannot load an existing repository (an already loaded .yml file). More on repositories later on.
 
 #### 3.2. Database connection
+
+This is how you setup the connection information.
 
     configuration:
         connection:
             host: localhost
             database_name: world
-            user: root
-            password: root
-            
-And you are all set to make your first query to the database. You can also establish a 
-connection with a Connection object which you can pass as the second argument to 
-**BlueDot** constructor. To create the Connection object, use the **BlueDot\Kernel\Connection\ConnectionFactory**.
-
-    /**
-    * @param BlueDot\Kernel\Connection\Connection $connection
-    */
-    $connection = ConnectionFactory::createConnection([
-        'host' => '127.0.0.1',
-        'database_name' => 'my_database',
-        'user' => 'user',
-        'password' => 'password',
-    ]);
-    
-    $blueDot = new BlueDot\BlueDot('/path/to/configuration.yml', $connection);
-    
-You can also instantiate **BlueDot** without configuration and only a **Connection** object
-but you could not execute any sql since BlueDot is not initialised with a configuration file.
-You can, however, execute sql statements with the **statement builder**. More on 
-statement builder later on.
+            user: user
+            password: password
 
 Also, database setup in your .yml configuration is not mandatory. You can set
 the connection with **BlueDot::setConnection()** method that accepts a 
 **BlueDot\Database\Connection** object.
+
+    use BlueDot\Kernel\Connection\ConnectionFactory;
+    use BlueDot\Kernel\Connection\Connection;
+    use BlueDot\BlueDot;
+    
+    $blueDot = new BlueDot();
+    
+    /** @param Connection $connection */
+    $connection = ConnectionFactory::createConnection([
+        'host': 'localhost',
+        'database_name': 'world',
+        'user': 'user',
+        'password': 'password'
+    ]);
+    
+    $blueDot->setConnection($connection);
 
 The **Connection** object also has methods to set dsn values, like 
 **Connection::setDatabaseName()**, **Connection::setHost()** etc... Also, there is a **Connection::setAttribute()**
@@ -131,7 +132,10 @@ If you need to close the connection to the database, use *Connection::close()* m
 It is also important to note that the actual connection to MySql is not established when you
 create the instance of the Connection object, but when BlueDot executes **Connection::connect()**.
 That method is executed only in the moment that BlueDot knows that every check and validation
-went successfully. 
+went successfully.
+
+If you already have an established **PDO** object, after creating the Connection object
+from BlueDot, you can set your own **PDO** object trough **Connection::setPdo()** method. 
 
 ## 4. Terminology
 
@@ -152,7 +156,7 @@ but when I mention an sql query, I mean 'SELECT ...', actual sql query.
 In **BlueDot**, there are 3 types of statement:
 - simple
 - scenario
-- callable
+- service
 
 Therefor, when I say statement, I mean one of those three.
 
@@ -205,22 +209,9 @@ To expand on the former example, an update simple statement would look like this
 *delete* and *insert* statements are defined the same way and you execute them the same way.
 
 Now, the result. The product of *BlueDot::execute()* method is a *promise*.
-A promise can be a **success** or a **failure**. If the query returned an empty
-result, the statement is a failure. If it returned some results, then it is a success.
-
-For now, I'm only going to show you the basics of *Promise* interface. There is a 
-dedicated chapter only on promises.
-
-    $blueDot->execute('simple.select.find_users')
-        ->success(function(PromiseInterface $promise) {
-            echo 'Statement returned a result';
-        })
-        ->failure(function(PromiseInterface $promise) {
-            echo 'Statement failed because it did not return any result';
-        });
-
-If the statement *simple.select.find_users* returned a result, *success* functions
-will be executed. If it did not, *failure* function will be executed.
+It has nothing to do with promises in Javascript. It is just a wrapper around the
+result that I called a promise. Nothing special. More on promises and the result
+of the query later on. There is a dedicated chapter for it.
 
 #### 5.2 Parameters explained
 
@@ -605,8 +596,8 @@ statement to a *last_insert_id* of an insert statement. It is best to see it in 
                     sql: "INSERT INTO translations (word_id, translation) VALUES (:word_id, :translation)"
                     parameters: [translation]
                     foreign_key:
-                        statement_name: create_word
-                        bind_to: word_id
+                        statement_names: [create_word]
+                        bind_them_to: [word_id]
                     
     $blueDot->execute('scenario.create_word', array(
         'create_word' => array(
@@ -623,17 +614,6 @@ usage of PHP PDO, you would execute *create_word* sql query and call *PDOConnect
 method to get the last inserted id of that query. Then, you would execute *create_translations*
 sql query and bind that *last_insert_id* to parameter *word_id*.
 
-This is a simple example, but it could be tedious work if multiple insert statements are 
-necessary. With scenarios, this is a trivial task. 
-
-First, *create_word* statement is executed and *last_insert_id* is saved internally. Then, 
-execution goes to execute *create_translations* statement. **BlueDot** sees that the statement
-has a *foreign_key* option. The option consists of a statement name and the name of the parameter
-to bind *last_insert_id* to. In the above example, that statement is *create_word* and the parameter
-is *word_id*. If *foreign_key* statement is not executed, **BlueDot** executes it. If it is, it 
-proceedes to execute the current statement. In execution, **BlueDot** binds the parameter *word_id*
-of statement *create_translations* to *last_insert_id* of *create_word* statement and executes.
-
 The above example describes a *one-to-one* relationship but you could easily transform this
 relationship to *one-to-many* with the same scenario configuration.
 
@@ -649,20 +629,34 @@ relationship to *one-to-many* with the same scenario configuration.
 By changing to parameter type of *create_translations* statement, we have told **BlueDot** to insert
 3 statements with translations to the *last_insert_id* of statement *create_word*.
 
-*foreign_key* option works even if you execute multiple insert statements. Consider the following example
+You would notice that *statement_names* and *bind_them_to* are plural. That is because they work
+on multiple statements. That means you can bind as many statement you want. Consider the following example:
 
-    $blueDot->execute('scenario.create_word', array(
-        'create_word' => array(
-            'word' => array('word 1', 'word 2'),
-        ),
-        'create_translations' => array(
-            'translations' => array('translation 1', 'translation 2', 'translation 3'),
-        )
-    ));
-    
-Here, *create_word* will be executed two times but only the last *last_insert_id* will be used
-in *create_translations* statement. *Don't forget that* because you could get some unexpected
-result that you may not want.
+    normalized_user_insert:
+        atomic: true
+        statements:
+            insert_user:
+                sql: "INSERT INTO user (username, name, lastname) VALUES (:username, :name, :lastname)"
+                parameters: [username, name, lastname]
+            insert_address:
+                sql: "INSERT INTO addresses (user_id, address) VALUES (:user_id, :address)"
+                parameters: [address]
+                foreign_key:
+                    statement_names: [insert_user]
+                    bind_them_to: [user_id]
+            create_reference_user:
+                sql: "INSERT INTO reference_user (user_id, address_id) VALUES (:user_id, :address_id)"
+                foreign_key:
+                    statement_names: [insert_user, insert_address]
+                    bind_them_to: [user_id, address_id]
+                    
+The values of *last_insert_id* from *insert_user* and *insert_address* are bound
+to the parameters of *:user_id* and *:address_id* of *create_reference_user*. The order matter.
+This is **very** important. First statement result in the array of *statement_names* corresponds 
+to the first value of array *bind_them_to*.
+
+This is a simple example, but it could be tedious work if multiple insert statements are 
+necessary. With scenarios, this is a trivial task. 
 
 #### 6.5 'if_exists' and 'if_not_exists' configuration option
 
@@ -677,7 +671,7 @@ Don't forget that when you use those sql queries with these options.
 
 ## 7. Service statements
 
-A service statement is an object that extends **use BlueDot\Configuration\Flow\Service\BaseService**.
+A service statement is an object that extends **BlueDot\Configuration\Flow\Service\BaseService**.
 In that object, you will receive **BlueDot** instance and parameters array that you could
 use as a dependency injection container. It is best to see it in an example.
 
@@ -710,7 +704,7 @@ use as a dependency injection container. It is best to see it in an example.
     ));
 
 A service has a *run()* method that **BlueDot** executes. Purpose of a service
-is to group many scenarios or simple statements together. The return value of a callable
+is to group many scenarios or simple statements together. The return value of a service
 is anything that *run()* method returns but encapsulated in a Promise. More on promises
 later.
 
@@ -751,297 +745,9 @@ a connection.
         ->execute()
         ->getResult();
         
-## 9. Promise interface
+## 9. Promise interface and getting the result
 
-#### 9.1 Simple statement promise
 
-So far, you have only seen how to execute sql queries and statements. In this chapter,
-you will learn how to use the Promise interface and manipulate results.
-
-Promise in **BlueDot** work similary as promises in javascript. When a statement is executed,
-it produces a certain result. *insert* statement produces a *last_insert_id* and the number of
-rows affected by the query. *update*, *delete*, *alter* etc. produce only the number of
-affected rows. *select* statements return a result or an empty array if no result was found.
-Based on those data, a promise could be a success or a failure.
-
-Consider this example...
-
-    $promise = $blueDot->execute('simple.select.get_all_users');
-    
-The return value of *BlueDot::execute()* is a *BlueDot\Entity\Promise* object that implement
-*BlueDot\Entity\PromiseInterface*. That interface has *success* and *failure* methods that
-accept an anonymous function that is to be executed if a statement was a success or a failure.
-
-    $promise = $blueDot->execute('simple.select.get_all_users');
-    
-    $promise
-        ->success(function(PromiseInterface $promise) {
-            // this function will execute if the statement retured some results
-        })
-        ->failure(function(PromiseInterface $promise) {
-            // this function will execute if the statement did not produce any result
-        });
-        
-Let's presume that *simple.select.get_all_users* returned all the users of your application.
-You would access the result of that statement in the *success()* anonymous method.
-
-    $blueDot->execute('simple.select.get_all_users')
-        ->success(function(PromiseInterface $promise) {
-            $users = $promise->getResult();
-            
-            foreach ($users as $user) {
-                echo $user['name']
-            }
-        });
-        
-*PromiseInterface::getResult()* method returns a *BlueDot\Entity\Entity* object that acts like
-an array so you can access it like an array. It also has various helper methods for filtering results.
-
-You don't have to use *Promises* to access the result of a statement.
-
-    $users = $blueDot->execute('simple.select.get_all_users')->getResult();
-
-    foreach ($users as $user) {
-        echo $user->get('name');
-    }
-    
-Remember, *PromiseInterface::getResult()* returns an Entity object. That object has a Entity::get() 
-method with which you can access result by column name. You can also access it as a plain array.
-
-The *Entity* object has a couple of helper methods to filter the results. If there are multiple
-results returned from your statement, you can use *Entity::findBy()* method to filter the result.
-
-    $user = $blueDot
-                ->execute('simple.select.get_all_users')
-                ->getResult()
-                ->findBy(array(
-                    'id' => 6,
-                ));
-                
-    echo $user[0]['name'];
-        
-*$user* variable will contain an Entity object of a user with id 6. When using *Entity::findBy()*,
-a new *Entity* object is returned that has a zero indexed array internally. Because of that, this
-won't work...
-
-    echo $user->get('name');
-    
-    // but this will work
-    
-    echo $user[0]['name'];
-    
-Don't forget that when using *Entity::findBy()*.
-
-If there is only one user returned from the result, you can use *Entity::normalizeIfOneExists()* 
-method to return an associative array with the user.
-  
-    $user = $blueDot
-                ->execute('simple.select.get_all_users')
-                ->getResult()
-                ->findBy(array(
-                    'id' => 6,
-                ))
-                ->normalizeIfOneExists();
-                
-    echo $user['name'];
-    
-There is also an *Entity::find()* method that is used to find only a single result based on its
-column name and column value.
-
-    $user = $blueDot
-                ->execute('simple.select.get_all_users')
-                ->getResult()
-                ->find('id', 6);
-                
-    echo $user['name'];
-    
-If the *Entity::find()* method finds more that one result, it will throw an exception.
-
-Then, there is the *Entity::extract()* method. This method will extract a single columns
-results if multiple results are returned.
-
-    $users = $blueDot
-                 ->execute('simple.select.get_all_users')
-                 ->getResult()
-                 ->extract('id');
-                 
-    // $users now contains an array of ids indexed by an 'id' key
-    
-    $ids = $users['id'];
-    
-    foreach ($ids as $id) {
-        echo $id;
-    }
-    
-There is also a special method for working with *one-to-many* relations. In the example
-with words and translations, there is only one word with many translations. If you used an
-*INNER JOIN* to fetch results in one row, you would get many rows with only unique *translation*
-row.
-
-For example...
-
-    SELECT w.id, w.word, t.translation FROM words AS w INNER JOIN translations AS t ON t.word_id = w.id WHERE w.id = 6
-    
-If there are 5 translations of a word, this query would return an array with 5 members. That is not
-the desired format. Desired format would be to return an associative array with a *translation*
-key under which all the translations would be. For this, you can use *Entity::arrangeMultiples()*.
-
-    $blueDot->execute('simple.select.select_translations', array(
-                  'id' => 6,
-              )
-              ->success(function(PromiseInterface $promise) {
-                  $arrangedResult = $promise->getResult()->arrangeMultiples(array('translations'));
-              });
-
-This method would arrange the array so that *translation* would be a key under which all the translations
-are as an array of values. If there are multiple columns to arrange, you can add another member to the first
-argument of *Entity::arrangeMultiples()*. This method also has more arguments to filter the result.
-
-If some column values don't have to be in the result array, you can add a second argument which is a anonymous
-function that has to return *true* or *false*. If true, evaluated row would be in the result array. If not,
-it would be skipped. This function accepts currently iterated row as an argument.
-
-    $promise
-        ->getResult()
-        ->arrangeMultiples(array('translation'), function($row) {
-            // add a translation of the currenlty iterated row only if 'name' column is not empty
-            return !empty($row['name']);
-        });
-        
-There is also a special feature to promises. If you noticed, the *PromiseInterface::getResult()* method
-returns the result of the executed statement. This method holds a special feature when used in 
-anonymous promise function. 
-
-    $result = $promise
-        ->success(function(PromiseInterface $promise) {
-            $normalizedResult = $promise->getResult()->normalizeIfOneExists();
-            
-            return $normalizedResult;
-        })
-        ->failure(function() {
-            return 'statement failed';
-        })
-        ->getResult();
-        
-If you remember from the above examples, *Entity::getResult()* would return a result of the executed
-statement. But if you would, for any reason, want to return some other result, any return data
-that you return from *success* or *failure* promises would be the actual result. In the above example,
-on success, *Entity::getResult()* would return the return value of *success* callback. On failure, it would
-return a string 'statement failed'. If you which to access the original *Entity* returned from the 
-executing statement, use *Entity::getOriginalEntity()*.
-
-    // if success, $result contains the returned value of *success* callback
-
-    $result = $promise
-        ->success(function(PromiseInterface $promise) {
-            $normalizedResult = $promise->getResult()->normalizeIfOneExists();
-            
-            return $normalizedResult;
-        })
-        ->failure(function() {
-            return 'statement failed';
-        })
-        ->getResult();
-            
-    // $originalResult contains the originaly returned Entity 
-    $originalResult = $promise->getOriginalEntity();
-    
-So far, you have only seen fetching results from *select* statements. *insert*, *delete* and
-other statements behave in a similar way. Take a look at an example...
-
-    // there are two fields for insert statements
-    $blueDot->execute('simple.insert.create_user')
-        ->success(function(PromiseInterface $promise) {            
-            echo $promise->getResult()->get('last_insert_id');
-            echo $promise->getResult()->get('row_count');
-        })
-        
-    // but there is only one field for update, delete, modify or alter
-    $blueDot->execute('simple.delete.delete_user')
-        ->success(function(PromiseInterface $promise) {
-            echo $promise->getResult()->get('row_count');
-        });
-    
-*IMPORTANT*
-
-If a *delete*, *update* or some other sql query does not modify any rows (update doesn't update, delete
-does not delete any row), above statement would be a failure. Don't forget that.
-
-For convenience, there are also *PromiseInterface::isSuccess()* and *PromiseInterface::isFailure()*
-methods to check a statements promise.
-
-    $promise = $blueDot->execute('simple.select.get_all_users');
-    
-    if ($promise->isSuccess()) {
-       // success code goes here
-    } else if ($promise->isFailure()) {
-       // failure code goes here
-    }
-    
-#### 9.2 Scenario statement promise
-
-Scenario statement promises work in a similar way as simple statement but with one difference.
-Scenario statement consist of one or more individual statements. Those statements can be any of
-*select*, *insert* or *update* statements. By default, scenario statements return information about
-every executed statement.
-
-*insert* statements return *last_insert_id* and *row_count*. *row_count* holds the number of rows 
-inserted. If multiple insert sql queries are executed, all of their last inserted ids will be return
-together with last inserted id. *update* and *delete* only return *row_count*. Also, every result of *select* statements
-would be returned.
-
-**IMPORTANT**
-
-*update* **and** *delete* **statements that do not change data on the database are regarded as a 
-failure and do not return any data**
-
-There is a special configuration value *return_data* for scenario statements.
-
-    scenario:
-        atomic: true
-        return_data: ['select_user.name', 'select_user.lastname', 'select_user_prefs.purchase_history']
-        select_user_data:
-            statements:
-                select_user:
-                    sql: "SELECT id, name, lastname, username FROM user WHERE user_id = :id"
-                    parameters: [id]
-                select_user_pref:
-                    sql: "SELECT * FROM user_preferences WHERE id = :id"
-                    use:
-                        statement_name:
-                        values: {select_user.id: id}
-                    
-    $blueDot->execute('scenario.select_user_data', array(
-        'select_user' => array(
-            'id' => 6,
-        ),
-    ))
-    ->success(function(PromiseInterface $promise) {
-        $result = $promise->getResult();
-    });
-    
-For this example, we have two tables, *users* and *user_preferences* but we don't need all the
-data from both tables but only specific data. For that reason, we use *return_data* configuration value.
-This configuration value will select only the columns from any select statement in this scenario that
-you specify. You can put as many column values as you wish in *return_data*.
-
-You can also use an alias in *return_data*.
-
-    return_data: ['select_user.name AS user_name', 'select_user.lastname AS user_lastname']
-    
-**BlueDot** would then return the *name* column from *users* table as *user_name* and other columns as
-their aliases also. 
-
-**IMPORTANT**
-
-**If you specify** *return_data* **option, only that data will be returned.**
-
-#### 9.3 Callable promises
-
-If you remember, callable is an object in which you can execute any number of statements. The only
-thing about returning data from callables is that anything that you return from a callable
-*run()* method will be the result. Based on that result, callable statement would be a *success* or 
-a *failure*. If you return **null** from a callable, that callable would be regarded as a failure.
 
 ## 10. Imports
 
