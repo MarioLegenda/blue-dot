@@ -254,6 +254,20 @@ class BlueDot implements BlueDotInterface
 
         return $promises;
     }
+
+    public function __destruct()
+    {
+        if ($this->connection instanceof Connection) {
+            if ($this->connection->isOpen()) {
+                $this->connection->close();
+            }
+
+            $this->connection = null;
+        }
+
+        gc_collect_cycles();
+    }
+
     /**
      * @param string $configSource
      * @throws ConfigurationException
