@@ -8,13 +8,12 @@ use BlueDot\Configuration\Compiler;
 use BlueDot\Configuration\Flow\Simple\SimpleConfiguration;
 use BlueDot\Configuration\Import\ImportCollection;
 use BlueDot\Configuration\Validator\ConfigurationValidator;
-use BlueDot\Entity\BaseEntity;
+use BlueDot\Entity\Entity;
 use BlueDot\Entity\PromiseInterface;
 use BlueDot\Kernel\Connection\Connection;
 use BlueDot\Kernel\Connection\ConnectionFactory;
 use BlueDot\Kernel\Kernel;
 use BlueDot\StatementBuilder\StatementBuilder;
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\Yaml\Yaml;
 use Test\FakerTrait;
 
@@ -86,9 +85,9 @@ class StatementBuilderTest extends BaseTest
 
         static::assertInstanceOf(PromiseInterface::class, $result);
 
-        $entity = $result->getOriginalEntity();
+        $entity = $result->getEntity();
 
-        static::assertInstanceOf(BaseEntity::class, $entity);
+        static::assertInstanceOf(Entity::class, $entity);
 
         $arrayResult = $entity->toArray();
 
