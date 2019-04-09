@@ -55,6 +55,7 @@ class FilterableBaseEntity extends BaseEntity implements FilterableEntityInterfa
         $arguments = $this->data['data'];
 
         $result = [];
+
         if (count($arguments) === 1) {
             if (is_object($arguments[0])) {
                 $message = sprintf(
@@ -290,7 +291,7 @@ class FilterableBaseEntity extends BaseEntity implements FilterableEntityInterfa
             return $result['data'][0];
         }
 
-        return new Entity($this->getName(), ['data' => $result]);
+        return new Entity($this->getName(), ['data' => $result['data']]);
     }
     /**
      * @param string|null $scenarioName

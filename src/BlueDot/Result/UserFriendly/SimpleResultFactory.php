@@ -138,8 +138,6 @@ class SimpleResultFactory
             $data = $appliedFilterEntity->toArray();
             $name = $entity->getName();
 
-            $data['row_count'] = $entity->getRowCount();
-
             return new Entity($name, $data);
         }
 

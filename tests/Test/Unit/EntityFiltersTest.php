@@ -75,7 +75,7 @@ class EntityFiltersTest extends BaseTest
 
         static::assertEquals(1, count($idResult['data']));
 
-        $entity = new Entity('name', $idResult['data']);
+        $entity = new Entity('name', ['data' => $idResult['data']]);
 
         $result = $entity->normalizeIfOneExists()->toArray();
 
@@ -117,7 +117,7 @@ class EntityFiltersTest extends BaseTest
         $entity = new Entity('name', $result);
 
         $idResult = $entity
-            ->findBy('id', $id)
+            ->find('id', $id)
             ->normalizeIfOneExists()
             ->extractColumn('lastname')
             ->toArray();
