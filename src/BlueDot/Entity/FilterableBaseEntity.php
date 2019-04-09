@@ -96,6 +96,18 @@ class FilterableBaseEntity extends BaseEntity implements FilterableEntityInterfa
         $result = array();
 
         $arguments = $this->data['data'];
+
+        /*
+         * Check if the $arguments array is an associative array with string keys
+         */
+        if (!empty($arguments) and is_string(array_keys($arguments)[0])) {
+            if (isset($column, $arguments)) {
+                $result = [$column => [0 => $arguments[$column]]];
+
+                return new Entity($this->getName(), ['data' => $result]);
+            }
+        }
+
         if (!empty($replacementResult)) {
             $arguments = $replacementResult;
         }

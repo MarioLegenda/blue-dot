@@ -108,6 +108,23 @@ class EntityFiltersTest extends BaseTest
             static::assertGreaterThan(1, $item['username']);
         }
     }
+
+    public function test_filters_chaining()
+    {
+        $result = $this->getArrayResult(10);
+        $id = 1;
+
+        $entity = new Entity('name', $result);
+
+        $idResult = $entity
+            ->findBy('id', $id)
+            ->normalizeIfOneExists()
+            ->extractColumn('lastname')
+            ->toArray();
+
+        static::arrayHasKey('data', $idResult);
+        static::assertCount(1, $idResult['data']['lastname']);
+    }
     /**
      * @param int $numOfEntries
      * @return array
