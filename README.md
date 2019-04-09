@@ -25,13 +25,16 @@ This project is still in development and I have added more features that are not
     * 'if_exists' and 'if_not_exists' configuration option
 7. Service statements
 8. Repositories
-8. Statement builder
-9. Promise interface and getting the result
+9. Filters
+    * Using configuration filters
+    * Using filters in code
+10. Statement builder
+11. Promise interface and getting the result
     * Simple statement promise
     * Scenario statement promise
     * Callable promise
-10. Imports
-11. Conclusion
+12. Imports
+13. Conclusion
 
 ## 1. Introduction
 
@@ -708,7 +711,70 @@ is to group many scenarios or simple statements together. The return value of a 
 is anything that *run()* method returns but encapsulated in a Promise. More on promises
 later.
 
-## 8. Statement builder
+## 8. Repositories
+
+Repositories are a way of keeping your queries organised by the logic they are meant to serve.
+
+For example, user specific queries would be in *user.yml* where as blog specific queries would
+be in *blog.yml*. It is similar to Doctrines repositories where a *User* and *Blog* object have its own
+repositories.
+
+BlueDot uses repositories out of the box. If you have a *configuration.yml* with which you 
+constructed BlueDot, that means you are using the *configuration* repository under the hood.
+Repository names are derived from the name of the .yml file minus the .yml extension. 
+
+In our *user* and *blog* example, we would have two files:
+
+    user.yml
+    
+    configuration:
+        select:
+            get_all_users: 
+                sql: SELECT * FROM users;
+                
+    blog.yml
+    
+    configuration:
+        select:
+            get_all_blogs:
+                sql: SELECT * FROM blogs;
+                
+After you create the BlueDot instance, first, tell BlueDot you have a new
+repository to be used:
+
+    $blueDot->repository()->putRepository('/path/to/user.yml');
+    $blueDot->repository()->putRepository('/path/to/blog.yml');
+    
+This will create two repositories: *user* and *blog*. To use a repository, use the
+*BlueDot::useRepository()* method:
+
+    $blueDot->useRepository('blog');
+    
+    NOTE: The name of the repository is the name of the file, minus the .yml extension
+
+Now, you can use the queries defined in *blog.yml* configuration. 
+
+Repositories are a good way of organising your queries into logical parts, but they have a
+limitation; you can only use one repository at a time. That means, if you are currently using
+*blog* repository, you can't execute queries from the *use* repository. You have to
+use the *BlueDot::useRepository()* method to switch repositories.
+
+    $blueDot->useRepository('user');
+    
+    $blueDot->execute('simple.select.get_all_users');
+    
+    // this one throws an exception since it cannot find the statement
+    $blueDot->execute('simple.select.get_all_blogs');
+    
+    $blueDot->useRepository('blog');
+    
+    // Now OK
+    $blueDot->execute('simple.select.get_all_blogs');
+    
+Are you going to group your queries into multiple files as repositories or in 
+a single file, is up to you.
+
+## 9. Statement builder
 
 Statement builder is a separate tool for executing oneoff sql statement for which
 you haven't prepared a configuration or which **BlueDot** cannot execute.
@@ -745,11 +811,46 @@ a connection.
         ->execute()
         ->getResult();
         
-## 9. Promise interface and getting the result
+## 10. Promise interface and getting the result
+
+Results in BlueDot are accessed trough the *Promise* object that 
+*BlueDot::execute()* method returns.
+
+    /** @param BlueDot\Entity\PromiseInterface */
+    $promise = $blueDot->execute('simple.select.get_all_users');
+    
+Promise has these method:
+
+- getArrayResult()
+- getEntity(): Entity
+- onResultReady(\Closure)
+
+First, lets talk about the *Entity* object.
+
+#### 10.1 Entity result object
+
+The *BlueDot\Entity\Entity* object is a wrapper around the result that has 
+various methods that can help you to get the data from the final result and manipulate
+that data with filter methods. Depending on the query, some information may be available or
+not. For example, if you execute an select query, you will have a data property that will
+hold the fetched data but you will also have a number of rows as *row_num*. *data* property
+will not be available in *delete*, *update* or *insert* queries. 
+
+On another hand, in an insert query, you will get a *last_insert_id* and *row_count*, but also
+the *inserted_ids* field with all the inserted ids if the query was executed multiple times with 
+multiple parameters.
+
+Also, scenario statements will return the same data but under the key that is the name of the scenario.
+It will also not be a *Entity* object but a *BlueDot\Entity\EntityCollection* object that will hold all
+the entities associated with each scenario executed.
+
+There is a lot of information to go trough so lets get to it.
+
+#### 10.2 Simple statements
 
 
 
-## 10. Imports
+## 11. Imports
 
 Imports are a way of centralizing all your sql queries into one .yml file. Path to that file is injected
 via *sql_import* configuration option.

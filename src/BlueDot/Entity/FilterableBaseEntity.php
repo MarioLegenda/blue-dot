@@ -12,6 +12,18 @@ class FilterableBaseEntity extends BaseEntity implements FilterableEntityInterfa
     /**
      * @inheritdoc
      * @return FilterableEntityInterface|EntityInterface
+     *
+     * Given a $column name and a value of the column, returns an array of found values.
+     *
+     * For example:
+     *
+     * If the result of a query is:
+     *     [
+     *         0 => ['name' => 'Natalia', 'last_name' => 'Natalie' ... other fields ]
+     *         1 => ['name' => 'Katie', 'last_name' => 'Melua' ... other fields ]
+     *         2 => ['name' => 'Billie', 'last_name' => 'Holiday' ... other fields ]
+     *         3 => ['name' => 'Dolly', 'last_name' => 'Parton' ... other fields ]
+     *     ]
      */
     public function findBy(string $column, $value): FilterableEntityInterface
     {
