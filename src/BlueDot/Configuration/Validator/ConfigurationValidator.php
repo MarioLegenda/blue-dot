@@ -25,14 +25,14 @@ class ConfigurationValidator
         $configuration = new ArrayNode('configuration', $this->configuration);
 
         $simpleConfiguration = $configuration
-            ->keyExists('configuration')
+            ->mandatoryKeyExists('configuration')
             ->stepInto('configuration')
                 ->isArrayIfExists('connection')
                 ->stepIntoIfExists('connection')
-                    ->keyExists('host')->isString('host')
+                    ->mandatoryKeyExists('host')->isString('host')
                     ->keyExists('database_name')->isString('database_name')
-                    ->keyExists('user')->isString('user')
-                    ->keyExists('password')->isString('password')
+                    ->mandatoryKeyExists('user')->isString('user')
+                    ->mandatoryKeyExists('password')->isString('password')
                     ->isBooleanIfExists('persistent')
                 ->stepOut()
                 ->isStringIfExists('sql_import');

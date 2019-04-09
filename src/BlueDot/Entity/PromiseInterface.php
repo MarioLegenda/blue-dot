@@ -5,33 +5,16 @@ namespace BlueDot\Entity;
 interface PromiseInterface
 {
     /**
-     * @return Entity|array|null
+     * @return EntityInterface|array|null
      */
-    public function getResult();
+    public function getArrayResult(): ?array;
     /**
-     * @param \Closure $callback
-     * @return PromiseInterface
+     * @return EntityInterface
      */
-    public function success(\Closure $callback) : PromiseInterface;
+    public function getEntity(): EntityInterface;
     /**
-     * @param \Closure $callback
-     * @return PromiseInterface
+     * @param \Closure $closure
+     * @return mixed
      */
-    public function failure(\Closure $callback) : PromiseInterface;
-    /**
-     * @return string|null
-     */
-    public function getName();
-    /**
-     * @return Entity|null
-     */
-    public function getOriginalEntity();
-    /**
-     * @return bool
-     */
-    public function isSuccess() : bool;
-    /**
-     * @return bool
-     */
-    public function isFailure() : bool;
+    public function onResultReady(\Closure $closure): void;
 }

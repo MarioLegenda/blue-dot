@@ -14,7 +14,6 @@ use BlueDot\Kernel\Connection\Connection;
 use BlueDot\Kernel\Connection\ConnectionFactory;
 use BlueDot\Kernel\Kernel;
 use BlueDot\StatementBuilder\StatementBuilder;
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\Yaml\Yaml;
 use Test\FakerTrait;
 
@@ -48,14 +47,16 @@ class StatementBuilderTest extends BaseTest
         $simpleConfig = __DIR__ . '/../config/result/simple_statement_test.yml';
         $scenarioConfig = __DIR__ . '/../config/result/scenario_statement_test.yml';
 
+        $method = (method_exists(Yaml::class, 'parseFile')) ? 'parseFile' : 'parse';
+
         $this->simpleConfig = [
             'file' => $simpleConfig,
-            'config' => Yaml::parse($simpleConfig)
+            'config' => Yaml::{$method}($simpleConfig)
         ];
 
         $this->scenarioConfig = [
             'file' => $scenarioConfig,
-            'config' => Yaml::parse($scenarioConfig)
+            'config' => Yaml::{$method}($scenarioConfig)
         ];
 
         $this->setUpUsers();
@@ -84,7 +85,7 @@ class StatementBuilderTest extends BaseTest
 
         static::assertInstanceOf(PromiseInterface::class, $result);
 
-        $entity = $result->getOriginalEntity();
+        $entity = $result->getEntity();
 
         static::assertInstanceOf(Entity::class, $entity);
 
@@ -92,9 +93,6 @@ class StatementBuilderTest extends BaseTest
 
         static::assertNotEmpty($arrayResult);
         static::assertInternalType('array', $arrayResult);
-
-        static::assertArrayHasKey('sql_type', $arrayResult);
-        static::assertEquals('select', $arrayResult['sql_type']);
 
         static::assertArrayHasKey('row_count', $arrayResult);
         static::assertGreaterThan(0, $arrayResult['row_count']);

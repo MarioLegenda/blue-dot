@@ -6,7 +6,8 @@ use BlueDot\Configuration\Filter\Filter;
 use BlueDot\Configuration\Flow\Scenario\ScenarioConfiguration;
 use BlueDot\Configuration\Flow\Service\ServiceConfiguration;
 use BlueDot\Configuration\Flow\Simple\SimpleConfiguration;
-use BlueDot\Entity\Entity;
+use BlueDot\Entity\BaseEntity;
+use BlueDot\Entity\EntityInterface;
 use BlueDot\Kernel\Result\KernelResultInterface;
 use BlueDot\Result\FilterApplier;
 
@@ -33,9 +34,9 @@ class UserFriendlyResultFactory
         $this->filterApplier = $filterApplier;
     }
     /**
-     * @return Entity
+     * @return EntityInterface
      */
-    public function create(): Entity
+    public function create(): EntityInterface
     {
         $configuration = $this->kernelResult->getConfiguration();
 

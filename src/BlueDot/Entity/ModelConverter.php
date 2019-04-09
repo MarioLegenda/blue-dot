@@ -26,7 +26,7 @@ class ModelConverter
         $this->result = $result;
     }
     /**
-     * @return Entity|object
+     * @return BaseEntity|object
      * @throws \ReflectionException
      */
     public function convertIntoModel()
@@ -40,7 +40,7 @@ class ModelConverter
             $modelCollection[] = $this->arrayToModel($result);
         }
 
-        return new Entity($modelCollection);
+        return new BaseEntity($modelCollection);
     }
     /**
      * @param array $result

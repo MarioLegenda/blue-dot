@@ -34,7 +34,7 @@ class ArrayNode implements \IteratorAggregate, \Countable
         $this->nodeName = $rootNode;
 
         if (empty($workingNode)) {
-            throw new ConfigurationException('Node has to be an array for parent \''.$rootNode.'\'');
+            throw new ConfigurationException('Node has to be a non empty array for parent \''.$rootNode.'\'');
         }
 
         $this->workingNode = $workingNode;
@@ -187,6 +187,20 @@ class ArrayNode implements \IteratorAggregate, \Countable
         }
 
         return $this;
+    }
+    /**
+     * @param string $nodeName
+     * @param array $node
+     * @return ArrayNode
+     * @throws ConfigurationException
+     */
+    public function mandatoryKeyExists(string $nodeName, array $node = []): ArrayNode
+    {
+        if (!empty($node)) {
+            return $this->internalKeyExists($nodeName, $node);
+        }
+
+        return $this->internalKeyExists($nodeName, $this->workingNode);
     }
     /**
      * @param string $nodeName

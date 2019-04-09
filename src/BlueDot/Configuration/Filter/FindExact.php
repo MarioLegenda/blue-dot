@@ -2,6 +2,7 @@
 
 namespace BlueDot\Configuration\Filter;
 
+use BlueDot\Entity\BaseEntity;
 use BlueDot\Entity\Entity;
 use BlueDot\Entity\FilterableEntityInterface;
 

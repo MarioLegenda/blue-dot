@@ -3,7 +3,7 @@
 namespace BlueDot\Result\UserFriendly;
 
 use BlueDot\Configuration\Flow\Service\ServiceConfiguration;
-use BlueDot\Entity\Entity;
+use BlueDot\Entity\BaseEntity;
 use BlueDot\Kernel\Result\KernelResultInterface;
 use BlueDot\Result\FilterApplier;
 
@@ -25,12 +25,12 @@ class ServiceResultFactory
     /**
      * @param KernelResultInterface $kernelResult
      * @param FilterApplier $filterApplier
-     * @return Entity
+     * @return BaseEntity
      */
     public function create(
         KernelResultInterface $kernelResult,
         FilterApplier $filterApplier
-    ): Entity {
+    ): BaseEntity {
         /** @var ServiceConfiguration $configuration */
         $configuration = $kernelResult->getConfiguration();
 
@@ -40,7 +40,7 @@ class ServiceResultFactory
             'data' => $kernelResult->getResult(),
         ];
 
-        return new Entity(
+        return new BaseEntity(
             $result,
             $configuration->getResolvedServiceName()
         );

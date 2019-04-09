@@ -9,7 +9,9 @@ use BlueDot\Configuration\Compiler;
 use BlueDot\Configuration\Flow\Simple\SimpleConfiguration;
 use BlueDot\Configuration\Import\ImportCollection;
 use BlueDot\Configuration\Validator\ConfigurationValidator;
-use BlueDot\Entity\Entity;
+use BlueDot\Entity\BaseEntity;
+use BlueDot\Entity\EntityCollection;
+use BlueDot\Entity\EntityInterface;
 use BlueDot\Entity\PromiseInterface;
 use BlueDot\Kernel\Connection\Connection;
 use BlueDot\Kernel\Connection\ConnectionFactory;
@@ -42,9 +44,11 @@ class BlueDotTest extends BaseTest
 
         $preparedExecutionConfig = __DIR__ . '/../config/result/prepared_execution_test.yml';
 
+        $method = (method_exists(Yaml::class, 'parseFile')) ? 'parseFile' : 'parse';
+
         $this->preparedExecutionConfig = [
             'file' => $preparedExecutionConfig,
-            'config' => Yaml::parse($preparedExecutionConfig)
+            'config' => Yaml::{$method}($preparedExecutionConfig)
         ];
 
         $this->setUpUsers();
@@ -72,7 +76,8 @@ class BlueDotTest extends BaseTest
         $promise = $blueDot->execute('simple.select.find_all_users');
 
         static::assertInstanceOf(PromiseInterface::class, $promise);
-        static::assertTrue($promise->isSuccess());
+
+        static::assertTrue(!empty($promise->getEntity()->toArray()['data']));
     }
 
     public function test_blue_dot_execution()
@@ -83,7 +88,7 @@ class BlueDotTest extends BaseTest
         $promise = $blueDot->execute('simple.select.find_all_users');
 
         static::assertInstanceOf(PromiseInterface::class, $promise);
-        static::assertTrue($promise->isSuccess());
+        static::assertTrue(!empty($promise->getEntity()->toArray()['data']));
 
         $promise = $blueDot->execute('scenario.insert_user', [
             'insert_user' => [
@@ -97,7 +102,14 @@ class BlueDotTest extends BaseTest
         ]);
 
         static::assertInstanceOf(PromiseInterface::class, $promise);
-        static::assertTrue($promise->isSuccess());
+
+        /** @var EntityCollection $entityCollection */
+        $entityCollection = $promise->getEntity();
+
+        static::assertInstanceOf(EntityCollection::class, $entityCollection);
+
+        static::assertNotEmpty($entityCollection->getEntity('insert_user'));
+        static::assertNotEmpty($entityCollection->getEntity('insert_address'));
     }
 
     public function test_composite_foreign_key()
@@ -108,7 +120,7 @@ class BlueDotTest extends BaseTest
         $promise = $blueDot->execute('simple.select.find_all_users');
 
         static::assertInstanceOf(PromiseInterface::class, $promise);
-        static::assertTrue($promise->isSuccess());
+        static::assertTrue(!empty($promise->getEntity()->toArray()['data']));
 
         $promise = $blueDot->execute('scenario.normalized_user_insert', [
             'insert_user' => [
@@ -122,7 +134,14 @@ class BlueDotTest extends BaseTest
         ]);
 
         static::assertInstanceOf(PromiseInterface::class, $promise);
-        static::assertTrue($promise->isSuccess());
+
+        /** @var EntityCollection $entityCollection */
+        $entityCollection = $promise->getEntity();
+
+        static::assertInstanceOf(EntityCollection::class, $entityCollection);
+
+        static::assertNotEmpty($entityCollection->getEntity('insert_user'));
+        static::assertNotEmpty($entityCollection->getEntity('insert_address'));
     }
 
     public function test_multiple_insert_for_simple_statements()
@@ -142,17 +161,17 @@ class BlueDotTest extends BaseTest
         $promise = $blueDot->execute('simple.insert.insert_user', $parameters);
 
         static::assertInstanceOf(PromiseInterface::class, $promise);
-        static::assertTrue($promise->isSuccess());
+        static::assertTrue(!empty($promise->getEntity()->toArray()['inserted_ids']));
 
-        /** @var Entity $result */
-        $entity = $promise->getResult();
+        /** @var array $data */
+        $data = $promise->getEntity()->toArray();
 
-        static::assertTrue($entity->has('inserted_ids'));
-        static::assertNotEmpty($entity->get('inserted_ids'));
-        static::assertInternalType('array', $entity->get('inserted_ids'));
+        static::assertArrayHasKey('inserted_ids', $data);
+        static::assertNotEmpty($data['inserted_ids']);
+        static::assertInternalType('array', $data['inserted_ids']);
 
-        static::assertTrue($entity->has('last_insert_id'));
-        static::assertInternalType('int', $entity->get('last_insert_id'));
+        static::assertArrayHasKey('last_insert_id', $data);
+        static::assertInternalType('int', $data['last_insert_id']);
     }
 
     public function test_multiple_select_for_simple_statements()
@@ -167,7 +186,7 @@ class BlueDotTest extends BaseTest
         $promise = $blueDot->execute('simple.select.find_user_by_id', $parameters);
 
         static::assertInstanceOf(PromiseInterface::class, $promise);
-        static::assertTrue($promise->isSuccess());
+        static::assertTrue(!empty($promise->getEntity()->toArray()['data']));
     }
 
     public function test_multiple_insert_for_scenario_statements()
@@ -190,21 +209,29 @@ class BlueDotTest extends BaseTest
         ]);
 
         static::assertInstanceOf(PromiseInterface::class, $promise);
-        static::assertTrue($promise->isSuccess());
 
-        /** @var Entity $result */
-        $result = $promise->getResult();
+        /** @var EntityCollection $entityCollection */
+        $entityCollection = $promise->getEntity();
 
-        static::assertTrue($result->has('insert_address'));
-        static::assertArrayHasKey('inserted_ids', $result->get('insert_address'));
-        static::assertNotEmpty($result->get('insert_address'));
-        static::assertInternalType('array', $result->get('insert_address'));
+        static::assertTrue($entityCollection->hasEntity('insert_user'));
+        static::assertTrue($entityCollection->hasEntity('insert_address'));
 
-        static::assertArrayHasKey('row_count', $result->get('insert_address'));
-        static::assertGreaterThan(1, $result->get('insert_address')['row_count']);
+        /** @var EntityInterface $entity */
+        $entity = $entityCollection->getEntity('insert_user');
 
-        static::assertArrayHasKey('last_insert_id', $result->get('insert_address'));
-        static::assertGreaterThan(1, $result->get('insert_address')['last_insert_id']);
+        static::assertInstanceOf(EntityInterface::class, $entity);
+        static::assertEquals($entity->getName(), 'insert_user');
+
+        $data = $entity->toArray();
+
+        static::assertArrayHasKey('last_insert_id', $data);
+        static::assertArrayHasKey('row_count', $data);
+        static::assertArrayHasKey('type', $data);
+
+        static::assertGreaterThanOrEqual(1, $data['row_count']);
+        static::assertGreaterThanOrEqual(1, $data['last_insert_id']);
+
+        static::assertEquals($data['type'], 'scenario');
     }
 
     public function test_multiple_select_for_scenario_statements()
@@ -222,23 +249,13 @@ class BlueDotTest extends BaseTest
         ]);
 
         static::assertInstanceOf(PromiseInterface::class, $promise);
-        static::assertTrue($promise->isSuccess());
 
-        $result = $promise->getResult()->get('find_user_by_id');
+        /** @var EntityCollection $entityCollection */
+        $entityCollection = $promise->getEntity();
 
-        $data = $result['data'];
+        static::assertTrue($entityCollection->hasEntity('find_user_by_id'));
 
-        static::assertNotEmpty($data);
-        static::assertInternalType('array', $data);
-
-        foreach ($data as $row) {
-            static::assertArrayHasKey('row_count', $row);
-
-            $innerData = $row['data'];
-
-            static::assertNotEmpty($innerData);
-            static::assertInternalType('array', $innerData);
-        }
+        $entity = $entityCollection->getEntity('find_user_by_id');
     }
 
     public function test_blue_dot_other_type_execution()
@@ -248,11 +265,16 @@ class BlueDotTest extends BaseTest
         /** @var PromiseInterface $promise */
         $promise = $blueDot->execute('scenario.table_creation');
 
-        static::assertInstanceOf(PromiseInterface::class, $promise);
-        static::assertTrue($promise->isSuccess());
+        /** @var EntityCollection $entityCollection */
+        $entityCollection = $promise->getEntity();
 
-        static::assertInstanceOf(PromiseInterface::class, $promise);
-        static::assertTrue($promise->isSuccess());
+        static::assertInstanceOf(EntityCollection::class, $entityCollection);
+
+        static::assertTrue($entityCollection->hasEntity('create_database'));
+        static::assertTrue($entityCollection->hasEntity('use_database'));
+        static::assertTrue($entityCollection->hasEntity('create_user_table'));
+        static::assertTrue($entityCollection->hasEntity('create_address_table'));
+        static::assertTrue($entityCollection->hasEntity('create_normalized_user'));
     }
     /**
      * @throws \BlueDot\Exception\ConfigurationException

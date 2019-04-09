@@ -3,10 +3,9 @@
 namespace BlueDot;
 
 use BlueDot\Common\{
-    ArgumentValidator, Enum\TypeInterface, FlowProductInterface, StatementValidator
+    ArgumentValidator, FlowProductInterface, StatementValidator
 };
 
-use BlueDot\Configuration\Cache\CompilerCache;
 use BlueDot\Configuration\Compiler;
 
 use BlueDot\Configuration\Flow\Service\ServiceConfiguration;
@@ -22,8 +21,6 @@ use BlueDot\Exception\{
     RepositoryException, ConnectionException, ConfigurationException
 };
 
-use BlueDot\Kernel\Environment\EnvironmentFactory;
-use BlueDot\Kernel\Environment\Type\ProdEnv;
 use BlueDot\Kernel\Kernel;
 use BlueDot\Kernel\Strategy\PreparedExecution;
 use BlueDot\StatementBuilder\StatementBuilder;
@@ -33,14 +30,6 @@ use BlueDot\Repository\Repository;
 
 class BlueDot implements BlueDotInterface
 {
-    /**
-     * @var TypeInterface $environment
-     */
-    private $environment;
-    /**
-     * @var CompilerCache $compilerCache
-     */
-    private $compilerCache;
     /**
      * @var Compiler $compiler
      */
@@ -60,25 +49,32 @@ class BlueDot implements BlueDotInterface
     /**
      * BlueDot constructor.
      * @param string|null $configSource
-     * @param string $environment
      * @throws ConfigurationException
      * @throws RepositoryException
      * @throws ConnectionException
      *
      * It is valid to construct BlueDot with empty parameters, but
      * when BlueDot::execute() is called, $configSource and $connection have
-     * to be set. This allows querying multiple databases with one instance
-     * of BlueDot
+     * to be set. This allows the following:
+     *
+     * - Using BlueDot with multiple databases if we don't specify the database name
+     * - Using BlueDot without the repository files (only statement builder)
+     * - Making BlueDot light until you start using it. None of the inner mechanisms are
+     *   instantiated without the existence of configuration
      */
     public function __construct(
-        string $configSource = null,
-        string $environment = 'dev'
+        string $configSource = null
     ) {
-        $this->environment = EnvironmentFactory::create($environment);
-        $this->compilerCache = new CompilerCache();
-
         if (is_null($configSource)) {
             return $this;
+        }
+
+        if (!file_exists($configSource)) {
+            throw new \InvalidArgumentException("The file $configSource does not exist");
+        }
+
+        if (!is_readable($configSource)) {
+            throw new \InvalidArgumentException("The file $configSource is not readable");
         }
 
         if (is_file($configSource)) {
@@ -88,6 +84,16 @@ class BlueDot implements BlueDotInterface
     /**
      * @param Connection $connection
      * @return BlueDotInterface
+     *
+     * Set the Connection object for this instance of BlueDot
+     *
+     * If the connection already exists, it closes the current connection and
+     * replaces it with the new one.
+     *
+     * It is important to know here that even if you create a Connection object,
+     * the connection to MySql is still not established. BlueDot establishes the connection
+     * just before it knows that he will make a query to the database. So, calling
+     * setConnection() does not establishes an actual connection to MySql.
      */
     public function setConnection(Connection $connection) : BlueDotInterface
     {
@@ -112,6 +118,9 @@ class BlueDot implements BlueDotInterface
      * @throws ConfigurationException
      * @throws ConnectionException
      * @throws RepositoryException
+     *
+     * Sets the configuration for this instance of BlueDot. This method
+     * cannot be called more than once with the same config file.
      */
     public function setConfiguration(string $configSource) : BlueDotInterface
     {
@@ -165,6 +174,8 @@ class BlueDot implements BlueDotInterface
     }
     /**
      * @return RepositoryInterface
+     *
+     * Gives access to Repository instance
      */
     public function repository() : RepositoryInterface
     {
@@ -182,6 +193,11 @@ class BlueDot implements BlueDotInterface
      * @throws ConfigurationException
      * @throws ConnectionException
      * @throws RepositoryException
+     *
+     * Switches BlueDot current configuration and compiles it again.
+     *
+     * It has the same effect of creating multiple instances of BlueDot with
+     * different configuration files.
      */
     public function useRepository(string $repository) : BlueDotInterface
     {
@@ -238,10 +254,27 @@ class BlueDot implements BlueDotInterface
 
         return $promises;
     }
+
+    public function __destruct()
+    {
+        if ($this->connection instanceof Connection) {
+            if ($this->connection->isOpen()) {
+                $this->connection->close();
+            }
+
+            $this->connection = null;
+        }
+
+        gc_collect_cycles();
+    }
+
     /**
      * @param string $configSource
      * @throws ConfigurationException
      * @throws ConnectionException
+     *
+     * Binds all parts of BlueDot initialization. Check all three private methods
+     * for more information
      */
     private function initBlueDot(string $configSource)
     {
@@ -255,22 +288,19 @@ class BlueDot implements BlueDotInterface
      * @param string $configSource
      * @return array
      * @throws ConfigurationException
+     *
+     * Parses the yaml file that represent the configuration of BlueDot
      */
     private function resolveConfiguration(string $configSource)
     {
-        if (!file_exists($configSource)) {
-            throw new ConfigurationException(
-                sprintf(
-                    'Invalid configuration. Configuration file %s does not exist',
-                    $configSource
-                )
-            );
-        }
-
         $parsedConfiguration = Yaml::parse(file_get_contents($configSource));
 
         if (empty($parsedConfiguration)) {
-            throw new ConfigurationException('Invalid configuration. Configuration could not be parsed');
+            throw new ConfigurationException("Invalid configuration. Configuration file $configSource is empty");
+        }
+
+        if (!isset($parsedConfiguration['configuration'])) {
+            throw new ConfigurationException("Invalid configuration. The 'configuration' key/node does not exist");
         }
 
         return $parsedConfiguration;
@@ -298,6 +328,9 @@ class BlueDot implements BlueDotInterface
      * @param array $parsedConfiguration
      * @return Connection|null
      * @throws ConnectionException
+     *
+     * Creates the connection from the parsed configuration if the connection
+     * key exists in the provided .yml file
      */
     private function createConnection(array $parsedConfiguration)
     {
@@ -354,22 +387,6 @@ class BlueDot implements BlueDotInterface
         string $configSource,
         array $parsedConfiguration
     ): Compiler {
-        try {
-            if ($this->environment->equals(ProdEnv::fromValue())) {
-                if (!$this->compilerCache->isInCache($configSource)) {
-                    $compiler = $this->createCompiler($configSource, $parsedConfiguration);
-
-                    $this->compilerCache->putInCache($configSource, $compiler);
-                }
-
-                return $this->compilerCache->getFromCache($configSource);
-            }
-        } catch(\Throwable $e) {
-            // NOT IMPLEMENTED. There could be user privileges problems when in vendor directory.
-            // This should not be a blocking issue.
-            // A Compiler always has to be created
-        }
-
         return $this->createCompiler($configSource, $parsedConfiguration);
     }
     /**
@@ -377,13 +394,31 @@ class BlueDot implements BlueDotInterface
      * @throws ConfigurationException
      * @throws ConnectionException
      * @throws RepositoryException
+     *
+     * Puts the file as the current repository. This method is used by both
+     * BlueDot constructor and setConfiguration() method. That method can be
+     * called more than once but it is forbidden to init BlueDot with the same
+     * configuration more than once. This method converts the exception message
+     * thrown from Repository and adds more information to it. Then rethrows it.
+     *
+     * This is because, Repository implement the RepositoryInterface and therefor,
+     * is an independent and decoupled implementation (an independent component) that
+     * does not even know that it is implemented by BlueDot.
      */
     private function resolveFileSourceInit(string $configSource)
     {
-        $this->repository()->putRepository($configSource);
+        try {
+            $this->repository()->putRepository($configSource);
 
-        $firstRepository = array_keys($this->repository->getWorkingRepositories())[0];
+            $firstRepository = array_keys($this->repository->getWorkingRepositories())[0];
 
-        $this->useRepository($firstRepository);
+            $this->useRepository($firstRepository);
+        } catch (\RuntimeException $e) {
+            $eMessage = $e->getMessage();
+            $message = "$eMessage. It is not allowed to initialise BlueDot with the same configuration more than once, usually trough the BlueDot::setConfiguration() method";
+
+            throw new \RuntimeException($message);
+        }
+
     }
 }

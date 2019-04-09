@@ -23,6 +23,9 @@ class Connection
      * @param array $dsn|null
      * @param Attributes|null $attributes
      * @throws ConnectionException
+     *
+     * A simple wrapper around \PDO object. Construction this object does not connect
+     * to MySql. Only after calling Connection::connect() is BlueDot connected to mysql
      */
     public function __construct(
         array $dsn = null,
@@ -41,6 +44,10 @@ class Connection
      */
     public function setPdo(\PDO $pdo): Connection
     {
+        $this->close();
+
+        gc_collect_cycles();
+
         $this->connection = $pdo;
 
         return $this;

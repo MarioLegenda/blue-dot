@@ -44,20 +44,21 @@ class CompilerTest extends BaseTest
         $simpleConfig = __DIR__ . '/../config/compiler/simple_statement_test.yml';
         $scenarioConfig = __DIR__ . '/../config/compiler/scenario_statement_test.yml';
         $serviceConfig = __DIR__ . '/../config/compiler/service_statement_test.yml';
+        $method = (method_exists(Yaml::class, 'parseFile')) ? 'parseFile' : 'parse';
 
         $this->simpleConfig = [
             'file' => $simpleConfig,
-            'config' => Yaml::parse($simpleConfig)
+            'config' => Yaml::{$method}($simpleConfig)
         ];
 
         $this->scenarioConfig = [
             'file' => $scenarioConfig,
-            'config' => Yaml::parse($scenarioConfig)
+            'config' => Yaml::{$method}($scenarioConfig)
         ];
 
         $this->serviceConfig = [
             'file' => $serviceConfig,
-            'config' => Yaml::parse($serviceConfig),
+            'config' => Yaml::{$method}($serviceConfig),
         ];
     }
 

@@ -8,7 +8,8 @@ use BlueDot\Configuration\Flow\FlowConfigurationProductInterface;
 use BlueDot\Configuration\Flow\Scenario\ScenarioConfiguration;
 use BlueDot\Configuration\Flow\Service\ServiceConfiguration;
 use BlueDot\Configuration\Flow\Simple\SimpleConfiguration;
-use BlueDot\Entity\Entity;
+use BlueDot\Entity\BaseEntity;
+use BlueDot\Entity\EntityInterface;
 use BlueDot\Kernel\Connection\Connection;
 use BlueDot\Kernel\Result\KernelResultInterface;
 use BlueDot\Kernel\Strategy\Enum\ScenarioStrategyType;
@@ -125,11 +126,11 @@ class Kernel
     }
     /**
      * @param KernelResultInterface $kernelResult
-     * @return Entity
+     * @return EntityInterface
      */
     public function convertKernelResultToUserFriendlyResult(
         KernelResultInterface $kernelResult
-    ): Entity {
+    ): EntityInterface {
         $userFriendlyResultFactory = new UserFriendlyResultFactory(
             $kernelResult,
             new FilterApplier()

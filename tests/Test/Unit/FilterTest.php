@@ -10,6 +10,7 @@ use BlueDot\Configuration\Flow\Simple\SimpleConfiguration;
 use BlueDot\Configuration\Import\ImportCollection;
 use BlueDot\Configuration\Validator\ConfigurationValidator;
 use BlueDot\Entity\Entity;
+use BlueDot\Entity\EntityCollection;
 use BlueDot\Entity\PromiseInterface;
 use BlueDot\Kernel\Connection\Connection;
 use BlueDot\Kernel\Connection\ConnectionFactory;
@@ -54,9 +55,11 @@ class FilterTest extends BaseTest
 
         $preparedExecutionConfig = __DIR__ . '/../config/result/prepared_execution_test.yml';
 
+        $method = (method_exists(Yaml::class, 'parseFile')) ? 'parseFile' : 'parse';
+
         $this->preparedExecutionConfig = [
             'file' => $preparedExecutionConfig,
-            'config' => Yaml::parse($preparedExecutionConfig)
+            'config' => Yaml::{$method}($preparedExecutionConfig)
         ];
 
         $this->setUpUsers();
@@ -81,14 +84,17 @@ class FilterTest extends BaseTest
         $promise = $blueDot->execute('simple.select.by_column_filter_find_all_users');
 
         static::assertInstanceOf(PromiseInterface::class, $promise);
-        static::assertTrue($promise->isSuccess());
 
-        $entity = $promise->getResult();
 
-        static::assertTrue($entity->has('data'));
-        static::assertEquals(1, count($entity->get('data')));
-        static::assertArrayHasKey('id', $entity->get('data'));
-        static::assertGreaterThan(1, count($entity->get('data')['id']));
+        $result = $promise->getEntity()->toArray();
+
+        static::assertArrayHasKey('data', $result);
+
+        $data = $result['data'];
+
+        static::assertEquals(1, count($data['data']));
+        static::assertArrayHasKey('id', $data['data']);
+        static::assertGreaterThan(1, count($data['data']['id']));
     }
 
     public function test_cascading_filter()
@@ -99,13 +105,14 @@ class FilterTest extends BaseTest
         $promise = $blueDot->execute('simple.select.cascading_filter_find_all_users');
 
         static::assertInstanceOf(PromiseInterface::class, $promise);
-        static::assertTrue($promise->isSuccess());
 
-        $entity = $promise->getResult();
+        $result = $promise->getEntity()->toArray();
 
-        static::assertInstanceOf(Entity::class, $entity);
+        static::assertArrayHasKey('data', $result);
+        static::assertEquals($result['data']['type'], 'simple');
+        static::assertGreaterThan(1, $result['data']['row_count']);
 
-        $data = $entity->get('data');
+        $data = $result['data']['data'];
 
         static::assertArrayHasKey('id', $data);
         static::assertArrayHasKey('username', $data);
@@ -121,9 +128,9 @@ class FilterTest extends BaseTest
         $promise = $blueDot->execute('simple.select.normalize_joined_result_find_all_users');
 
         static::assertInstanceOf(PromiseInterface::class, $promise);
-        static::assertTrue($promise->isSuccess());
 
-        $entity = $promise->getResult();
+        /** @var Entity $entity */
+        $entity = $promise->getEntity();
 
         static::assertInstanceOf(Entity::class, $entity);
     }
@@ -136,12 +143,11 @@ class FilterTest extends BaseTest
         $promise = $blueDot->execute('simple.select.find_exact_filter_find_all_users');
 
         static::assertInstanceOf(PromiseInterface::class, $promise);
-        static::assertTrue($promise->isSuccess());
 
-        $entity = $promise->getResult();
+        /** @var Entity $entity */
+        $entity = $promise->getEntity();
 
-        static::assertNotEmpty($entity->toArray());
-        static::assertEquals(2, count($entity->toArray()));
+        static::assertNotEmpty($entity->toArray()['data']);
     }
 
     public function test_normalize_if_one_exists_filter()
@@ -152,13 +158,13 @@ class FilterTest extends BaseTest
         $promise = $blueDot->execute('simple.select.normalize_if_one_exists_filter_find_all_users');
 
         static::assertInstanceOf(PromiseInterface::class, $promise);
-        static::assertTrue($promise->isSuccess());
 
-        $entity = $promise->getResult();
+        /** @var Entity $entity */
+        $entity = $promise->getEntity();
 
         static::assertInstanceOf(Entity::class, $entity);
 
-        $data = $entity->get('data');
+        $data = $entity->toArray()['data']['data'];
 
         static::assertArrayHasKey('id', $data);
         static::assertArrayHasKey('username', $data);
@@ -189,13 +195,13 @@ class FilterTest extends BaseTest
         $promise = $blueDot->execute('scenario.select_user');
 
         static::assertInstanceOf(PromiseInterface::class, $promise);
-        static::assertTrue($promise->isSuccess());
 
-        $result = $promise->getResult();
+        /** @var EntityCollection $result */
+        $result = $promise->getEntity();
 
-        static::assertInstanceOf(Entity::class, $result);
+        static::assertInstanceOf(EntityCollection::class, $result);
 
-        $scenarioResult = $result->get('select_user');
+        $scenarioResult = $result->getEntity('select_user')->toArray()['data'];
 
         static::assertArrayHasKey('row_count', $scenarioResult);
 

@@ -5,33 +5,49 @@ namespace BlueDot\Result;
 use BlueDot\Configuration\Filter\Filter;
 use BlueDot\Configuration\Filter\FilterInterface;
 use BlueDot\Entity\Entity;
+use BlueDot\Entity\EntityInterface;
+use BlueDot\Entity\FilterableEntityInterface;
 
 class FilterApplier
 {
     /**
-     * @param Entity $entity
+     * @param EntityInterface|FilterableEntityInterface $entity
      * @param Filter $filter
-     * @return Entity
+     * @return EntityInterface
      */
     public function apply(
-        Entity $entity,
+        EntityInterface $entity,
         Filter $filter
-    ): Entity {
+    ): EntityInterface {
         $filters = $filter->getFilters();
-        /** @var Entity $filterProduct */
+        /** @var EntityInterface $filterProduct */
         $filterProduct = null;
 
         /** @var FilterInterface $filter */
         foreach ($filters as $filter) {
-            if ($filterProduct instanceof Entity) {
-                $filterProduct = $filter->applyFilter($filterProduct);
+            if ($filterProduct instanceof EntityInterface) {
+                $filterProduct = $filter->applyFilter($this->makeCopy($filterProduct));
 
                 continue;
             }
 
-            $filterProduct = $filter->applyFilter($entity);
+            $filterProduct = $filter->applyFilter($this->makeCopy($entity));
         }
 
-        return $filterProduct;
+        $data = $entity->toArray();
+        $productData = $filterProduct->toArray()['data'];
+        $data['data'] = $productData;
+
+        return new Entity($entity->getName(), ['data' => $data]);
+    }
+    /**
+     * @param EntityInterface $entity
+     * @return EntityInterface
+     */
+    private function makeCopy(EntityInterface $entity): EntityInterface
+    {
+        $data = $entity->toArray()['data'];
+
+        return new Entity($entity->getName(), ['data' => $data]);
     }
 }

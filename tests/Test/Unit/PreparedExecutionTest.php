@@ -14,7 +14,6 @@ use BlueDot\Entity\PromiseInterface;
 use BlueDot\Kernel\Connection\Connection;
 use BlueDot\Kernel\Connection\ConnectionFactory;
 use BlueDot\Kernel\Kernel;
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\Yaml\Yaml;
 use Test\FakerTrait;
 
@@ -47,9 +46,11 @@ class PreparedExecutionTest extends BaseTest
 
         $preparedExecutionConfig = __DIR__ . '/../config/result/prepared_execution_test.yml';
 
+        $method = (method_exists(Yaml::class, 'parseFile')) ? 'parseFile' : 'parse';
+
         $this->preparedExecutionConfig = [
             'file' => $preparedExecutionConfig,
-            'config' => Yaml::parse($preparedExecutionConfig)
+            'config' => Yaml::{$method}($preparedExecutionConfig)
         ];
 
         $this->blueDot = new BlueDot($preparedExecutionConfig);
@@ -94,6 +95,9 @@ class PreparedExecutionTest extends BaseTest
         $promises = $this->blueDot->executePrepared();
 
         static::assertEquals(count($promises), count($statements));
+        static::assertArrayHasKey('simple.select.find_all_users', $promises);
+        static::assertArrayHasKey('scenario.insert_user', $promises);
+        static::assertArrayHasKey('simple.select.find_user_by_id', $promises);
 
         /** @var PromiseInterface $promise */
         foreach ($promises as $promise) {

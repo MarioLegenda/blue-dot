@@ -82,7 +82,7 @@ class PreparedExecution
                     continue;
                 }
 
-                $this->promises[] = $promise;
+                $this->promises[$entity->getName()] = $promise;
             }
 
             $this->connection->getPDO()->commit();
