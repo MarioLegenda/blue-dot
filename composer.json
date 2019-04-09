@@ -15,7 +15,7 @@
     "require": {
         "php": ">=7.0 || <=7.2",
         "symfony/var-dumper": "^4.0",
-        "symfony/yaml": "^4.2"
+        "symfony/yaml": ">= 2.8 <= 4.2"
     },
 
     "require-dev": {
