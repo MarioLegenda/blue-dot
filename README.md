@@ -1,10 +1,6 @@
 ## BlueDot
 *Pure sql database abstraction layer*
 
-Note:
-
-This project is still in development and I have added more features that are not in this documentation. Version 2.0 is on the way, and when its finished, I will update the documentation
-
 ## Content
 
 1. Introduction
