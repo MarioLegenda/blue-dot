@@ -72,7 +72,7 @@ Install it with [composer](https://getcomposer.org/)
 
     composer require mario-legenda/blue-dot
     
-Current version of BlueDot is 2.0.2.
+Current version of BlueDot is 2.0.4.
     
 ## 3. The basics
 
