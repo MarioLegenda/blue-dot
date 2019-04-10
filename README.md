@@ -26,28 +26,43 @@ This project is still in development and I have added more features that are not
 7. Service statements
 8. Prepared execution
 9. Repositories
-10. Filters
-    * Using configuration filters
-    * Using filters in code
-11. Statement builder
-12. Promise interface and getting the result
+10. Statement builder
+11. Promise interface and getting the result
     * Introduction
     * PromiseInterface
     * Entity result object
+12. Filters
+    * A list of possibilities
+    * Using configuration filters
 13. Imports
 14. Conclusion
+15. Setting up tests
 
 ## 1. Introduction
 
-**BlueDot** is a database abstraction layer that works with pure sql but returns 
+**BlueDot** is a MySQL database abstraction layer that works with plain sql but returns 
 domain objects that you can work with. It's configuration based and 
 requires minimal work and setup to start working with it. The reason I 
 created this tool is simple free time and the need for a better tool to handle
 plain SQL. Hope someone will find it useful.
 
+You can use this tool in a small to mid level project but I would not recommend using
+it for enterprise projects. I used it in a mid level project and only on certain places
+and it worked very well. Don't use it as the only tool to work with MySQL but as a supplement
+to Doctrine or Propel in instances where you need fast database lookup.
+
+You can also use it in database intensive migrations where you have tens of millions 
+rows of data and you need to change it as fast as possible with minimal memory 
+consumption. Since BlueDot is using plain SQL and does not track object or previously
+executed queries like Doctrine or Propel, it is a fast alternative to use it alongside
+Phinx, for example.
+
+You can also use it in simple CRUD operations on applications like blogs or in instances
+where you work with large quantities of data.
+
 This documentation is written in a way in which you will first learn how
 to execute sql queries but getting the result and manipulating it is
-covered in *Chapter 9: Promise interface*
+covered in *Chapter 12: Promise interface and getting the result*
 
 ## 2. Installation
 
@@ -807,9 +822,7 @@ use the *BlueDot::useRepository()* method to switch repositories.
 Are you going to group your queries into multiple files as repositories or in 
 a single file, is up to you.
 
-## 10. Filters
-
-## 11. Statement builder
+## 10. Statement builder
 
 Statement builder is a separate tool for executing oneoff sql statement for which
 you haven't prepared a configuration or which **BlueDot** cannot execute.
@@ -846,9 +859,9 @@ a connection.
         ->execute()
         ->getResult();
         
-## 12. Promise interface and getting the result
+## 11. Promise interface and getting the result
 
-#### 12.1 Introduction
+#### 11.1 Introduction
 
 Results in BlueDot are accessed trough the *Promise* object that 
 *BlueDot::execute()* method returns.
@@ -868,7 +881,7 @@ an example of what the result might look like and the methods on the
 
 First, lets talk about the *Promise* object.
 
-#### 12.2 PromiseInterface
+#### 11.2 PromiseInterface
 
 Lets run a query that will return all users from the database:
 
@@ -914,7 +927,7 @@ about scopes in PHP but there should be. For example:
 Now, lets talk about the *EntityInterface* and the *Entity* implementation
 of that interface.
 
-#### 12.3 Entity result object
+#### 11.3 Entity result object
 
 The *BlueDot\Entity\Entity* object is a wrapper around the result that has 
 various methods that can help you to get the data from the final result and manipulate
@@ -992,6 +1005,198 @@ service statements in one logical place. Because of that, anything you return fr
 *run()* method, will be in the *data* property of the *Entity* object and in that regard,
 has no difference between the scenario result or simple statement result.
 
+## 12. Filters
+
+Filters are a way of filtering out the result after a certain statement was 
+executed. You can use it to find a certain entry in a list of entries, extract a single
+column out of a list of entries or link columns in a one-to-many relationship.
+
+It is important to note that filters do **not** work with object but only with
+plain arrays.
+
+Filters can be found on the result of the **Entity** object
+
+#### 12.1 A list of possibilities
+
+**Very important**
+
+Every *Entity* object is immutable. That means that after you apply a filter on
+a result, you will get a new *Entity* object back which preserves the original result.
+
+**Entity::findBy($columns:string, $value:any): array**
+
+Given a *$column* name and a value of the column, returns an array of found values.
+     
+For example:
+     
+If the result of a query is:
+
+          [
+              0 => ['name' => 'Natalia', 'last_name' => 'Natalie' ... other fields ]
+              1 => ['name' => 'Katie', 'last_name' => 'Melua' ... other fields ]
+              2 => ['name' => 'Billie', 'last_name' => 'Holiday' ... other fields ]
+              3 => ['name' => 'Dolly', 'last_name' => 'Parton' ... other fields ]
+              4 => ['name' => 'Natalia', 'last_name' => 'Natalie' ... other fields ]
+          ]
+
+if you call $entity->findBy('name', 'Natalia'), this method will return a list
+of all results that have 'Natalia' in the name column. It is important to say that 
+this method will return an *array* of numerically indexed entries even if there is only
+one entry.
+ 
+In this example, it will return 2 entries.
+
+**Entity::find($column:string, $value:any): array**
+
+This method returns a single entry only if a single entry actually exists in the array
+of results. If we have a result like this one...
+
+      
+     [
+         0 => ['name' => 'Natalia', 'last_name' => 'Natalie' ... other fields ]
+         1 => ['name' => 'Katie', 'last_name' => 'Melua' ... other fields ]
+         2 => ['name' => 'Billie', 'last_name' => 'Holiday' ... other fields ]
+         3 => ['name' => 'Dolly', 'last_name' => 'Parton' ... other fields ]
+         4 => ['name' => 'Natalia', 'last_name' => 'Natalie' ... other fields ]
+     ]
+
+*$entity->find('name', 'Natalia')* will throw an exception because there are 2 rows that have
+the string 'Natalia' as the value of the name column. Wrap this method into a try/catch
+clause to avoid the exception.
+
+**Entity::extractColumn($column:string): array**
+
+Entity::extractColumn() returns all entries of one column.
+
+     [
+         0 => ['name' => 'Natalia', 'last_name' => 'Natalie' ... other fields ]
+         1 => ['name' => 'Katie', 'last_name' => 'Melua' ... other fields ]
+         2 => ['name' => 'Billie', 'last_name' => 'Holiday' ... other fields ]
+         3 => ['name' => 'Dolly', 'last_name' => 'Parton' ... other fields ]
+         4 => ['name' => 'Natalia', 'last_name' => 'Natalie' ... other fields ]
+     ]
+
+$entity->extractColumn('name') will return a list of all name properties like this...
+
+
+     [
+         'name' => ['Natalia', 'Katie', 'Billie', 'Dolly', 'Natalia']
+     ]
+     
+**Entity::normalizeJoinedResult($grouping:array, $columns:array): array**
+     
+This is a special method that deals only with relationships between MySQL tables.
+If you have a one-to-many relationship, use this method to group the fields in a natural 
+way.
+ 
+For example, if we have a table *words* and a table *translations* and *translations* table
+has a many-to-one relationship to *words*, execution a join sql query will result in the number of rows
+that *translations* table has even if *words* has only one row for a search word.
+      
+     SELECT w.id, w.name, t.translation FROM words AS w INNER JOIN translations AS t ON w.id = t.word_id AND w.id = 1;
+    
+If *translations* has 10 rows for a single word, this query would return 10 rows with identical information
+from the *words* table rows and different translations. This is not what we want.
+
+To group this result, use 
+     
+     $entity->normalizeJoinedResult([
+         'linking_column' => 'id',
+         'columns' => ['translations']
+     ]);
+
+*linking_column* tells us the relationship between the rows. It the above example, *id* would be identical for
+all rows since it is the *id* of the *words* table. *columns* are the columns you would like to group. The result is
+ 
+     [
+         'id' => 1,
+         'name' => 'word_name',
+         'translations' => [
+             'translation1',
+             'translation2',
+             ... other translations
+         ]
+     ]
+
+You can choose as much columns as you like.
+
+#### Chaining filters
+
+Filters can be chained to get to a wanted result. If we wanted to extract
+all the translations from the *Entity::normalizeJoinedResult()* example into a single
+associative array, we could use
+
+    $entity
+        ->normalizeJoinedResult([
+            'linking_column' => 'id',
+            'columns' => ['translations'],
+        ])
+        ->extractColumn('translations')
+        ->normalizeIfOneExists()
+        
+The result of these methods would be a single array with all the found translations.
+
+You can also use this example with this SQL query
+
+    SELECT w.id, w.name, t.translation FROM words AS w INNER JOIN translations AS t ON w.id = t.word_id;
+    
+This is the same example that we used with *Entity::normalizeJoinedResult()* but we dropped
+the *AND id = 1* which gives us all the translations of a single word. In the new example, we want
+the translations of all the words that have a translation. If, for example, we have 3 words
+with 10 translations for each, the above query would return 30 rows, one row for each translation.
+
+So, first we are going to normalize the result to group all the translations for a particular word into
+a single *translations* field. After that, we find the the word with *id = 2* and normalize the result
+to return a single string key based array.
+
+    $entity
+        ->normalizeJoinedResult([
+            'linking_column' => 'id',
+            'columns' => ['translations'],
+        ])
+        ->find('id', 2);
+        ->normalizeIfOneExists()
+        
+#### 12.2 Using configuration filters
+
+You can use all the filters in configuration also, but there is one downside.
+If you read the entire chapter on filters, you know that using filters in code with the
+*Entity* object preserves the original *Entity* object. Every filter method returns a new 
+object which makes the *Entity* object immutable.
+
+That is not the case with configuration entities. If you choose to apply a filter (or chain filters) in
+configuration, the original result is lost.
+
+You can use filters in configuration like this:
+
+    normalize_joined_result_find_all_users:
+        sql: SELECT * FROM users
+        filter:
+            by_column: 'id'
+            
+*by_column* is an alias for *Entity::extractColumn()* when used in code. This will have
+the same effect as calling *Entity::extractColumn()*.
+
+You can also chain the filters in configuration:
+
+    normalize_joined_result_find_all_users:
+        sql: select.find_all_users
+        filter:
+            normalize_joined_result:
+                linking_column: 'id'
+                columns: ['username']
+            find: [id, 7]
+            normalize_if_one_exists: true
+            
+*Please note that normalize_if_one_exists has to receive the boolean true or false*
+
+When used in configuration, all filters are grouped and sent to an observer pattern that does
+not care about the original result, only the result it gets from the next executing filter.
+
+The choice of using filters in code or in the configuration is up to you. If you do not need to preserve
+the original result, use configuration filters. If you need the original result but also the results
+of filters, use the filters in code as method of the *Entity* object. The choice is yours.
+     
 ## 13. Imports
 
 Imports are a way of centralizing all your sql queries into one .yml file. Path to that file is injected
@@ -1052,13 +1257,13 @@ In configuration, this import would look like this...
                     use:
                         statement_name:
                         values: {select_user.id: id}
-                     
+                
 ## 14. Conclusion
 
 Although **BlueDot** makes executing sql queries easy, it is not here to replace Doctrine or similar tools.
 I recommend using **BlueDot** when you have to make complex sql queries when using a DBAL would be an overhead.
 **BlueDot** can be used to create complete applications but not every application should be using **BlueDot**
-exclusivly. For example, if you have an application that has a lot of forms that need to be inserted and updated,
+exclusively. For example, if you have an application that has a lot of forms that need to be inserted and updated,
 **BlueDot** is probably not for you. But, if you have a complex search feature that selects a lot of data
 from many tables, use it. 
 
@@ -1066,12 +1271,31 @@ You can also use **BlueDot** together with Doctrine or similar tools. Doctrine c
 If you leave out *connection* configuration values, you can init **BlueDot** with doctrines connection and use 
 it together with **BlueDot**. 
 
-    $blueDotConnection = new BlueDot\Database\Connection();
-    $blueDotConnection->setPDO($connection->getWrappedConnection());
+    use BlueDot\Kernel\Connection\ConnectionFactory;
     
-    $blueDot = new BlueDot('path/to/config.yml', $blueDotConnection);
+    $doctrinePdoConnection = // get the PDO object from doctrine here
     
-Now, **BlueDot** and Doctrine are both using the same connection.
+    $connection = ConnectionFactory::create([]);
+    $connection->setPDO($doctrinePdoConnection);
+    
+    $blueDot->setConnection($connection);
+    
+Now, **BlueDot** and Doctrine are both using the same connection. If BlueDot used
+a previous PDO object from somewhere else, that connection is after you call
+*BlueDot::setConnection()*
+
+## 15. Setting up tests
+
+To setup tests, create a database called *blue_dot* with the username *root* and
+password *root*. Locally, I use simple passwords. If you have something else
+setted up, go into the *tests/config/result* directory and find these files:
+
+*prepared_execution_test.yml*
+*simple_statement_test.yml*
+*scenario_statement_test.yml*
+
+and change the connection settings in those files under the *configuration > connection* node
+and you are all set to run tests locally.
 
 
 

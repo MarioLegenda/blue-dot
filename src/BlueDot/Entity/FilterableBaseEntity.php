@@ -23,7 +23,15 @@ class FilterableBaseEntity extends BaseEntity implements FilterableEntityInterfa
      *         1 => ['name' => 'Katie', 'last_name' => 'Melua' ... other fields ]
      *         2 => ['name' => 'Billie', 'last_name' => 'Holiday' ... other fields ]
      *         3 => ['name' => 'Dolly', 'last_name' => 'Parton' ... other fields ]
+     *         4 => ['name' => 'Natalia', 'last_name' => 'Natalie' ... other fields ]
      *     ]
+     *
+     * if you call $entity->findBy('name', 'Natalia'), this method will return a list
+     * of all results that have 'Natalia' in the name column. It is important to say that
+     * this method will return an *array* of numerically indexed entries even if there is only
+     * one entry.
+     *
+     * In this example, it will return 2 entries.
      */
     public function findBy(string $column, $value): FilterableEntityInterface
     {
@@ -32,6 +40,21 @@ class FilterableBaseEntity extends BaseEntity implements FilterableEntityInterfa
     /**
      * @inheritdoc
      * @return FilterableEntityInterface|EntityInterface
+     *
+     * Find method returns a single entry only if a single entry actually exists in the array
+     * of results. If we have a result like this one...
+     *
+     *     [
+     *         0 => ['name' => 'Natalia', 'last_name' => 'Natalie' ... other fields ]
+     *         1 => ['name' => 'Katie', 'last_name' => 'Melua' ... other fields ]
+     *         2 => ['name' => 'Billie', 'last_name' => 'Holiday' ... other fields ]
+     *         3 => ['name' => 'Dolly', 'last_name' => 'Parton' ... other fields ]
+     *         4 => ['name' => 'Natalia', 'last_name' => 'Natalie' ... other fields ]
+     *     ]
+     *
+     * $entity->find('name', 'Natalia') will throw an exception because there are 2 rows that have
+     * the string 'Natalia' as the value of the name column. Wrap this method into a try/catch
+     * clause to avoid the exception.
      */
     public function find(string $column, $value): FilterableEntityInterface
     {
@@ -40,6 +63,21 @@ class FilterableBaseEntity extends BaseEntity implements FilterableEntityInterfa
     /**
      * @inheritdoc
      * @return FilterableEntityInterface|EntityInterface
+     *
+     * Entity::extractColumn() returns all entries of one column.
+     *     [
+     *         0 => ['name' => 'Natalia', 'last_name' => 'Natalie' ... other fields ]
+     *         1 => ['name' => 'Katie', 'last_name' => 'Melua' ... other fields ]
+     *         2 => ['name' => 'Billie', 'last_name' => 'Holiday' ... other fields ]
+     *         3 => ['name' => 'Dolly', 'last_name' => 'Parton' ... other fields ]
+     *         4 => ['name' => 'Natalia', 'last_name' => 'Natalie' ... other fields ]
+     *     ]
+     *
+     * $entity->extractColumn('name') will return a list of all name properties like this...
+     *
+     * [
+     *     'name' => ['Natalia', 'Katie', 'Billie', 'Dolly', 'Natalia']
+     * ]
      */
     public function extractColumn(
         string $column,
@@ -51,6 +89,41 @@ class FilterableBaseEntity extends BaseEntity implements FilterableEntityInterfa
     /**
      * @inheritdoc
      * @return FilterableEntityInterface|EntityInterface
+     *
+     * This is a special method that deals only with relationships between MySQL tables.
+     * If you have a one-to-many relationship, use this method to group the fields in a natural
+     * way.
+     *
+     * For example, if we have a table *words* and a table *translations* and *translations* table
+     * has a many-to-one relationship to *words*, execution a join sql query will result in the number of rows
+     * that *translations* table has even if *words* has only one row for a search word.
+     *
+     * SELECT w.id, w.name, t.translation FROM words AS w INNER JOIN translations AS t ON w.id = t.word_id AND w.id = 1;
+     *
+     * If *translations* has 10 rows for a single word, this query would return 10 rows with identical information
+     * from the *words* table rows and different translations. This is not what we want.
+     *
+     * To normalize this result, use
+     *
+     * $entity->normalizeJoinedResult([
+     *     'linking_column' => 'id',
+     *     'columns' => ['translations']
+     * ]);
+     *
+     * 'linking_column' tells us the relationship between the rows. It the above example, 'id' would be identical for
+     * all rows since it is the 'id' of the *words* table. 'columns' are the columns you would like to group. The result is
+     *
+     * [
+     *     'id' => 1,
+     *     'name' => 'word_name',
+     *     'translations' => [
+     *         'translation1',
+     *         'translation2',
+     *         ... other translations
+     *     ]
+     * ]
+     *
+     * You can choose as much columns as you like.
      */
     public function normalizeJoinedResult(
         array $grouping,
@@ -61,6 +134,34 @@ class FilterableBaseEntity extends BaseEntity implements FilterableEntityInterfa
     /**
      * @inheritdoc
      * @return FilterableEntityInterface|EntityInterface
+     *
+     * All the above methods return the result as a numerically indexed array even if the only found
+     * a single result. This method flattens or normalizes the array and returns just that single result.
+     *
+     *     [
+     *         0 => ['name' => 'Natalia', 'last_name' => 'Natalie' ... other fields ]
+     *         1 => ['name' => 'Katie', 'last_name' => 'Melua' ... other fields ]
+     *         2 => ['name' => 'Billie', 'last_name' => 'Holiday' ... other fields ]
+     *         3 => ['name' => 'Dolly', 'last_name' => 'Parton' ... other fields ]
+     *     ]
+     *
+     * In this example, $entity->find('name', 'Natalia') would return this...
+     *
+     * [
+     *     0 => ['name' => 'Natalia', 'last_name' => 'Natalie' ... other fields
+     * ]
+     *
+     * When $entity->normalizeIfOneExists() is applied, it would return
+     *
+     * [
+     *     'name' => 'Natalia',
+     *     'last_name' => 'Natalie'
+     *     ... other fields
+     * ]
+     *
+     * Notice that we lost the numeric index. This method only works if there is a single entry in an array
+     *
+     * You can chain calls to this method like this $entity->find('name', 'Natalia')->normalizeIfOneExists()
      */
     public function normalizeIfOneExists() : FilterableEntityInterface
     {
@@ -81,6 +182,10 @@ class FilterableBaseEntity extends BaseEntity implements FilterableEntityInterfa
 
             if (is_int($firstKey)) {
                 $result = $arguments[0];
+            }
+
+            if (is_string($firstKey)) {
+                $result = $arguments[$firstKey];
             }
         }
 
